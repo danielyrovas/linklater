@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application
+        android:usesCleartextTraffic="true"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/linkding"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/linkding"
+        android:supportsRtl="false"
+        android:theme="@style/Theme.Linklater"
+        android:launchMode="singleTask"
+        tools:targetApi="34">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Linklater">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".SaveBookmarkActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Linklater">
+<!--            <intent-filter>-->
+<!--                <action android:name="android.intent.action.MAIN" />-->
+<!--                <category android:name="android.intent.category.LAUNCHER" />-->
+<!--            </intent-filter>-->
+
+            <!-- action.send handling for copying texts -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/plain"/>
+            </intent-filter>
+            <!-- action.view handling opening links -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+
+                <!-- web -->
+                <data android:scheme="http"/>
+                <data android:scheme="https"/>
+                <!-- email -->
+                <data android:scheme="mailto"/>
+                <!-- maps, location -->
+                <data android:scheme="geo"/>
+                <!-- file -->
+                <data android:scheme="file"/>
+                <!-- live streaming -->
+                <data android:scheme="rtsp"/>
+                <data android:scheme="rtmp"/>
+                <!-- file sharing -->
+                <data android:scheme="ftp"/>
+                <data android:scheme="sftp"/>
+                <!-- dialer related -->
+                <data android:scheme="sms"/>
+                <data android:scheme="smsto"/>
+                <data android:scheme="mms"/>
+                <data android:scheme="mmsto"/>
+                <data android:scheme="tel"/>
+                <data android:scheme="voicemail"/>
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

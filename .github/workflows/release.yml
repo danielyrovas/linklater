@@ -1,0 +1,61 @@
+name: Build, Sign, Release
+permissions: write-all
+on:
+  push:
+    branches:
+      - trunk
+      # tags:
+      #   - 'v*.*.*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          APP_VERSION=$(grep 'app-versionName' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
+          echo "RELEASE_VERSION=$APP_VERSION" >> $GITHUB_ENV
+      - name: Set up JDK env
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 19
+          cache: 'gradle'
+
+      - name: Execute Gradle build
+        run: ./gradlew --no-daemon --build-cache assembleRelease
+
+      - name: Sign the APK
+        run: |
+          echo "${{ secrets.KEYSTORE }}" > keystore.asc
+          gpg -d --passphrase "${{ secrets.KEY_PASSWD }}" --batch keystore.asc > keystore.jks
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore keystore.jks -storepass ${{ secrets.KEY_PASSWD }} -keypass ${{ secrets.KEY_PASSWD }} app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
+
+      - name: Verify the APK signature
+        run: jarsigner -verify -verbose -certs -keystore keystore.jks -storepass ${{ secrets.KEY_PASSWD }} app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
+
+      - name: Zipalign the APK
+        run: |
+          BUILD_TOOLS_PATH=/usr/local/lib/android/sdk/build-tools/$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
+          $BUILD_TOOLS_PATH/zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          release_name: Release ${{ env.RELEASE_VERSION }}
+          draft: false
+          prerelease: false
+
+      - name: Upload release APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app/build/outputs/apk/release/app-release.apk
+          asset_name: linklater-release.apk
+          asset_content_type: application/vnd.android.package-archive
+
