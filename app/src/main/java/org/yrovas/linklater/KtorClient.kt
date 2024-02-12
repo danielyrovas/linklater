@@ -32,14 +32,14 @@ class Ktor {
                 }
             }
 
-            install(Logging) {
-                logger = object : Logger {
-                    override fun log(message: String) {
-                        Log.v("Ktor =>", message)
-                    }
-                }
-                level = LogLevel.ALL
-            }
+//            install(Logging) {
+//                logger = object : Logger {
+//                    override fun log(message: String) {
+//                        Log.v("Ktor =>", message)
+//                    }
+//                }
+//                level = LogLevel.ALL
+//            }
 
             install(ResponseObserver) {
                 onResponse { response ->

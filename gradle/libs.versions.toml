@@ -20,7 +20,7 @@ datastore = "1.0.0"
 # Versions
 app-versionID = "org.yrovas.linklater"
 app-versionCode = "1"
-app-versionName = "0.0.1"
+app-versionName = "0.1.0"
 # Build
 app-compileSDK = "34"
 app-targetSDK = "34"

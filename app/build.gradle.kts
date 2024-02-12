@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.api.BaseVariantOutputImpl
+
 @Suppress("DSL_SCOPE_VIOLATION") // TODO: Remove once KTIJ-19369 is fixed
 plugins {
     alias(libs.plugins.android)
@@ -27,8 +29,7 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
         debug { applicationIdSuffix = ".debug" }
@@ -44,6 +45,14 @@ android {
         kotlinCompilerExtensionVersion = libs.versions.app.composeCompiler.get()
     }
     packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            (this as BaseVariantOutputImpl).outputFileName =
+                "app-${variant.productFlavors[0].name}-${variant.buildType.name}-${variant.versionName}.apk"
+        }
+        true
+    }
 }
 
 dependencies {

@@ -1,0 +1,72 @@
+name: Build, Sign, Release
+
+on:
+  push:
+    branches:
+      - trunk
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+
+    - name: Set up our JDK environment
+      uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+    - name:
+      uses: gradle/actions/setup-gradle@v3
+
+    - name: Execute Gradle build
+      run: ./gradlew --configuration-cache --build-cache assembleRelease
+
+    - name: Sign artifact
+      id: sign_artifact
+      uses: r0adkll/sign-android-release@v1
+      with:
+        releaseDirectory: app/build/outputs/apk/release
+        alias: ${{ secrets.KEY_ALIAS }}
+        signingKeyBase64: ${{ secrets.KEYSTORE }}
+        keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+        keyPassword: ${{ secrets.KEY_PASSWORD }}
+
+    - name: Upload our APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: Release artifact
+        path: app/build/outputs/apk/release/app-*.apk
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Save name of our Artifact
+      id: set-result-artifact
+      run: |
+        ARTIFACT_PATHNAME_APK=$(ls app/build/outputs/apk/ourbuildtype/release/*.apk | head -n 1)
+        ARTIFACT_NAME_APK=$(basename $ARTIFACT_PATHNAME_APK)
+        echo "ARTIFACT_NAME_APK is " ${ARTIFACT_NAME_APK}
+        echo "ARTIFACT_PATHNAME_APK=${ARTIFACT_PATHNAME_APK}" >> $GITHUB_ENV
+        echo "ARTIFACT_NAME_APK=${ARTIFACT_NAME_APK}" >> $GITHUB_ENV
+
+    - name: Upload our Artifact Assets
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.ARTIFACT_PATHNAME_APK }}
+        asset_name: ${{ env.ARTIFACT_NAME_APK }}
+        asset_content_type: application/zip
