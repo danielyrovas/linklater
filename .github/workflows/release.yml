@@ -13,6 +13,9 @@ jobs:
     - name: checkout
       uses: actions/checkout@v4
 
+    - name: fun
+      run: ls /usr/local/lib/android/sdk/build-tools/
+
     - name: Set up our JDK environment
       uses: actions/setup-java@v4
       with:
@@ -22,7 +25,7 @@ jobs:
       uses: gradle/actions/setup-gradle@v3
 
     - name: Execute Gradle build
-      run: ./gradlew --configuration-cache --build-cache assembleRelease
+      run: ./gradlew --build-cache assembleRelease
 
     - name: Sign artifact
       id: sign_artifact
@@ -33,6 +36,8 @@ jobs:
         signingKeyBase64: ${{ secrets.KEYSTORE }}
         keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
         keyPassword: ${{ secrets.KEY_PASSWORD }}
+      env:
+        BUILD_TOOLS_VERSION: "34.0.0"
 
     - name: Upload our APK
       uses: actions/upload-artifact@v2
