@@ -15,9 +15,6 @@ jobs:
     - name: checkout
       uses: actions/checkout@v4
 
-    - name: fun
-      run: ls /usr/local/lib/android/sdk/build-tools/
-
     - name: Set up our JDK environment
       uses: actions/setup-java@v4
       with:
@@ -53,7 +50,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        # tag_name: ${{ github.ref }}
+        tag_name: trunk
         release_name: Release trunk
         draft: false
         prerelease: false
