@@ -53,15 +53,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        # tag_name: ${{ github.ref }}
+        release_name: Release trunk
         draft: false
         prerelease: false
 
     - name: Save name of our Artifact
       id: set-result-artifact
       run: |
-        ARTIFACT_PATHNAME_APK=$(ls app/build/outputs/apk/ourbuildtype/release/*.apk | head -n 1)
+        ARTIFACT_PATHNAME_APK=$(ls app/build/outputs/apk/release/*.apk | head -n 1)
         ARTIFACT_NAME_APK=$(basename $ARTIFACT_PATHNAME_APK)
         echo "ARTIFACT_NAME_APK is " ${ARTIFACT_NAME_APK}
         echo "ARTIFACT_PATHNAME_APK=${ARTIFACT_PATHNAME_APK}" >> $GITHUB_ENV
