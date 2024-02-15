@@ -4,94 +4,52 @@ on:
   push:
     branches:
       - trunk
-    # tags:
-    #   - 'v*.*.*'
-
+      # tags:
+      #   - 'v*.*.*'
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Set env
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-      - name: Test
-        run: |
-          echo $RELEASE_VERSION
-          echo ${{ env.RELEASE_VERSION }}
+      - uses: actions/checkout@v4
+      - run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+      - name: Set up JDK env
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 19
+          cache: 'gradle'
 
-# jobs:
-#   build:
-#     runs-on: ubuntu-latest
-#
-#     steps:
-#     - name: checkout
-#       uses: actions/checkout@v4
-#
-#     - name: Set up JDK env
-#       uses: actions/setup-java@v4
-#       with:
-#         distribution: 'temurin'
-#         java-version: 19
-#         cache: 'gradle'
-#
-#     # - name:
-#       # uses: gradle/actions/setup-gradle@v3
-#
-#     - name: Execute Gradle build
-#       run: ./gradlew --no-daemon --build-cache assembleRelease
-#
-#     # - name: Setup build tool version variable
-#     #   shell: bash
-#     #   run: |
-#     #     BUILD_TOOL_VERSION=$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
-#     #     echo "BUILD_TOOL_VERSION=$BUILD_TOOL_VERSION" >> $GITHUB_ENV
-#     #     echo Last build tool version is: $BUILD_TOOL_VERSION
-#     #
-#     # - name: Sign artifact
-#     #   id: sign_artifact
-#     #   uses: r0adkll/sign-android-release@v1
-#     #   with:
-#     #     releaseDirectory: app/build/outputs/apk/release
-#     #     alias: ${{ secrets.KEY_ALIAS }}
-#     #     signingKeyBase64: ${{ secrets.KEYSTORE }}
-#     #     keyStorePassword: ${{ secrets.KEY_PASSWD }}
-#     #     keyPassword: ${{ secrets.KEY_PASSWD }}
-#     #   env:
-#     #     BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOL_VERSION }}
-#
-#     - name: Upload our APK
-#       uses: actions/upload-artifact@v2
-#       with:
-#         name: Release artifact
-#         path: app/build/outputs/apk/release/app-*.apk
-#
-#     - name: Create Release
-#       id: create_release
-#       uses: actions/create-release@v1
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       with:
-#         tag_name: trunk
-#         release_name: Release trunk
-#         draft: false
-#         prerelease: false
-#
-#     - name: Save name of our Artifact
-#       id: set-result-artifact
-#       run: |
-#         ARTIFACT_PATHNAME_APK=$(ls app/build/outputs/apk/release/*.apk | head -n 1)
-#         ARTIFACT_NAME_APK=$(basename $ARTIFACT_PATHNAME_APK)
-#         echo "ARTIFACT_NAME_APK is " ${ARTIFACT_NAME_APK}
-#         echo "ARTIFACT_PATHNAME_APK=${ARTIFACT_PATHNAME_APK}" >> $GITHUB_ENV
-#         echo "ARTIFACT_NAME_APK=${ARTIFACT_NAME_APK}" >> $GITHUB_ENV
-#
-#     - name: Upload our Artifact Assets
-#       id: upload-release-asset
-#       uses: actions/upload-release-asset@v1
-#       env:
-#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#       with:
-#         upload_url: ${{ steps.create_release.outputs.upload_url }}
-#         asset_path: ${{ env.ARTIFACT_PATHNAME_APK }}
-#         asset_name: ${{ env.ARTIFACT_NAME_APK }}
-#         asset_content_type: application/zip
+      - name: Execute Gradle build
+        run: ./gradlew --no-daemon --build-cache assembleRelease
+
+      - name: Sign the APK
+        run: |
+          echo "${{ secrets.KEYSTORE }}" > keystore.jks
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore keystore.jks -storepass ${{ secrets.KEY_PASSWD }} -keypass ${{ secrets.KEY_PASSWD }} app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
+
+      - name: Verify the APK signature
+        run: jarsigner -verify -verbose -certs app/build/outputs/apk/release/app-release-unsigned.apk
+
+      - name: Zipalign the APK
+        run: zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          release_name: Release ${{ env.RELEASE_VERSION }}
+          draft: false
+          prerelease: false
+
+      - name: Upload release APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app/build/outputs/apk/release/app-release.apk
+          asset_name: linklater-release.apk
+          asset_content_type: application/vnd.android.package-archive
