@@ -34,7 +34,7 @@ jobs:
         run: jarsigner -verify -verbose -certs -keystore keystore.jks -storepass ${{ secrets.KEY_PASSWD }} app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
 
       - name: Zipalign the APK
-        run: zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
+        run: ${{ github.workspace }}/cmdline-tools/latest/bin/zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
 
       - name: Create Release
         id: create_release
