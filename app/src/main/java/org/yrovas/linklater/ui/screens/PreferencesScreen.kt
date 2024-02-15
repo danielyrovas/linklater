@@ -72,18 +72,10 @@ fun PreferencesScreen(
     }
 }
 
-@Preview
+@ThemePreview
 @Composable
 fun PreferencesScreenPreview() {
-    AppTheme(darkTheme = true) {
-        PreferencesScreen(EmptyDestinationsNavigator, MainActivityState())
-    }
-}
-
-@Preview
-@Composable
-fun PreferencesLightScreenPreview() {
-    AppTheme(darkTheme = false) {
+    AppTheme {
         PreferencesScreen(EmptyDestinationsNavigator, MainActivityState())
     }
 }

@@ -1,19 +1,24 @@
 package org.yrovas.linklater
 
 import android.content.Context
+import android.widget.Toast
+import androidx.annotation.Keep
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.yrovas.linklater.data.Bookmark
 
+@Keep
 object Prefs {
     val LINKDING_URL = stringPreferencesKey("linkding_url")
     val LINKDING_TOKEN = stringPreferencesKey("linkding_token")
 }
 
+@Keep
 class MainActivityState : ViewModel() {
     private var bookmarkAPI: BookmarkAPI = EmptyBookmarkAPI()
 
@@ -60,12 +65,14 @@ class MainActivityState : ViewModel() {
     val displayedTags: StateFlow<List<String>> = _displayedTags.asStateFlow()
 
     private suspend fun getBookmarks(page: Int = 0) = _displayedBookmarks.update {
-        bookmarkAPI.getBookmarks(page = page).getOrDefault(emptyList())
+        bookmarkAPI.getBookmarks(page = page, query = null)
+            .getOrDefault(emptyList())
     }
 
     private suspend fun cacheBookmarks(context: Context) {
         bookmarkAPI.cacheBookmarks(context, displayedBookmarks.value)
     }
+
     private suspend fun cacheTags(context: Context) {
         bookmarkAPI.cacheTags(context, displayedTags.value)
     }
@@ -76,12 +83,14 @@ class MainActivityState : ViewModel() {
             _displayedBookmarks.emit(bookmarks)
         }
     }
+
     private suspend fun loadLocalTags(context: Context) {
         val tags = bookmarkAPI.getCachedTags(context)
         if (displayedTags.value.isEmpty()) {
             _displayedTags.emit(tags)
         }
     }
+
     private suspend fun tagsFromCachedBookmarks() {
         val tags = displayedBookmarks.value.flatMap { it.tags }.distinct()
         _displayedTags.update {
@@ -94,11 +103,11 @@ class MainActivityState : ViewModel() {
             loadPrefs(context)
             loadLocalBookmarks(context) // get cached page
             loadLocalTags(context) // get cached page
-        }
+        }.join()
         refresh(context)
     }
 
-    fun refresh(context: Context) {
+    private suspend fun doRefresh(context: Context) {
         viewModelScope.launch {
             _isRefreshing.emit(true)
             getBookmarks()
@@ -106,6 +115,14 @@ class MainActivityState : ViewModel() {
             _isRefreshing.emit(false)
             tagsFromCachedBookmarks()
             cacheTags(context)
-        }
+        }.join()
+    }
+
+    private fun toast(context: Context, text: String) {
+        Toast.makeText(context, text, Toast.LENGTH_LONG).show()
+    }
+
+    fun refresh(context: Context) {
+        viewModelScope.launch { doRefresh(context) }
     }
 }

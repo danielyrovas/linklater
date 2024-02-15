@@ -1,9 +1,11 @@
 package org.yrovas.linklater
 
 import android.content.Context
+import androidx.annotation.Keep
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
 
+@Keep
 class EmptyBookmarkAPI : BookmarkAPI {
     override suspend fun getBookmarks(
         page: Int,

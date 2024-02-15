@@ -2,8 +2,9 @@ package org.yrovas.linklater
 
 import android.content.Context
 import android.util.Log
+import io.ktor.client.call.body
 import io.ktor.client.request.*
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -13,6 +14,7 @@ import java.io.File
 
 const val BOOKMARKS_CACHE_PATH = "bookmark_page_cache.json"
 const val TAGS_CACHE_PATH = "tags_cache.json"
+const val TAG = "DEBUG"
 
 class LinkDingAPI(
     private var endpoint: String,
@@ -25,33 +27,33 @@ class LinkDingAPI(
     ): Result<List<Bookmark>> {
         return runCatching {
             Log.d("DEBUG/net", "getBookmarks: starting request")
-            val response =
-                Ktor.client.get<BookmarkResponse>("$endpoint/bookmarks/") {
-                    if (page > 0) {
-                        url.parameters.append(
-                            "offset", (pageSize * page).toString()
-                        )
-                    }
-                    if (!query.isNullOrBlank()) {
-                        url.parameters.append("q", query)
-                    }
-                    header("Authorization", "Token $token")
+            val response = Ktor.client.get("$endpoint/bookmarks/") {
+                header("Authorization", "Token $token")
+                if (page > 0) {
+                    url.parameters.append(
+                        "offset", (pageSize * page).toString()
+                    )
                 }
-            response.results
+                if (!query.isNullOrBlank()) {
+                    url.parameters.append("q", query)
+                }
+            }
+//            Json.decodeFromString<BookmarkResponse>(response.bodyAsText()).results
+            response.body<BookmarkResponse>().results // ?? very kool Ktor
         }.onFailure {
+            Log.i(TAG, "getBookmarks: ${it.message}")
             Result.failure<List<Bookmark>>(it)
         }
     }
 
     override suspend fun saveBookmark(bookmark: LocalBookmark): Boolean {
-        return Ktor.client.post<HttpResponse>("$endpoint/bookmarks/") {
-            body = bookmark
+        return Ktor.client.post("$endpoint/bookmarks/") {
+            setBody(bookmark)
             header("Authorization", "Token $token")
         }.status.value in 200..299
     }
 
     override suspend fun getCachedBookmarks(context: Context): List<Bookmark> {
-        // return emptyList()
         val cache = File(context.cacheDir, BOOKMARKS_CACHE_PATH)
         return runCatching {
             Json.decodeFromString<List<Bookmark>>(cache.readText())
@@ -73,13 +75,13 @@ class LinkDingAPI(
     override suspend fun getTags(page: Int): Result<List<String>> {
         return runCatching {
             Log.d("DEBUG/net", "getTags: starting request")
-            val response = Ktor.client.get<TagResponse>("$endpoint/tags/") {
+            val response = Ktor.client.get("$endpoint/tags/") {
+                header("Authorization", "Token $token")
                 if (page > 0) {
                     url.parameters.append("offset", (pageSize * page).toString())
                 }
-                header("Authorization", "Token $token")
             }
-            response.results
+            response.body<TagResponse>().results
         }.onFailure {
             Result.failure<List<String>>(it)
         }

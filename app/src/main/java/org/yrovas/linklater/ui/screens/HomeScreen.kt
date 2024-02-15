@@ -3,10 +3,9 @@ package org.yrovas.linklater.ui.screens
 import android.content.Context
 import android.content.res.Configuration.UI_MODE_NIGHT_NO
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -18,6 +17,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.net.toUri
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootNavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
@@ -25,11 +25,10 @@ import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
-import org.yrovas.linklater.MainActivityState
+import org.yrovas.linklater.*
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.destinations.PreferencesScreenDestination
 import org.yrovas.linklater.destinations.SaveBookmarkActivityDestination
-import org.yrovas.linklater.timeAgo
 import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.theme.AppTheme
@@ -116,7 +115,10 @@ fun HomeBar(page: String, nav: DestinationsNavigator) {
 }
 
 @Composable
-fun BookmarkRow(bookmark: Bookmark) {
+fun BookmarkRow(
+    bookmark: Bookmark,
+    context: Context = LocalContext.current,
+) {
     Column(
         modifier = Modifier.padding(vertical = padding.standard),
         verticalArrangement = Arrangement.Center,
@@ -141,19 +143,20 @@ fun BookmarkRow(bookmark: Bookmark) {
         }
         Spacer(modifier = Modifier.height(padding.tiny))
         Row {
-            Text(
-                text = if (!bookmark.title.isNullOrBlank()) {
-                    bookmark.title
-                } else if (!bookmark.website_title.isNullOrBlank()) {
-                    bookmark.website_title
-                } else {
-                    bookmark.url.substringAfter("://")
-                },
+            Text(text = if (!bookmark.title.isNullOrBlank()) {
+                bookmark.title
+            } else if (!bookmark.website_title.isNullOrBlank()) {
+                bookmark.website_title
+            } else {
+                bookmark.url.substringAfter("://")
+            },
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable {
+                    openBrowser(context, bookmark.url.toUri())
+                })
         }
         if (!bookmark.description.isNullOrBlank() || !bookmark.website_description.isNullOrBlank()) {
             Spacer(modifier = Modifier.height(padding.half))
@@ -176,9 +179,6 @@ fun BookmarkRow(bookmark: Bookmark) {
         if (bookmark.tags.isNotEmpty()) {
             Spacer(modifier = Modifier.height(padding.half))
             LazyRow(
-//            modifier = Modifier.padding(
-//                horizontal = padding.standard,
-//            ),
             ) {
                 items(bookmark.tags, key = { it }) {
                     Text(
@@ -194,7 +194,7 @@ fun BookmarkRow(bookmark: Bookmark) {
 @ThemePreview
 @Composable
 fun BookmarkRowsPreview() {
-    AppTheme(darkTheme = true) {
+    AppTheme {
         Surface {
             Column(modifier = Modifier.padding(padding.standard)) {
                 BookmarkRow(
@@ -204,7 +204,7 @@ fun BookmarkRowsPreview() {
                         website_title = "Pls github | stop making the titles way to large. This is running over 3 lines!!! ludicrous",
                         website_description = "its a github, also a lame hub, but quite a bit too large? should be concatonated. This runs over way too many lines and should be reduced to fit the correct area",
                         date_modified = "2024-02-06T00:05:35.570735Z",
-                        tags = listOf("gas", "the", "jews")
+                        tags = listOf("span", "the", "flames")
                     )
                 )
 //                Spacer(modifier = Modifier.height(padding.double))
@@ -222,18 +222,10 @@ fun BookmarkRowsPreview() {
     }
 }
 
-@Preview
+@ThemePreview
 @Composable
 fun HomeScreenPreview() {
-    AppTheme(darkTheme = true) {
-        HomeScreen(EmptyDestinationsNavigator, MainActivityState())
-    }
-}
-
-@Preview
-@Composable
-fun HomeScreenLightPreview() {
-    AppTheme(darkTheme = false) {
+    AppTheme {
         HomeScreen(EmptyDestinationsNavigator, MainActivityState())
     }
 }

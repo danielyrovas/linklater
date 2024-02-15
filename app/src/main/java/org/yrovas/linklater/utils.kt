@@ -3,13 +3,16 @@ package org.yrovas.linklater
 import android.content.*
 import android.net.Uri
 import android.util.Log
+import androidx.annotation.Keep
 import kotlinx.datetime.Instant
 import java.net.MalformedURLException
 import java.net.URL
 import kotlin.math.abs
 
+@Keep
 fun checkURL(url: String) = url.contains(Regex("^https?://.+[.].+"))
 
+@Keep
 fun timeAgo(timestamp: Instant, now: Instant): String {
     val differenceInSeconds = abs((now - timestamp).inWholeSeconds)
     return when {
@@ -31,6 +34,7 @@ fun timeAgo(timestamp: Instant, now: Instant): String {
     }
 }
 
+@Keep
 fun openBrowser(context: Context, uri: Uri) {
     val browserIntent = Intent(Intent.ACTION_VIEW, uri)
     context.startActivity(browserIntent);
