@@ -18,6 +18,8 @@ jobs:
           distribution: 'temurin'
           java-version: 19
           cache: 'gradle'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Execute Gradle build
         run: ./gradlew --no-daemon --build-cache assembleRelease
@@ -29,7 +31,7 @@ jobs:
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore keystore.jks -storepass ${{ secrets.KEY_PASSWD }} -keypass ${{ secrets.KEY_PASSWD }} app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
 
       - name: Verify the APK signature
-        run: jarsigner -verify -verbose -certs app/build/outputs/apk/release/app-release-unsigned.apk
+        run: jarsigner -verify -verbose -certs -keystore keystore.jks -storepass ${{ secrets.KEY_PASSWD }} app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
 
       - name: Zipalign the APK
         run: zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
