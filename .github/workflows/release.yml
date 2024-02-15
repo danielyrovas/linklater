@@ -34,13 +34,10 @@ jobs:
       - name: Verify the APK signature
         run: jarsigner -verify -verbose -certs -keystore keystore.jks -storepass ${{ secrets.KEY_PASSWD }} app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
 
-      - name: Find build-tools
+      - name: Zipalign the APK
         run: |
           BUILD_TOOLS_PATH=/usr/local/lib/android/sdk/build-tools/$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
-          ls $BUILD_TOOLS_PATH
-
-      - name: Zipalign the APK
-        run: $BUILD_TOOLS_PATH/zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
+          $BUILD_TOOLS_PATH/zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/app-release.apk
 
       - name: Create Release
         id: create_release
