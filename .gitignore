@@ -1,3 +1,6 @@
+# android signing key
+android-keystore.jks
+
 *.iml
 .gradle
 /local.properties

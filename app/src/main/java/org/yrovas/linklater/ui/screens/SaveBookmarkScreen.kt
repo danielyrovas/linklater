@@ -44,12 +44,14 @@ fun SaveBookmarkScreen(
 
     val submit = {
         a.launch { saveActivityState.submitBookmark() }
+        @Suppress("DEPRECATION")
         a.onBackPressed()
     }
 
     Surface {
         Column {
             AppBar(page = "Add Bookmark", nav = nav, back = {
+                @Suppress("DEPRECATION")
                 a.onBackPressed()
             }) {
                 IconButton(onClick = {

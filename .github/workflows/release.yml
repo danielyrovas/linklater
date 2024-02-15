@@ -24,7 +24,8 @@ jobs:
 
       - name: Sign the APK
         run: |
-          echo "${{ secrets.KEYSTORE }}" > keystore.jks
+          echo "${{ secrets.KEYSTORE }}" > keystore.asc
+          gpg -d --passphrase "${{ secrets.KEY_PASSWD }}" --batch keystore.asc > keystore.jks
           jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 -keystore keystore.jks -storepass ${{ secrets.KEY_PASSWD }} -keypass ${{ secrets.KEY_PASSWD }} app/build/outputs/apk/release/app-release-unsigned.apk ${{ secrets.KEY_ALIAS }}
 
       - name: Verify the APK signature

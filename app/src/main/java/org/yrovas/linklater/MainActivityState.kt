@@ -12,13 +12,11 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.yrovas.linklater.data.Bookmark
 
-@Keep
 object Prefs {
     val LINKDING_URL = stringPreferencesKey("linkding_url")
     val LINKDING_TOKEN = stringPreferencesKey("linkding_token")
 }
 
-@Keep
 class MainActivityState : ViewModel() {
     private var bookmarkAPI: BookmarkAPI = EmptyBookmarkAPI()
 
