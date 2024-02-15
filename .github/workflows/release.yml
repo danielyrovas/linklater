@@ -18,13 +18,15 @@ jobs:
           distribution: 'temurin'
           java-version: 19
           cache: 'gradle'
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+
+      # - name: Setup Android SDK
+      #   uses: android-actions/setup-android@v3
 
       - name: find zipalign
         run: |
-         BUILD_TOOL_VERSION=$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
-         ls /usr/local/lib/android/sdk/build-tools/$BUILD_TOOL_VERSION
+          BUILD_TOOLS_PATH=/usr/local/lib/android/sdk/build-tools/$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
+          ls $BUILD_TOOLS_PATH
+          $BUILD_TOOLS_PATH/zipalign --help
 
       # - name: Execute Gradle build
       #   run: ./gradlew --no-daemon --build-cache assembleRelease
