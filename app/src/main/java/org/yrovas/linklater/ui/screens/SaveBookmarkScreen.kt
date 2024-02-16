@@ -116,7 +116,7 @@ fun SaveBookmarkFields(saveActivityState: SaveActivityState, submit: () -> Unit)
             icon = Icons.Default.Tag,
             onChange = { saveActivityState.updateTagNames(tagNames = it) })
 
-        var rows by remember { mutableStateOf(max(abs(tags.size / 5), 1)) }
+        var rows by remember { mutableIntStateOf(max(abs(tags.size / 4), 1)) }
         if (collapseTags && rows > 3) rows = 3
         if (!collapseTags) rows = max(abs(tags.size / 4), 1)
         Column(

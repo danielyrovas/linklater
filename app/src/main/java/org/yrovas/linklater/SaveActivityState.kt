@@ -2,7 +2,6 @@ package org.yrovas.linklater
 
 import android.content.Context
 import android.util.Log
-import androidx.annotation.Keep
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.*
 import org.yrovas.linklater.data.LocalBookmark

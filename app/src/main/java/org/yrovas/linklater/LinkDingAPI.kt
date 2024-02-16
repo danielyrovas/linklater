@@ -47,10 +47,14 @@ class LinkDingAPI(
     }
 
     override suspend fun saveBookmark(bookmark: LocalBookmark): Boolean {
-        return Ktor.client.post("$endpoint/bookmarks/") {
-            setBody(bookmark)
-            header("Authorization", "Token $token")
-        }.status.value in 200..299
+        return try {
+            Ktor.client.post("$endpoint/bookmarks/") {
+                setBody(bookmark)
+                header("Authorization", "Token $token")
+            }.status.value in 200..299
+        } catch (e: Exception) {
+            false
+        }
     }
 
     override suspend fun getCachedBookmarks(context: Context): List<Bookmark> {
@@ -83,6 +87,7 @@ class LinkDingAPI(
             }
             response.body<TagResponse>().results
         }.onFailure {
+            Log.i(TAG, "getTags: ${it.message}")
             Result.failure<List<String>>(it)
         }
     }
