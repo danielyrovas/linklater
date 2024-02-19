@@ -36,3 +36,14 @@ fun openBrowser(context: Context, uri: Uri) {
     val browserIntent = Intent(Intent.ACTION_VIEW, uri)
     context.startActivity(browserIntent);
 }
+
+fun readClipboard(context: Context): String {
+    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    if (clipboardManager.hasPrimaryClip()) {
+        val clipData = clipboardManager.primaryClip
+        if (clipData != null && clipData.itemCount > 0) {
+            return clipData.getItemAt(0).text?.toString() ?: ""
+        }
+    }
+    return ""
+}
