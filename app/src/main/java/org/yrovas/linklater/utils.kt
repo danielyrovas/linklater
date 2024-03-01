@@ -1,5 +1,6 @@
 package org.yrovas.linklater
 
+import android.app.Activity
 import android.content.*
 import android.net.Uri
 import android.util.Log
@@ -46,4 +47,8 @@ fun readClipboard(context: Context): String {
         }
     }
     return ""
+}
+
+fun pressBack(context: Context) {
+    @Suppress("DEPRECATION") (context as Activity).onBackPressed()
 }

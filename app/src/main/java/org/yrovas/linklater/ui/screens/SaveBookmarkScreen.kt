@@ -1,26 +1,37 @@
 package org.yrovas.linklater.ui.screens
 
+import android.app.Activity
+import android.content.Context
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.filled.ShortText
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.ContentPasteGo
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.NavGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import org.yrovas.linklater.SaveActivityState
-import org.yrovas.linklater.SaveBookmarkActivity
+import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
+import kotlinx.coroutines.delay
+import org.yrovas.linklater.*
+import org.yrovas.linklater.destinations.SubmitBookmarkScreenDestination
 import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.theme.AppTheme
@@ -39,32 +50,134 @@ annotation class SaveBookmarkNavGraph(
 fun SaveBookmarkScreen(
     nav: DestinationsNavigator,
     saveActivityState: SaveActivityState,
-    a: SaveBookmarkActivity = (LocalContext.current as SaveBookmarkActivity),
+    context: Context = LocalContext.current,
 ) {
-
-    val submit = {
-        a.launch { saveActivityState.submitBookmark() }
-        @Suppress("DEPRECATION")
-        a.onBackPressed()
-    }
-
     Surface {
         Column {
-            AppBar(page = "Add Bookmark", nav = nav, back = {
-                @Suppress("DEPRECATION")
-                a.onBackPressed()
-            }) {
+            AppBar(
+                page = "Add Bookmark",
+                nav = nav,
+                back = { pressBack(context) }) {
                 IconButton(onClick = {
-                    if (saveActivityState.validateBookmark()) { submit() }
+                    nav.navigate(SubmitBookmarkScreenDestination)
                 }) {
                     Icon(
                         imageVector = Icons.Default.Bookmark,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = colorScheme.primary
                     )
                 }
                 Spacer(modifier = Modifier.width(padding.half))
             }
-            SaveBookmarkFields(saveActivityState = saveActivityState, submit = submit)
+            SaveBookmarkFields(saveActivityState = saveActivityState, submit = {
+                nav.navigate(SubmitBookmarkScreenDestination)
+            })
+        }
+    }
+}
+
+@Destination
+@SaveBookmarkNavGraph
+@Composable
+fun SubmitBookmarkScreen(
+    nav: DestinationsNavigator,
+    saveActivityState: SaveActivityState,
+    context: Context = LocalContext.current,
+) {
+    var isSubmitting by remember { mutableStateOf(false) }
+    val submitResult by saveActivityState.submitResult.collectAsState()
+
+    LaunchedEffect(Unit) {
+        isSubmitting = true
+//        delay(2000)
+        if (saveActivityState.validateBookmark()) {
+            if (saveActivityState.submitBookmark()) {
+                saveActivityState.setSubmitResult("Saved Bookmark" to true)
+                isSubmitting = false
+                delay(500)
+//                nav.clearBackStack(SaveBookmarkScreenDestination)
+//                nav.clearBackStack(SubmitBookmarkScreenDestination)
+//                pressBack(context)
+                (context as Activity).finish()
+            }
+        } else {
+            saveActivityState.setSubmitResult("Invalid URL" to false)
+        }
+        isSubmitting = false
+    }
+
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            AppBar(page = "Saving...", nav = nav, back = { pressBack(context) })
+            Column(
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                if (isSubmitting) {
+                    CircularProgressIndicator()
+                } else {
+                    if (submitResult.second) {
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape)
+                                .background(colorScheme.tertiary)
+                                .clickable { pressBack(context) },
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(colorScheme.tertiaryContainer)
+                                    .align(Alignment.Center),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    tint = colorScheme.tertiary,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
+                        }
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(CircleShape)
+                                .background(colorScheme.error)
+                                .clickable { pressBack(context) },
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(colorScheme.errorContainer)
+                                    .align(Alignment.Center),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    tint = colorScheme.error,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(padding.double))
+                    Text(submitResult.first, style = typography.headlineSmall)
+                    Spacer(modifier = Modifier.height(padding.large))
+                }
+            }
+        }
+    }
+}
+
+@ThemePreview
+@Composable
+fun SubmitScreenPreview() {
+    AppTheme {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            val s = SaveActivityState()
+            s.setSubmitResult("Invalid URL" to false)
+            SubmitBookmarkScreen(EmptyDestinationsNavigator, s)
         }
     }
 }
@@ -77,23 +190,35 @@ fun StyledTextField(
     placeholder: String? = null,
     onChange: (String) -> Unit,
 ) {
-    Text(text = name, style = MaterialTheme.typography.titleMedium)
-    Spacer(modifier = Modifier.height(padding.half))
-    OutlinedTextField(value,
-        placeholder = { if (placeholder.isNullOrBlank()) else Text(placeholder) },
-        modifier = Modifier.fillMaxWidth(),
-        leadingIcon = { Icon(icon) },
-        onValueChange = { onChange(it) })
-    Spacer(modifier = Modifier.height(padding.double))
+    Column {
+        Text(text = name, style = typography.titleMedium)
+        Spacer(modifier = Modifier.height(padding.half))
+        OutlinedTextField(value,
+            placeholder = { if (placeholder.isNullOrBlank()) else Text(placeholder) },
+            modifier = Modifier.fillMaxWidth(),
+            leadingIcon = { Icon(icon) },
+            onValueChange = { onChange(it) })
+        Spacer(modifier = Modifier.height(padding.double))
+    }
 }
 
 @Composable
-fun SaveBookmarkFields(saveActivityState: SaveActivityState, submit: () -> Unit) {
+fun SaveBookmarkFields(
+    saveActivityState: SaveActivityState,
+    submit: () -> Unit,
+    context: Context = LocalContext.current,
+) {
     val bookmark by saveActivityState.bookmarkToSave.collectAsState()
     val tagNames by saveActivityState.tagNames.collectAsState()
     val tags by saveActivityState.tags.collectAsState()
     val selectedTags by saveActivityState.selectedTags.collectAsState()
     var collapseTags by remember { mutableStateOf(true) }
+
+    var clip by remember { mutableStateOf("") }
+//    var
+    LaunchedEffect(key1 = true) {
+        clip = readClipboard(context)
+    }
 
     Column(
         modifier = Modifier
@@ -105,11 +230,37 @@ fun SaveBookmarkFields(saveActivityState: SaveActivityState, submit: () -> Unit)
             )
             .verticalScroll(rememberScrollState()),
     ) {
-        StyledTextField(name = "URL",
-            placeholder = "Enter a URL to save",
-            value = bookmark.url,
-            icon = Icons.Default.Link,
-            onChange = { saveActivityState.updateBookmark(url = it) })
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Box(modifier = Modifier.weight(1f)) {
+                StyledTextField(name = "URL",
+                    placeholder = "Enter a URL to save",
+                    value = bookmark.url,
+                    icon = Icons.Default.Link,
+                    onChange = { saveActivityState.updateBookmark(url = it) })
+            }
+
+            // Additional element in the same row
+            Spacer(modifier = Modifier.width(8.dp)) // Add space between the elements
+            IconButton(
+//                modifier = Modifier.width(24.dp),
+//                colors = ButtonDefaults.buttonColors(
+//                    containerColor = colorScheme.primaryContainer,
+//                    contentColor = colorScheme.onPrimaryContainer
+//                ),
+                onClick = {
+                    saveActivityState.updateBookmark(url = clip)
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.ContentPasteGo,
+                    tint = colorScheme.onBackground
+                )
+            }
+        }
+
         StyledTextField(name = "Tags",
             placeholder = "Enter tags...",
             value = tagNames,
@@ -132,14 +283,13 @@ fun SaveBookmarkFields(saveActivityState: SaveActivityState, submit: () -> Unit)
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(100.dp))
-                                .background(MaterialTheme.colorScheme.tertiary)
+                                .background(colorScheme.tertiary)
                                 .fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 modifier = Modifier.padding(horizontal = 10.dp),
-                                text = "#$it",
-                                color = MaterialTheme.colorScheme.onTertiary
+                                text = "#$it", color = colorScheme.onTertiary
                             )
                         }
                     }
@@ -151,7 +301,7 @@ fun SaveBookmarkFields(saveActivityState: SaveActivityState, submit: () -> Unit)
                         Text(
                             modifier = Modifier.padding(horizontal = 2.dp),
                             text = "#$it",
-                            color = MaterialTheme.colorScheme.tertiary,
+                            color = colorScheme.tertiary,
 
                             )
                     }
@@ -201,11 +351,7 @@ fun SaveBookmarkFields(saveActivityState: SaveActivityState, submit: () -> Unit)
                 )
                 .fillMaxWidth()
         ) {
-            Button(onClick = {
-                if (saveActivityState.validateBookmark()) {
-                    submit()
-                }
-            }) {
+            Button(onClick = { submit() }) {
                 Icon(imageVector = Icons.Default.Bookmark)
                 Spacer(modifier = Modifier.width(padding.half))
                 Text(
@@ -229,7 +375,7 @@ fun StyledCheckBox(
         modifier = Modifier.fillMaxWidth()
     ) {
         Text(
-            text = name, style = MaterialTheme.typography.titleMedium
+            text = name, style = typography.titleMedium
         )
         Checkbox(checked = checked, onCheckedChange = { onCheckedChange(it) })
     }
@@ -237,7 +383,7 @@ fun StyledCheckBox(
 
 @ThemePreview
 @Composable
-fun SaveBookmarkFieldPreview() {
+fun SaveBookmarkScreenPreview() {
     AppTheme {
         Surface {
             val saveActivityState = SaveActivityState()
@@ -268,7 +414,10 @@ fun SaveBookmarkFieldPreview() {
             )
             saveActivityState.toggleSelectTag("cool")
             saveActivityState.toggleSelectTag("selfhost")
-            SaveBookmarkFields(saveActivityState = saveActivityState, submit = {})
+            SaveBookmarkScreen(
+                nav = EmptyDestinationsNavigator,
+                saveActivityState = saveActivityState
+            )
         }
     }
 }

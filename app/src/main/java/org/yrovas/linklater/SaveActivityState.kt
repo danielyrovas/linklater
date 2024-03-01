@@ -60,16 +60,17 @@ class SaveActivityState : ViewModel() {
         val tags =
             (bookmarkToSave.value.tags + selectedTags.value + tagNames.value.split(
                 " "
-            ).filter { it.isNotBlank() } ).distinct()
+            ).filter { it.isNotBlank() }).distinct()
         val bookmark =
             bookmarkToSave.value.withUpdates(tags = tags.ifEmpty { null })
         Log.d("DEBUG/save", "submitBookmark: $bookmark")
         return bookmarkAPI.saveBookmark(bookmark)
     }
 
-    fun setTags(tagList: List<String>) = _tags.update {
-        tagList
-    }
+    private val _submitResult: MutableStateFlow<Pair<String, Boolean>> = MutableStateFlow("" to true)
+    var submitResult = _submitResult.asStateFlow()
+    fun setSubmitResult(result: Pair<String, Boolean>) = _submitResult.update { result }
+    fun setTags(tagList: List<String>) = _tags.update { tagList }
 
     suspend fun setup(context: Context) {
         var url = ""

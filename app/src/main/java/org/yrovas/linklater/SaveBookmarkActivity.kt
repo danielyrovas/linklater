@@ -17,8 +17,6 @@ import com.ramcosta.composedestinations.navigation.dependency
 import kotlinx.coroutines.*
 import org.yrovas.linklater.ui.theme.AppTheme
 
-val globalScope = CoroutineScope(SupervisorJob())
-
 @ActivityDestination
 class SaveBookmarkActivity : ComponentActivity() {
     private val saveActivityState: SaveActivityState by viewModels()
@@ -48,12 +46,6 @@ class SaveBookmarkActivity : ComponentActivity() {
         }
     }
 
-    fun launch(function: suspend () -> Unit) {
-        globalScope.launch {
-            function()
-        }
-    }
-
     private fun extractURL(intent: Intent): String {
         var s = intent.data.toString()
         if (s.isNotBlank() && s != "null") {
@@ -70,20 +62,7 @@ class SaveBookmarkActivity : ComponentActivity() {
             Log.d("DEBUG/extract", "extractURL: intent.extra_subject")
             return s
         }
-
-//        Log.d("DEBUG/extract", "extractURL: clipBoard")
-        return "" // clipboardData()
+        return ""
     }
 
-//    private fun clipboardData(): String {
-//        val clipboardManager =
-//            getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-//        val clip: ClipData? = clipboardManager.primaryClip
-//        var txt: String = (clip?.getItemAt(0)?.text ?: "").toString()
-//        if (txt.isNotBlank()) return txt
-//        txt = (clip?.getItemAt(1)?.text ?: "").toString()
-//        if (txt.isNotBlank()) return txt
-//
-//        return ""
-//    }
 }

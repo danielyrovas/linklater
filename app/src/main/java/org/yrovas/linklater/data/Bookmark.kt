@@ -1,6 +1,7 @@
 package org.yrovas.linklater.data
 
-import kotlinx.serialization.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 // A 1:1 representation of a LinkDing bookmark.
 @Serializable
@@ -20,10 +21,7 @@ data class Bookmark(
     @SerialName("tag_names") val tags: List<String> = emptyList(),
 )
 
-// A datatype representing bookmarks which have not been
-// sent to the remote API yet.
-// This is the datatype used to send bookmarks to the
-// remote API.
+// A datatype representing bookmarks which will be sent to the remote API.
 @Serializable
 data class LocalBookmark(
     var url: String,
@@ -35,8 +33,7 @@ data class LocalBookmark(
     var shared: Boolean = false,
     @SerialName("tag_names") var tags: List<String> = emptyList(),
 ) {
-
-    /// Returns a new local bookmark with the new values if provided
+    /// Returns a new local bookmark with the new values
     fun withUpdates(
         url: String? = null,
         title: String? = null,

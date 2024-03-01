@@ -31,7 +31,7 @@ fun AppBar(
                 )
             }
         }
-        Text(text = page, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+        Text(text = page, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
     }) {
         content()
     }
@@ -43,7 +43,7 @@ fun AppBar(left: @Composable () -> Unit, right: @Composable () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(56.dp)
+                .height(64.dp)
                 .background(MaterialTheme.colorScheme.background),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
