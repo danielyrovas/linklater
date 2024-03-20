@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Linklater</string>
+    <string name="just_now">just now</string>
+    <string name="min_ago">%1$sm ago</string>
+    <string name="hours_ago">%1$sh ago</string>
+    <string name="day_ago">%1$s day ago</string>
+    <string name="days_ago">%1$s days ago</string>
+    <string name="months_ago">%1$s months ago</string>
+    <string name="month_ago">%1$s month ago</string>
+    <string name="year_ago">%1$s year ago</string>
+    <string name="years_ago">%1$s years ago</string>
 </resources>

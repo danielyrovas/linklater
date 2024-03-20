@@ -8,17 +8,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import kotlinx.coroutines.launch
-import org.yrovas.linklater.MainActivityState
-import org.yrovas.linklater.checkURL
+import org.yrovas.linklater.*
 import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.TextPreference
 import org.yrovas.linklater.ui.theme.AppTheme
@@ -132,6 +133,11 @@ fun PreferencesScreen(
                     onCheck = { mainActivityState.checkBookmarkAPIToken(it) },
                 )
             }
+        Text(
+            text = "Application Version ${context.getAppVersion()}",
+            style = typography.bodySmall,
+            fontStyle = FontStyle.Italic
+        )
         }
     }
 }

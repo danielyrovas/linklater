@@ -2,44 +2,52 @@ package org.yrovas.linklater
 
 import android.app.Activity
 import android.content.*
+import android.content.pm.PackageManager
 import android.net.Uri
-import android.util.Log
-import androidx.annotation.Keep
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import kotlinx.datetime.Instant
-import java.net.MalformedURLException
-import java.net.URL
 import kotlin.math.abs
-
 fun checkURL(url: String) = url.contains(Regex("^https?://.+[.].+"))
 
+@Composable
 fun timeAgo(timestamp: Instant, now: Instant): String {
     val differenceInSeconds = abs((now - timestamp).inWholeSeconds)
     return when {
-        differenceInSeconds < 60 -> "just now"
-        differenceInSeconds < 3600 -> "${(differenceInSeconds / 60).toInt()}m ago"
-        differenceInSeconds < 86400 -> "${(differenceInSeconds / 3600).toInt()}h ago"
+        differenceInSeconds < 60 -> stringResource(R.string.just_now)
+        differenceInSeconds < 3600 -> stringResource(
+            R.string.min_ago, (differenceInSeconds / 60).toInt()
+        )
+
+        differenceInSeconds < 86400 -> stringResource(
+            R.string.hours_ago, (differenceInSeconds / 3600).toInt()
+        )
         differenceInSeconds < 2628000 -> {
             val days = (differenceInSeconds / 86400).toInt()
-            "$days ${if (days == 1) "day" else "days"} ago"
+            if (days == 1) stringResource(R.string.day_ago, days)
+            else stringResource(R.string.days_ago, days)
         }
         differenceInSeconds < 31536000 -> {
             val months = (differenceInSeconds / 2628000).toInt()
-            "$months ${if (months == 1) "month" else "months"} ago"
+            if (months == 1) stringResource(R.string.month_ago, months)
+            else stringResource(R.string.months_ago, months)
         }
         else -> {
             val years = (differenceInSeconds / 31536000).toInt()
-            "$years ${if (years == 1) "year" else "years"} ago"
+            if (years == 1) stringResource(R.string.year_ago, years)
+            else stringResource(R.string.years_ago, years)
         }
     }
 }
 
-fun openBrowser(context: Context, uri: Uri) {
+fun Context.openUri(uri: Uri) {
     val browserIntent = Intent(Intent.ACTION_VIEW, uri)
-    context.startActivity(browserIntent);
+    startActivity(browserIntent);
 }
 
-fun readClipboard(context: Context): String {
-    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+fun Context.readClipboard(): String {
+    val clipboardManager =
+        getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     if (clipboardManager.hasPrimaryClip()) {
         val clipData = clipboardManager.primaryClip
         if (clipData != null && clipData.itemCount > 0) {
@@ -49,6 +57,15 @@ fun readClipboard(context: Context): String {
     return ""
 }
 
-fun pressBack(context: Context) {
-    @Suppress("DEPRECATION") (context as Activity).onBackPressed()
+fun Context.onBackPressed() {
+    @Suppress("DEPRECATION") (this as Activity).onBackPressed()
+}
+
+fun Context.getAppVersion(): String {
+    return try {
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+        packageInfo.versionName
+    } catch (e: PackageManager.NameNotFoundException) {
+        "App version not found"
+    }
 }

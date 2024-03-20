@@ -214,7 +214,7 @@ private fun TextEditDialog(
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     ),
                     onClick = {
-                        currentInput = TextFieldValue(readClipboard(context))
+                        currentInput = TextFieldValue(context.readClipboard())
                     },
                 ) {
                     Icon(imageVector = Icons.Default.ContentPasteGo)

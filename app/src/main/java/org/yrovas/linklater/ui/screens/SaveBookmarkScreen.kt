@@ -19,9 +19,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -57,7 +54,7 @@ fun SaveBookmarkScreen(
             AppBar(
                 page = "Add Bookmark",
                 nav = nav,
-                back = { pressBack(context) }) {
+                back = { context.onBackPressed() }) {
                 IconButton(onClick = {
                     nav.navigate(SubmitBookmarkScreenDestination)
                 }) {
@@ -96,7 +93,7 @@ fun SubmitBookmarkScreen(
                 delay(500)
 //                nav.clearBackStack(SaveBookmarkScreenDestination)
 //                nav.clearBackStack(SubmitBookmarkScreenDestination)
-//                pressBack(context)
+//                context.pressBack()
                 (context as Activity).finish()
             }
         } else {
@@ -107,7 +104,7 @@ fun SubmitBookmarkScreen(
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            AppBar(page = "Saving...", nav = nav, back = { pressBack(context) })
+            AppBar(page = "Saving...", nav = nav, back = { context.onBackPressed() })
             Column(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -122,7 +119,7 @@ fun SubmitBookmarkScreen(
                                 .size(52.dp)
                                 .clip(CircleShape)
                                 .background(colorScheme.tertiary)
-                                .clickable { pressBack(context) },
+                                .clickable { context.onBackPressed() },
                         ) {
                             Box(
                                 modifier = Modifier
@@ -144,7 +141,7 @@ fun SubmitBookmarkScreen(
                                 .size(52.dp)
                                 .clip(CircleShape)
                                 .background(colorScheme.error)
-                                .clickable { pressBack(context) },
+                                .clickable { context.onBackPressed() },
                         ) {
                             Box(
                                 modifier = Modifier
@@ -217,7 +214,7 @@ fun SaveBookmarkFields(
     var clip by remember { mutableStateOf("") }
 //    var
     LaunchedEffect(key1 = true) {
-        clip = readClipboard(context)
+        clip = context.readClipboard()
     }
 
     Column(

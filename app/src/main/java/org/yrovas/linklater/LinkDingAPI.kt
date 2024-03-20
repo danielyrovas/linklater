@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import io.ktor.client.call.body
 import io.ktor.client.request.*
-import io.ktor.client.statement.bodyAsText
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -120,5 +120,22 @@ class LinkDingAPI(
         val next: String?,
         val previous: String?,
         val results: List<String>,
+    )
+
+    @Serializable
+    data class LinkDingBookmark(
+        val id: Int,
+        val url: String,
+        val title: String? = null,
+        val description: String? = null,
+        val notes: String? = null,
+        val website_title: String? = null,
+        val website_description: String? = null,
+        val is_archived: Boolean = false,
+        val unread: Boolean = false,
+        val shared: Boolean = false,
+        val date_added: String? = null,
+        val date_modified: String? = null,
+        @SerialName("tag_names") val tags: List<String> = emptyList(),
     )
 }
