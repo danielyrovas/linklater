@@ -1,4 +1,4 @@
-package org.yrovas.linklater
+package org.yrovas.linklater.domain
 
 import android.util.Log
 import androidx.annotation.Keep

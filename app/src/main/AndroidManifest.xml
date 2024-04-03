@@ -16,7 +16,7 @@
         android:launchMode="singleTask"
         tools:targetApi="34">
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activity.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.Linklater">
             <intent-filter>
@@ -25,7 +25,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".SaveBookmarkActivity"
+            android:name=".ui.activity.SaveBookmarkActivity"
             android:exported="true"
             android:theme="@style/Theme.Linklater">
 <!--            <intent-filter>-->

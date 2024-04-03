@@ -7,137 +7,132 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Create
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.runtime.*
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
+import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
-import kotlinx.coroutines.launch
 import org.yrovas.linklater.*
-import org.yrovas.linklater.ui.common.AppBar
-import org.yrovas.linklater.ui.common.TextPreference
+import org.yrovas.linklater.ui.common.*
+import org.yrovas.linklater.ui.state.PreferencesScreenState
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
 
-@Destination
+@Destination<RootGraph>
 @Composable
 fun PreferencesScreen(
     nav: DestinationsNavigator,
-    mainActivityState: MainActivityState,
+    snackState: SnackbarHostState,
+    appViewModel: AppViewModel,
+    state: PreferencesScreenState = PreferencesScreenState(appViewModel),
     context: Context = LocalContext.current,
 ) {
-    val scope = rememberCoroutineScope()
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Column {
-            AppBar(page = "Preferences", nav = nav)
-            Column(
-                modifier = Modifier
-                    .verticalScroll(rememberScrollState())
-                    .padding(padding.standard)
-            ) {
-                TextPreference(
-                    name = "LinkDing URL",
-                    placeholder = "URL/IP incl. port and https://",
-                    icon = Icons.Default.Create,
-                    infoPreview = "include /api",
-                    infoTitle = "Enter the LinkDing API URL",
-                    info = {
-                        Column {
+    Frame(appBar = {
+        AppBar(page = "Preferences", back = { nav.popBackStack() })
+    }, snackState = snackState) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding.standard)
+                .verticalScroll(rememberScrollState())
+        ) {
+            TextPreference(
+                name = "LinkDing URL",
+                placeholder = "URL/IP incl. port and https://",
+                icon = Icons.Default.Create,
+                infoPreview = "include /api",
+                infoTitle = "Enter the LinkDing API URL",
+                info = {
+                    Column() {
+                        Text(
+                            "Include the protocol (https://).",
+                            color = colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            "Include the /api path.",
+                            color = colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            "Include the port if necessary.",
+                            color = colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            "For example",
+                            color = colorScheme.onSecondaryContainer
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(colorScheme.surfaceContainer)
+                                .padding(padding.half)
+                        ) {
                             Text(
-                                "Include the protocol (https://).",
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Text(
-                                "Include the /api path.",
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Text(
-                                "Include the port if necessary.",
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Text(
-                                "For example",
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceContainer)
-                                    .padding(padding.half)
-                            ) {
-                                Text(
-                                    "https://demo.linkding.link/api",
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                            Text(
-                                "or",
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceContainer)
-                                    .padding(padding.half)
-                            ) {
-                                Text(
-                                    "http://192.168.0.47:8000/api",
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                            }
-                        }
-                    },
-                    state = mainActivityState.bookmarkURL.collectAsState(),
-                    onSave = {
-                        scope.launch {
-                            mainActivityState.saveBookmarkURL(it, context)
-                        }
-                    },
-                    onCheck = { checkURL(it) },
-                )
-                TextPreference(
-                    name = "LinkDing API Token",
-                    placeholder = "Enter your REST API Token",
-                    icon = Icons.Default.Build,
-                    infoPreview = "Settings > Integrations",
-                    infoTitle = "Go to your Instance Settings",
-                    info = {
-                        Column {
-                            Text(
-                                "Select Integrations",
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                            Text(
-                                "Copy the token under REST API.",
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                "https://demo.linkding.link/api",
+                                color = colorScheme.onSurface
                             )
                         }
-                    },
-                    state = mainActivityState.bookmarkAPIToken.collectAsState(),
-                    onSave = {
-                        scope.launch {
-                            mainActivityState.saveBookmarkAPIToken(it, context)
+                        Text(
+                            "or", color = colorScheme.onSecondaryContainer
+                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(colorScheme.surfaceContainer)
+                                .padding(padding.half)
+                        ) {
+                            Text(
+                                "http://192.168.0.47:8000/api",
+                                color = colorScheme.onSurface
+                            )
                         }
-                    },
-                    onCheck = { mainActivityState.checkBookmarkAPIToken(it) },
-                )
-            }
-        Text(
-            text = "Application Version ${context.getAppVersion()}",
-            style = typography.bodySmall,
-            fontStyle = FontStyle.Italic
-        )
+                    }
+                },
+                state = state.bookmarkURL.collectAsState(),
+                onSave = { state.saveBookmarkURL(context, it) },
+                onCheck = { checkURL(it) },
+            )
+            TextPreference(
+                name = "LinkDing API Token",
+                placeholder = "Enter your REST API Token",
+                icon = Icons.Default.Build,
+                infoPreview = "Settings > Integrations",
+                infoTitle = "Go to your Instance Settings",
+                info = {
+                    Column {
+                        Text(
+                            "Select Integrations",
+                            color = colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            "Copy the token under REST API.",
+                            color = colorScheme.onSecondaryContainer
+                        )
+                    }
+                },
+                state = state.bookmarkAPIToken.collectAsState(),
+                onSave = { state.saveBookmarkAPIToken(context, it) },
+                onCheck = { state.checkBookmarkAPIToken(it) },
+            )
+            Spacer(modifier = Modifier.weight(1F))
+            Text(
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                text = "Application Version: ${context.getAppVersion()}",
+                style = typography.bodySmall,
+                fontStyle = FontStyle.Italic
+            )
         }
     }
 }
@@ -146,6 +141,8 @@ fun PreferencesScreen(
 @Composable
 fun PreferencesScreenPreview() {
     AppTheme {
-        PreferencesScreen(EmptyDestinationsNavigator, MainActivityState())
+        PreferencesScreen(
+            EmptyDestinationsNavigator, SnackbarHostState(), PreviewAppViewModel()
+        )
     }
 }

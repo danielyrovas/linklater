@@ -2,11 +2,17 @@ package org.yrovas.linklater
 
 import android.app.Activity
 import android.content.*
-import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.datetime.Instant
+import org.yrovas.linklater.ui.activity.AppActivity
 import kotlin.math.abs
 fun checkURL(url: String) = url.contains(Regex("^https?://.+[.].+"))
 
@@ -65,7 +71,21 @@ fun Context.getAppVersion(): String {
     return try {
         val packageInfo = packageManager.getPackageInfo(packageName, 0)
         packageInfo.versionName
-    } catch (e: PackageManager.NameNotFoundException) {
-        "App version not found"
+    } catch (e: Exception) {
+        "Not Found"
     }
+}
+
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "preferences")
+
+fun Context.toast(text: String, length: Int = Toast.LENGTH_LONG) {
+    Toast.makeText(this, text, length).show()
+}
+
+@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+annotation class ThemePreview
+
+fun Context.launch(job: suspend () -> Unit) {
+    (this as AppActivity).launch { job() }
 }

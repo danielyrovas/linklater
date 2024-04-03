@@ -65,11 +65,8 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
-    // implementation(libs.androidx.room.runtime)
-    // ksp(libs.androidx.room.compiler)
     implementation(libs.destinations)
     implementation(libs.androidx.datastore.preferences)
-    // implementation(libs.navigation)
     ksp(libs.destinations.ksp)
 
     implementation(libs.kotlinx.datetime)

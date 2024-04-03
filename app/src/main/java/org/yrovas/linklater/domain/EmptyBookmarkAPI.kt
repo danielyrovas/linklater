@@ -1,9 +1,8 @@
-package org.yrovas.linklater
+package org.yrovas.linklater.domain
 
 import android.content.Context
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
-import org.yrovas.linklater.domain.*
 
 class EmptyBookmarkAPI : BookmarkAPI {
     override suspend fun getBookmarks(
@@ -18,8 +17,8 @@ class EmptyBookmarkAPI : BookmarkAPI {
         return emptyList()
     }
 
-    override suspend fun saveBookmark(bookmark: LocalBookmark): Boolean {
-        return true
+    override suspend fun saveBookmark(bookmark: LocalBookmark): Res<Int, APIError> {
+        return Ok(200)
     }
 
     override suspend fun cacheBookmarks(

@@ -1,4 +1,4 @@
-package org.yrovas.linklater
+package org.yrovas.linklater.domain
 
 import android.content.Context
 import android.util.Log
@@ -10,7 +10,6 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
-import org.yrovas.linklater.domain.*
 import java.io.File
 
 const val BOOKMARKS_CACHE_PATH = "bookmark_page_cache.json"
@@ -47,14 +46,18 @@ class LinkDingAPI(
         }.toRes(withError = APIError.CONNECTION)
     }
 
-    override suspend fun saveBookmark(bookmark: LocalBookmark): Boolean {
+    override suspend fun saveBookmark(bookmark: LocalBookmark): Res<Int, APIError> {
         return try {
-            Ktor.client.post("$endpoint/bookmarks/") {
+            val status = Ktor.client.post("$endpoint/bookmarks/") {
                 setBody(bookmark)
                 header("Authorization", "Token $token")
-            }.status.value in 200..299
+            }.status.value
+            when (status) {
+                in 200..299 -> Ok(status)
+                else -> Err(APIError.AUTH)
+            }
         } catch (e: Exception) {
-            false
+            Err(APIError.CONNECTION)
         }
     }
 

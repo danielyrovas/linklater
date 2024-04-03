@@ -1,15 +1,17 @@
 package org.yrovas.linklater.ui.state
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
-import org.yrovas.linklater.*
+import kotlinx.coroutines.launch
+import org.yrovas.linklater.AppViewModel
+import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.LocalBookmark
+import org.yrovas.linklater.domain.*
 
-class SaveBookmarkScreenState(val api: BookmarkAPI) : ViewModel() {
-    private var bookmarkAPI: BookmarkAPI = EmptyBookmarkAPI()
-
+class SaveBookmarkScreenState(private val appViewModel: AppViewModel) : ViewModel() {
     private val _bookmarkToSave: MutableStateFlow<LocalBookmark> =
         MutableStateFlow(LocalBookmark(""))
     var bookmarkToSave = _bookmarkToSave.asStateFlow()
@@ -23,6 +25,7 @@ class SaveBookmarkScreenState(val api: BookmarkAPI) : ViewModel() {
         shared: Boolean? = null,
         tag: List<String> = emptyList(),
     ) {
+        _showPaste.update { url.isNullOrBlank() }
         _bookmarkToSave.update {
             bookmarkToSave.value.withUpdates(
                 url = url,
@@ -35,6 +38,10 @@ class SaveBookmarkScreenState(val api: BookmarkAPI) : ViewModel() {
             )
         }
     }
+
+    private val _showPaste: MutableStateFlow<Boolean> =
+        MutableStateFlow(bookmarkToSave.value.url.isBlank())
+    var showPaste = _showPaste.asStateFlow()
 
     private val _tagNames: MutableStateFlow<String> = MutableStateFlow("")
     var tagNames = _tagNames.asStateFlow()
@@ -57,32 +64,37 @@ class SaveBookmarkScreenState(val api: BookmarkAPI) : ViewModel() {
         }
     }
 
-    suspend fun submitBookmark(): Boolean {
+    private val _submitResult: MutableStateFlow<Res<String, APIError>?> =
+        MutableStateFlow(null)
+    var submitResult = _submitResult.asStateFlow()
+    fun setSubmitResult(result: Res<String, APIError>) =
+        _submitResult.update { result }
+//    fun clearSubmitResult() {}
+
+    fun submitBookmark() {
         val tags =
             (bookmarkToSave.value.tags + selectedTags.value + tagNames.value.split(
                 " "
             ).filter { it.isNotBlank() }).distinct()
         val bookmark =
             bookmarkToSave.value.withUpdates(tags = tags.ifEmpty { null })
-        Log.d("DEBUG/save", "submitBookmark: $bookmark")
-        return bookmarkAPI.saveBookmark(bookmark)
+//        Log.d("DEBUG/save", "submitBookmark: $bookmark")
+        viewModelScope.launch(Dispatchers.IO) {
+            setSubmitResult(
+                when (val res = appViewModel.bookmarkAPI.saveBookmark(bookmark)) {
+                    is Res.Err -> Err(res.error)
+                    is Res.Ok -> Ok("Saved Bookmark to LinkDing")
+                }
+            )
+        }
     }
 
-    private val _submitResult: MutableStateFlow<Pair<String, Boolean>> = MutableStateFlow("" to true)
-    var submitResult = _submitResult.asStateFlow()
-    fun setSubmitResult(result: Pair<String, Boolean>) = _submitResult.update { result }
     fun setTags(tagList: List<String>) = _tags.update { tagList }
 
-    suspend fun setup(context: Context) {
-        var url = ""
-        var token = ""
-        context.dataStore.data.first { preferences ->
-            url = preferences[Prefs.LINKDING_URL].orEmpty()
-            token = preferences[Prefs.LINKDING_TOKEN].orEmpty()
-            true
+    fun setup(context: Context) {
+        viewModelScope.launch(Dispatchers.IO) {
+            setTags(appViewModel.bookmarkAPI.getCachedTags(context))
         }
-        bookmarkAPI = LinkDingAPI(url, token)
-        setTags(bookmarkAPI.getCachedTags(context))
     }
 
     fun validateBookmark(): Boolean {

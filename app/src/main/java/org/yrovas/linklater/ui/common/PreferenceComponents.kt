@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,8 +24,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import org.yrovas.linklater.ThemePreview
 import org.yrovas.linklater.readClipboard
-import org.yrovas.linklater.ui.screens.ThemePreview
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
 
@@ -103,13 +105,13 @@ private fun TextPreference(
                 Column(modifier = Modifier.padding(padding.half)) {
                     Text(
                         text = name,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = typography.bodyMedium,
                         textAlign = TextAlign.Start,
                     )
                     Spacer(modifier = Modifier.height(padding.half))
                     Text(
                         text = state.value,
-                        style = MaterialTheme.typography.bodySmall,
+                        style = typography.bodySmall,
                         textAlign = TextAlign.Start,
                     )
                 }
@@ -139,7 +141,7 @@ private fun TextEditDialog(
     var showInfo by remember { mutableStateOf(false) }
 
     Surface(
-        color = MaterialTheme.colorScheme.surfaceContainer,
+        color = colorScheme.surfaceContainer,
         modifier = Modifier.clip(RoundedCornerShape(12.dp))
     ) {
         Column(
@@ -152,14 +154,14 @@ private fun TextEditDialog(
         ) {
             Text(
                 name,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.titleLarge
+                color = colorScheme.onSurface,
+                style = typography.titleLarge
             )
             Spacer(modifier = Modifier.height(padding.standard))
             OutlinedTextField(currentInput,
                 placeholder = { Text(placeholder) },
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .background(colorScheme.surfaceVariant)
                     .fillMaxWidth(),
                 // leadingIcon = { Icon(Icons.Default.Build) },
                 onValueChange = {
@@ -172,7 +174,7 @@ private fun TextEditDialog(
                 Column(
                     modifier = Modifier
                         .clip(RoundedCornerShape(5.dp))
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .background(colorScheme.secondaryContainer)
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
@@ -184,8 +186,8 @@ private fun TextEditDialog(
                         Crossfade(
                             label = "Info Title", targetState = showInfo
                         ) {
-                            if (it) Text(text = infoTitle, color = MaterialTheme.colorScheme.onSecondaryContainer)
-                            else Text(text = infoPreview, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                            if (it) Text(text = infoTitle, color = colorScheme.onSecondaryContainer)
+                            else Text(text = infoPreview, color = colorScheme.onSecondaryContainer)
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         Icon(
@@ -210,8 +212,8 @@ private fun TextEditDialog(
 
                 Button(
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        containerColor = colorScheme.surfaceVariant,
+                        contentColor = colorScheme.onSurfaceVariant
                     ),
                     onClick = {
                         currentInput = TextFieldValue(context.readClipboard())
@@ -222,8 +224,8 @@ private fun TextEditDialog(
                 Spacer(modifier = Modifier.width(padding.standard))
                 Button(
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        containerColor = colorScheme.primaryContainer,
+                        contentColor = colorScheme.onPrimaryContainer
                     ), onClick = {
                         onSave(currentInput.text)
                         onDismiss()
@@ -244,7 +246,7 @@ private fun TextPreferenceURLPreview() {
         Surface {
             Row(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(colorScheme.background)
                     .padding(padding.standard)
             ) {
                 TextPreference(icon = Icons.Default.Build,
@@ -265,7 +267,7 @@ private fun TextPreferencePreview() {
         Surface {
             Row(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(colorScheme.background)
                     .padding(padding.standard)
             ) {
                 TextPreference(icon = Icons.Default.Build,
@@ -286,38 +288,37 @@ private fun TextEditDialogPreview() {
         Surface {
             Row(
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(colorScheme.background)
                     .padding(padding.double)
             ) {
                 TextEditDialog(name = "LinkDing API URL",
                     placeholder = "Enter your LinkDing instance URL...",
                     infoPreview = "include /api",
                     infoTitle = "Enter the LinkDing API URL",
-                    // the protocol (https://), and the path (`/api`). e.g. `https://demo.linkding.link/api`",
                     info = {
                         Column {
-                            Text("Include the protocol (https://).", color = MaterialTheme.colorScheme.onSecondaryContainer)
-                            Text("Include the /api path.", color = MaterialTheme.colorScheme.onSecondaryContainer)
-                            Text("Include the port if necessary.", color = MaterialTheme.colorScheme.onSecondaryContainer)
-                            Text("For example", color = MaterialTheme.colorScheme.onSecondaryContainer)
+                            Text("Include the protocol (https://).", color = colorScheme.onSecondaryContainer)
+                            Text("Include the /api path.", color = colorScheme.onSecondaryContainer)
+                            Text("Include the port if necessary.", color = colorScheme.onSecondaryContainer)
+                            Text("For example", color = colorScheme.onSecondaryContainer)
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                                    .background(colorScheme.surfaceContainer)
                                     .padding(padding.half)
                             ) {
-                                Text("https://demo.linkding.link/api", color = MaterialTheme.colorScheme.onSurface)
+                                Text("https://demo.linkding.link/api", color = colorScheme.onSurface)
                             }
-                            Text("or", color = MaterialTheme.colorScheme.onSecondaryContainer)
+                            Text("or", color = colorScheme.onSecondaryContainer)
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(6.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceContainer)
+                                    .background(colorScheme.surfaceContainer)
                                     .padding(padding.half)
                             ) {
-                                Text("http://192.168.0.47:8000/api", color = MaterialTheme.colorScheme.onSurface)
+                                Text("http://192.168.0.47:8000/api", color = colorScheme.onSurface)
                             }
                         }
                     },

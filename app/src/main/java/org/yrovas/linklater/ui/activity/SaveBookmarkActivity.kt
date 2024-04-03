@@ -1,17 +1,13 @@
-package org.yrovas.linklater
+package org.yrovas.linklater.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.viewModels
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.remember
-import com.ramcosta.composedestinations.DestinationsNavHost
-import com.ramcosta.composedestinations.navigation.dependency
-import org.yrovas.linklater.ui.screens.NavGraphs
-import org.yrovas.linklater.ui.theme.AppTheme
+import com.ramcosta.composedestinations.annotation.NavHostGraph
+import com.ramcosta.composedestinations.generated.navgraphs.SaveBookmarkActivityNavGraph
+
+@NavHostGraph
+annotation class SaveBookmarkActivityGraph
 
 class SaveBookmarkActivity : AppActivity() {
     fun extractURL(): String {
@@ -35,6 +31,6 @@ class SaveBookmarkActivity : AppActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent(NavGraphs.saveBookmarkActivity)
+        setContent(SaveBookmarkActivityNavGraph)
     }
 }
