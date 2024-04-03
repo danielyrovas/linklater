@@ -13,8 +13,6 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
-// private const val TIME_OUT = 60_000
-
 class Ktor {
     companion object {
         val client = HttpClient(Android) {
@@ -39,17 +37,3 @@ class Ktor {
         }
     }
 }
-//
-////            if (BuildConfig.DEBUG) {
-//            install(Logging) {
-//                level = LogLevel.ALL
-//            }
-////            }
-//
-////            if (BuildConfig.DEBUG) {
-//            install(ResponseObserver) {
-//                onResponse { response ->
-//                    Log.i("HTTP status:", "${response.status.value}")
-//                }
-//            }
-////            }

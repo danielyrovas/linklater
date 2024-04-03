@@ -1,16 +1,17 @@
 package org.yrovas.linklater
 
 import android.content.Context
-import androidx.annotation.Keep
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
+import org.yrovas.linklater.domain.*
 
 class EmptyBookmarkAPI : BookmarkAPI {
     override suspend fun getBookmarks(
         page: Int,
         query: String?,
-    ): Result<List<Bookmark>> {
-        return Result.success(emptyList())
+    ): Res<List<Bookmark>, APIError> {
+//        return Ok(emptyList())
+        return Err(APIError.AUTH)
     }
 
     override suspend fun getCachedBookmarks(context: Context): List<Bookmark> {
@@ -33,7 +34,7 @@ class EmptyBookmarkAPI : BookmarkAPI {
 
     override suspend fun cacheTags(context: Context, tags: List<String>) {}
 
-    override suspend fun getTags(page: Int): Result<List<String>> {
-        return Result.success(emptyList())
+    override suspend fun getTags(page: Int): Res<List<String>, APIError> {
+        return Ok(emptyList())
     }
 }

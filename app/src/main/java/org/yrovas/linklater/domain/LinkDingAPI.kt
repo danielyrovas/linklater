@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
+import org.yrovas.linklater.domain.*
 import java.io.File
 
 const val BOOKMARKS_CACHE_PATH = "bookmark_page_cache.json"
@@ -24,7 +25,7 @@ class LinkDingAPI(
     override suspend fun getBookmarks(
         page: Int,
         query: String?,
-    ): Result<List<Bookmark>> {
+    ): Res<List<Bookmark>, APIError> {
         return runCatching {
             Log.d("DEBUG/net", "getBookmarks: starting request")
             val response = Ktor.client.get("$endpoint/bookmarks/") {
@@ -43,7 +44,7 @@ class LinkDingAPI(
         }.onFailure {
             Log.i(TAG, "getBookmarks: ${it.message}")
             Result.failure<List<Bookmark>>(it)
-        }
+        }.toRes(withError = APIError.CONNECTION)
     }
 
     override suspend fun saveBookmark(bookmark: LocalBookmark): Boolean {
@@ -76,7 +77,7 @@ class LinkDingAPI(
         )
     }
 
-    override suspend fun getTags(page: Int): Result<List<String>> {
+    override suspend fun getTags(page: Int): Res<List<String>, APIError> {
         return runCatching {
             Log.d("DEBUG/net", "getTags: starting request")
             val response = Ktor.client.get("$endpoint/tags/") {
@@ -89,7 +90,7 @@ class LinkDingAPI(
         }.onFailure {
             Log.i(TAG, "getTags: ${it.message}")
             Result.failure<List<String>>(it)
-        }
+        }.toRes(APIError.CONNECTION)
     }
 
     override suspend fun getCachedTags(context: Context): List<String> {

@@ -1,12 +1,13 @@
-package org.yrovas.linklater
+package org.yrovas.linklater.ui.state
 
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.*
+import org.yrovas.linklater.*
 import org.yrovas.linklater.data.LocalBookmark
 
-class SaveActivityState : ViewModel() {
+class SaveBookmarkScreenState(val api: BookmarkAPI) : ViewModel() {
     private var bookmarkAPI: BookmarkAPI = EmptyBookmarkAPI()
 
     private val _bookmarkToSave: MutableStateFlow<LocalBookmark> =
