@@ -1,114 +1,65 @@
 package org.yrovas.linklater
 
-import android.content.Context
-import android.os.Bundle
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalSavedStateRegistryOwner
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.lifecycle.*
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
-import androidx.navigation.NavBackStackEntry
-import androidx.savedstate.SavedStateRegistryOwner
-import com.ramcosta.composedestinations.generated.destinations.PreferencesScreenDestination
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.yrovas.linklater.domain.*
-import org.yrovas.linklater.ui.state.HomeScreenState
-import org.yrovas.linklater.ui.state.PreferencesScreenState
+import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.data.EmptyPrefStore
+import org.yrovas.linklater.data.PrefDataStore
+import org.yrovas.linklater.data.Prefs
+import org.yrovas.linklater.domain.BookmarkAPI
+import org.yrovas.linklater.domain.EmptyBookmarkAPI
 
-object Prefs {
-    val LINKDING_URL = stringPreferencesKey("linkding_url")
-    val LINKDING_TOKEN = stringPreferencesKey("linkding_token")
-}
+abstract class AppViewModel(
+    val bookmarkAPI: BookmarkAPI,
+    private val prefStore: PrefDataStore,
+) : ViewModel() {
 
-class AppViewModelImpl : AppViewModel()
-
-abstract class AppViewModel : ViewModel() {
-    var bookmarkAPI: BookmarkAPI = EmptyBookmarkAPI()
-
-    private val _bookmarkURL: MutableStateFlow<String> = MutableStateFlow("")
-    var bookmarkURL = _bookmarkURL.asStateFlow()
-    open fun saveBookmarkURL(context: Context, url: String) {
-        _bookmarkURL.update { url }
-        bookmarkAPI = LinkDingAPI(bookmarkURL.value, bookmarkAPIToken.value)
-        viewModelScope.launch(Dispatchers.IO) {
-            context.dataStore.edit { preferences ->
-                preferences[Prefs.LINKDING_URL] = url
-            }
-        }
-    }
-
+    private val _bookmarkEndpoint: MutableStateFlow<String> = MutableStateFlow("")
+    var bookmarkEndpoint = _bookmarkEndpoint.asStateFlow()
     private val _bookmarkAPIToken: MutableStateFlow<String> = MutableStateFlow("")
     var bookmarkAPIToken = _bookmarkAPIToken.asStateFlow()
-    open fun saveBookmarkAPIToken(context: Context, token: String) {
-        _bookmarkAPIToken.update { token }
-        bookmarkAPI = LinkDingAPI(bookmarkURL.value, bookmarkAPIToken.value)
+
+    open fun saveBookmarkConf(
+        url: String? = null,
+        token: String? = null,
+    ) {
+        if (url != null) _bookmarkEndpoint.update { url }
+        if (token != null) _bookmarkAPIToken.update { token }
+
         viewModelScope.launch(Dispatchers.IO) {
-            context.dataStore.edit { preferences ->
-                preferences[Prefs.LINKDING_TOKEN] = token
-            }
+            bookmarkAPI.authenticate(
+                bookmarkEndpoint.value, bookmarkAPIToken.value
+            )
+            prefStore.setPref(Prefs.LINKDING_URL, bookmarkEndpoint.value)
+            prefStore.setPref(Prefs.LINKDING_TOKEN, bookmarkAPIToken.value)
         }
     }
 
-    private fun loadPrefs(context: Context) {
+    fun loadPrefs() {
         viewModelScope.launch(Dispatchers.IO) {
-            context.dataStore.data.first { preferences ->
-                _bookmarkURL.update { preferences[Prefs.LINKDING_URL].orEmpty() }
-                _bookmarkAPIToken.update { preferences[Prefs.LINKDING_TOKEN].orEmpty() }
-                true
+            _bookmarkEndpoint.update {
+                prefStore.getPref(Prefs.LINKDING_URL, "")
             }
-            bookmarkAPI = LinkDingAPI(bookmarkURL.value, bookmarkAPIToken.value)
+            _bookmarkAPIToken.update {
+                prefStore.getPref(Prefs.LINKDING_TOKEN, "")
+            }
+            bookmarkAPI.authenticate(
+                bookmarkEndpoint.value, bookmarkAPIToken.value
+            )
         }
     }
-
-    open fun setup(context: Context) {
-        loadPrefs(context)
-    }
 }
 
-class PreviewAppViewModel : AppViewModel() {
-    override fun saveBookmarkURL(context: Context, url: String) {}
-    override fun saveBookmarkAPIToken(context: Context, token: String) {}
-    override fun setup(context: Context) {}
-}
+class AppViewModelImpl(
+    bookmarkAPI: BookmarkAPI, prefStore: PrefDataStore,
+) : AppViewModel(bookmarkAPI, prefStore)
 
-//@Composable
-//inline fun <reified VM : ViewModel> viewModel(
-//    viewModelStoreOwner: ViewModelStoreOwner = checkNotNull(
-//        LocalViewModelStoreOwner.current) {
-//        "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
-//    },
-//    savedStateRegistryOwner: SavedStateRegistryOwner = LocalSavedStateRegistryOwner.current
-//): VM {
-//    return androidx.lifecycle.viewmodel.compose.viewModel(
-//        viewModelStoreOwner = viewModelStoreOwner,
-//        factory = ViewModelFactory(
-//            owner = savedStateRegistryOwner,
-//            defaultArgs = (savedStateRegistryOwner as? NavBackStackEntry)?.arguments,
-//        )
-//    )
-//}
-
-//class ViewModelFactory(
-//    owner: SavedStateRegistryOwner,
-//    defaultArgs: Bundle?,
-//) : AbstractSavedStateViewModelFactory(
-//    owner,
-//    defaultArgs
-//) {
-//    @Suppress("UNCHECKED_CAST")
-//    override fun <T : ViewModel> create(
-//        key: String,
-//        modelClass: Class<T>,
-//        handle: SavedStateHandle
-//    ): T {
-//        return when (modelClass) {
-//            PreferencesScreenState::class.java -> PreferencesScreenState()
-//            HomeScreenState::class.java -> HomeScreenState()
-//
-//            else -> throw RuntimeException("Unknown view model $modelClass")
-//        } as T
-//    }
-//}
+class PreviewAppViewModel(
+    bookmarkAPI: BookmarkAPI = EmptyBookmarkAPI(),
+    prefStore: PrefDataStore = EmptyPrefStore(),
+) : AppViewModel(bookmarkAPI, prefStore)

@@ -5,6 +5,7 @@ import org.yrovas.linklater.data.*
 import org.yrovas.linklater.domain.*
 
 interface BookmarkAPI {
+    suspend fun authenticate(endpoint: String? = null, token: String? = null, validate: Boolean = false): Res<Unit, APIError>
     suspend fun getBookmarks(page: Int, query: String? = null): Res<List<Bookmark>, APIError>
     suspend fun getCachedBookmarks(context: Context): List<Bookmark>
     suspend fun saveBookmark(bookmark: LocalBookmark): Res<Int, APIError>

@@ -11,7 +11,7 @@ import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.domain.*
 
-class SaveBookmarkScreenState(private val appViewModel: AppViewModel) : ViewModel() {
+class SaveBookmarkScreenState(private val api: BookmarkAPI) : ViewModel() {
     private val _bookmarkToSave: MutableStateFlow<LocalBookmark> =
         MutableStateFlow(LocalBookmark(""))
     var bookmarkToSave = _bookmarkToSave.asStateFlow()
@@ -81,7 +81,7 @@ class SaveBookmarkScreenState(private val appViewModel: AppViewModel) : ViewMode
 //        Log.d("DEBUG/save", "submitBookmark: $bookmark")
         viewModelScope.launch(Dispatchers.IO) {
             setSubmitResult(
-                when (val res = appViewModel.bookmarkAPI.saveBookmark(bookmark)) {
+                when (val res = api.saveBookmark(bookmark)) {
                     is Res.Err -> Err(res.error)
                     is Res.Ok -> Ok("Saved Bookmark to LinkDing")
                 }
@@ -93,7 +93,7 @@ class SaveBookmarkScreenState(private val appViewModel: AppViewModel) : ViewMode
 
     fun setup(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            setTags(appViewModel.bookmarkAPI.getCachedTags(context))
+            setTags(api.getCachedTags(context))
         }
     }
 

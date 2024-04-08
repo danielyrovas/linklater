@@ -8,6 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.PreferencesScreenDestination
@@ -16,6 +17,7 @@ import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.*
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.domain.*
@@ -25,12 +27,13 @@ import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
 
 @Destination<RootGraph>(start = true)
+@Inject
 @Composable
 fun HomeScreen(
     nav: DestinationsNavigator,
     snackState: SnackbarHostState,
     appViewModel: AppViewModel,
-    state: HomeScreenState,
+    state: HomeScreenState = viewModel { HomeScreenState(appViewModel.bookmarkAPI) },
 ) {
     val scope = rememberCoroutineScope()
     val bookmarks by state.displayedBookmarks.collectAsState()
@@ -126,10 +129,7 @@ fun HomeScreenPreview() {
     )
     AppTheme {
         HomeScreen(
-            EmptyDestinationsNavigator,
-            SnackbarHostState(),
-            PreviewAppViewModel(),
-            state
+            EmptyDestinationsNavigator, SnackbarHostState(), PreviewAppViewModel(), state
         )
     }
 }

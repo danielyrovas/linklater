@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import org.yrovas.linklater.*
 import org.yrovas.linklater.ui.common.*
 import org.yrovas.linklater.ui.state.PreferencesScreenState
@@ -101,7 +100,7 @@ fun PreferencesScreen(
                     }
                 },
                 state = state.bookmarkURL.collectAsState(),
-                onSave = { state.saveBookmarkURL(context, it) },
+                onSave = { state.saveBookmarkURL(it) },
                 onCheck = { checkURL(it) },
             )
             TextPreference(
@@ -123,8 +122,8 @@ fun PreferencesScreen(
                     }
                 },
                 state = state.bookmarkAPIToken.collectAsState(),
-                onSave = { state.saveBookmarkAPIToken(context, it) },
-                onCheck = { state.checkBookmarkAPIToken(it) },
+                onSave = { state.saveBookmarkAPIToken(it) },
+                onCheck = { checkBookmarkAPIToken(it) },
             )
             Spacer(modifier = Modifier.weight(1F))
             Text(
@@ -141,8 +140,8 @@ fun PreferencesScreen(
 @Composable
 fun PreferencesScreenPreview() {
     AppTheme {
-        PreferencesScreen(
-            EmptyDestinationsNavigator, SnackbarHostState(), PreviewAppViewModel()
-        )
+//        PreferencesScreen(
+//            EmptyDestinationsNavigator, SnackbarHostState(), PreviewAppViewModel()
+//        )
     }
 }

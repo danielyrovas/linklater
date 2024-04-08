@@ -15,6 +15,7 @@ import kotlinx.datetime.Instant
 import org.yrovas.linklater.ui.activity.AppActivity
 import kotlin.math.abs
 fun checkURL(url: String) = url.contains(Regex("^https?://.+[.].+"))
+fun checkBookmarkAPIToken(token: String) = token.length in 10..120
 
 @Composable
 fun timeAgo(timestamp: Instant, now: Instant): String {
@@ -76,8 +77,6 @@ fun Context.getAppVersion(): String {
     }
 }
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "preferences")
-
 fun Context.toast(text: String, length: Int = Toast.LENGTH_LONG) {
     Toast.makeText(this, text, length).show()
 }
@@ -88,4 +87,12 @@ annotation class ThemePreview
 
 fun Context.launch(job: suspend () -> Unit) {
     (this as AppActivity).launch { job() }
+}
+
+fun String?.isNull(): Boolean {
+    return this == null
+}
+
+fun String?.isNotNull(): Boolean {
+    return this != null
 }

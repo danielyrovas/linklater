@@ -2,33 +2,65 @@ package org.yrovas.linklater.domain
 
 import android.content.Context
 import android.util.Log
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.*
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
+import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.checkBookmarkAPIToken
+import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
 import java.io.File
 
 const val BOOKMARKS_CACHE_PATH = "bookmark_page_cache.json"
 const val TAGS_CACHE_PATH = "tags_cache.json"
-const val TAG = "DEBUG"
 
+@Inject
 class LinkDingAPI(
-    private var endpoint: String,
-    private var token: String,
+    private val client: HttpClient,
+    private var endpoint: String? = null,
+    private var token: String? = null,
     private val pageSize: Int = 20,
 ) : BookmarkAPI {
+
+    private val authProvided = !endpoint.isNullOrBlank() && !token.isNullOrBlank()
+
+    override suspend fun authenticate(
+        endpoint: String?,
+        token: String?,
+        validate: Boolean,
+    ): Res<Unit, APIError> {
+        if (!endpoint.isNullOrBlank()) {
+            if (!checkURL(endpoint)) return Err(APIError.AUTH)
+            this.endpoint = endpoint
+        }
+        if (!token.isNullOrBlank()) {
+            if (!checkBookmarkAPIToken(token)) return Err(APIError.AUTH)
+            this.token = token
+        }
+
+        if (!validate) return Ok(Unit)
+
+        if (!authProvided) return Err(APIError.AUTH)
+
+        return when (val res = getBookmarks(page = 0)) {
+            is Res.Err -> Err(res.error)
+            is Res.Ok -> Ok(Unit)
+        }
+    }
+
     override suspend fun getBookmarks(
         page: Int,
         query: String?,
     ): Res<List<Bookmark>, APIError> {
+        if (!authProvided) return Err(APIError.AUTH)
         return runCatching {
             Log.d("DEBUG/net", "getBookmarks: starting request")
-            val response = Ktor.client.get("$endpoint/bookmarks/") {
-                header("Authorization", "Token $token")
+            val response = client.get("${endpoint!!}/bookmarks/") {
+                header("Authorization", "Token ${token!!}")
                 if (page > 0) {
                     url.parameters.append(
                         "offset", (pageSize * page).toString()
@@ -41,16 +73,17 @@ class LinkDingAPI(
 //            Json.decodeFromString<BookmarkResponse>(response.bodyAsText()).results
             response.body<BookmarkResponse>().results // ?? very kool Ktor
         }.onFailure {
-            Log.i(TAG, "getBookmarks: ${it.message}")
+            Log.i("DEBUG/net", "getBookmarks: ${it.message}")
             Result.failure<List<Bookmark>>(it)
         }.toRes(withError = APIError.CONNECTION)
     }
 
     override suspend fun saveBookmark(bookmark: LocalBookmark): Res<Int, APIError> {
+        if (!authProvided) return Err(APIError.AUTH)
         return try {
-            val status = Ktor.client.post("$endpoint/bookmarks/") {
+            val status = client.post("${endpoint!!}/bookmarks/") {
                 setBody(bookmark)
-                header("Authorization", "Token $token")
+                header("Authorization", "Token ${token!!}")
             }.status.value
             when (status) {
                 in 200..299 -> Ok(status)
@@ -81,17 +114,18 @@ class LinkDingAPI(
     }
 
     override suspend fun getTags(page: Int): Res<List<String>, APIError> {
+        if (!authProvided) return Err(APIError.AUTH)
         return runCatching {
             Log.d("DEBUG/net", "getTags: starting request")
-            val response = Ktor.client.get("$endpoint/tags/") {
-                header("Authorization", "Token $token")
+            val response = client.get("${endpoint!!}/tags/") {
+                header("Authorization", "Token ${token!!}")
                 if (page > 0) {
                     url.parameters.append("offset", (pageSize * page).toString())
                 }
             }
             response.body<TagResponse>().results
         }.onFailure {
-            Log.i(TAG, "getTags: ${it.message}")
+            Log.i("DEBUG/net", "getTags: ${it.message}")
             Result.failure<List<String>>(it)
         }.toRes(APIError.CONNECTION)
     }
@@ -124,22 +158,5 @@ class LinkDingAPI(
         val next: String?,
         val previous: String?,
         val results: List<String>,
-    )
-
-    @Serializable
-    data class LinkDingBookmark(
-        val id: Int,
-        val url: String,
-        val title: String? = null,
-        val description: String? = null,
-        val notes: String? = null,
-        val website_title: String? = null,
-        val website_description: String? = null,
-        val is_archived: Boolean = false,
-        val unread: Boolean = false,
-        val shared: Boolean = false,
-        val date_added: String? = null,
-        val date_modified: String? = null,
-        @SerialName("tag_names") val tags: List<String> = emptyList(),
     )
 }

@@ -5,16 +5,18 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.AppViewModel
 import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.domain.*
 
-class HomeScreenState(private val appViewModel: AppViewModel) : ViewModel() {
+@Inject
+class HomeScreenState(private val api: BookmarkAPI) : ViewModel() {
     fun refreshBookmarks(onRefresh: suspend (Res<Any, APIError>) -> Unit) {
         viewModelScope.launch(Dispatchers.IO) {
             _isRefreshing.update { true }
-            val res = appViewModel.bookmarkAPI.getBookmarks(page = 0)
+            val res = api.getBookmarks(page = 0)
             res.ok { setDisplayedBookmarks(it) }
             _isRefreshing.update { false }
             onRefresh(res)

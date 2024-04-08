@@ -12,13 +12,14 @@ app-composeCompiler = "1.5.11"
 
 agp = "8.3.1"
 kotlin = "1.9.23"
+kotlinInjectCompilerKsp = "0.6.3"
 ksp = "1.9.23-1.0.19"
 kotlinxDatetime = "0.5.0"
 core-ktx = "1.12.0"
 activity-compose = "1.8.2"
 compose-bom = "2024.03.00"
-ktor = "2.3.8"
-kotlinxSerializationJson = "1.6.2"
+ktor = "2.3.9"
+kotlinxSerializationJson = "1.6.3"
 material3 = "1.2.1"
 material = "1.6.4"
 destinations = "2.0.0-beta01"
@@ -31,6 +32,8 @@ datastore = "1.0.0"
 [libraries]
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material" }
+kotlin-inject-compiler-ksp = { module = "me.tatarka.inject:kotlin-inject-compiler-ksp", version.ref = "kotlinInjectCompilerKsp" }
+kotlin-inject-runtime = { module = "me.tatarka.inject:kotlin-inject-runtime", version.ref = "kotlinInjectCompilerKsp" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "core-ktx" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinxDatetime" }

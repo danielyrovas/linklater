@@ -69,6 +69,9 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     ksp(libs.destinations.ksp)
 
+    ksp(libs.kotlin.inject.compiler.ksp)
+    implementation(libs.kotlin.inject.runtime)
+
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.material)

@@ -1,36 +1,88 @@
 package org.yrovas.linklater.ui.screens
 
 import android.content.Context
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.staggeredgrid.*
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.filled.ShortText
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Tag
+import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.outlined.ContentPasteGo
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.runtime.*
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
-import org.yrovas.linklater.*
-import org.yrovas.linklater.domain.*
-import org.yrovas.linklater.ui.common.*
+import org.yrovas.linklater.AppViewModel
+import org.yrovas.linklater.ThemePreview
+import org.yrovas.linklater.domain.APIError
+import org.yrovas.linklater.domain.EmptyBookmarkAPI
+import org.yrovas.linklater.domain.Err
+import org.yrovas.linklater.domain.Error
+import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.domain.isNotNull
+import org.yrovas.linklater.domain.isOk
+import org.yrovas.linklater.launch
+import org.yrovas.linklater.onBackPressed
+import org.yrovas.linklater.readClipboard
+import org.yrovas.linklater.ui.common.AppBar
+import org.yrovas.linklater.ui.common.Frame
+import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.state.SaveBookmarkScreenState
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
@@ -99,6 +151,7 @@ fun SaveBookmarkResult(
     state: SaveBookmarkScreenState,
     snackState: SnackbarHostState,
     onSubmitSuccess: suspend () -> Unit,
+    context: Context = LocalContext.current,
 ) {
     val submitResult by state.submitResult.collectAsState()
 //    var networking by remember { mutableStateOf(false) }
@@ -108,13 +161,6 @@ fun SaveBookmarkResult(
             onSubmitSuccess()
         }
     }
-//        networking = true
-//        submitResult = state.submitBookmark()
-//        if (submitResult.isOk) {
-//            onSubmitSuccess()
-//        }
-//        networking = false
-//    }
 
     Column(
         verticalArrangement = Arrangement.Center,
@@ -122,11 +168,11 @@ fun SaveBookmarkResult(
         modifier = Modifier.fillMaxSize()
     ) {
         submitResult.then(ok = {
-            CheckIcon()
+            CheckIcon {}
             Spacer(Modifier.height(padding.double))
             Text("Saved Bookmark")
         }, err = {
-            CrossIcon()
+            CrossIcon { context.onBackPressed() }
             Spacer(Modifier.height(padding.double))
             Text(
                 when ((submitResult as Res.Err<String, APIError>).error) {
@@ -140,37 +186,6 @@ fun SaveBookmarkResult(
         }
 
         )
-//        when (submitResult) {
-//            is Res.Err -> {
-//                CrossIcon()
-//                Spacer(Modifier.height(padding.double))
-//                    when ((submitResult as Res.Err<String, APIError>).error) {
-//                        APIError.CONNECTION -> "Failed to connect to LinkDing"
-//                        APIError.AUTH -> "Failed to authenticate"
-//                    }
-//            }
-//            is Res.Ok -> {
-//                CheckIcon()
-//            Spacer(Modifier.height(padding.double))
-//                Text("Saved Bookmark")
-//            }
-//            null -> CircularProgressIndicator()
-//        }
-//        if (submitResult.isNull()) {
-//            CircularProgressIndicator()
-//        } else {
-//            if (submitResult.isOk) CheckIcon() else CrossIcon()
-//            Spacer(modifier = Modifier.height(padding.double))
-//            Text(
-//                submitResult.then(ok = { "Saved Bookmark" }, err = {
-//                    when (it) {
-//                        APIError.CONNECTION -> "Failed to connect to LinkDing"
-//                        APIError.AUTH -> "Failed to authenticate"
-//                    }
-//                }), style = typography.headlineSmall
-//            )
-//            Spacer(modifier = Modifier.height(padding.large))
-//        }
     }
 }
 
@@ -402,46 +417,54 @@ fun StyledCheckBox(
 }
 
 @Composable
-fun CheckIcon() {
+private fun CheckIcon(onClick: (() -> Unit)?) {
     StyledBoxIcon(
         fg = colorScheme.tertiary,
         bg = colorScheme.tertiaryContainer,
-        iv = Icons.Default.Check
+        icon = Icons.Default.Check,
+        onClick = onClick,
     )
 }
 
 @Composable
-fun CrossIcon() {
+private fun CrossIcon(onClick: (() -> Unit)?) {
     StyledBoxIcon(
         fg = colorScheme.error,
         bg = colorScheme.errorContainer,
-        iv = Icons.Default.Close
+        icon = Icons.Default.Close,
+        onClick = onClick,
     )
 }
 
 @Composable
-fun StyledBoxIcon(
+private fun StyledBoxIcon(
     fg: Color,
     bg: Color,
-    iv: ImageVector,
-    context: Context = LocalContext.current,
+    icon: ImageVector,
+    innerSize: Dp = 48.dp,
+    outerSize: Dp = 52.dp,
+    clip: Shape = CircleShape,
+    onClick: (() -> Unit)? = null,
 ) {
+    val m = Modifier
+        .size(outerSize)
+        .clip(CircleShape)
+        .background(fg)
+    if (onClick != null) {
+        m.clickable { onClick() }
+    }
     Box(
-        modifier = Modifier
-            .size(52.dp)
-            .clip(CircleShape)
-            .background(fg)
-            .clickable { context.onBackPressed() },
+        modifier = m,
     ) {
         Box(
             modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
+                .size(innerSize)
+                .clip(clip)
                 .background(bg)
                 .align(Alignment.Center),
         ) {
             Icon(
-                imageVector = iv,
+                imageVector = icon,
                 tint = fg,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -483,11 +506,11 @@ fun SaveBookmarkScreenPreview() {
         state.toggleSelectTag("cool")
         state.toggleSelectTag("selfhost")
         state.setSubmitResult(Err(APIError.AUTH))
-        SaveBookmarkScreen(
-            nav = EmptyDestinationsNavigator,
-            appViewModel = PreviewAppViewModel(),
-            snackState = SnackbarHostState(),
-            state = state
-        )
+//        SaveBookmarkScreen(
+//            nav = EmptyDestinationsNavigator,
+//            appViewModel = PreviewAppViewModel(),
+//            snackState = SnackbarHostState(),
+//            state = state
+//        )
     }
 }

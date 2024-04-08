@@ -1,10 +1,19 @@
 package org.yrovas.linklater.domain
 
 import android.content.Context
+import kotlinx.coroutines.delay
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
 
 class EmptyBookmarkAPI : BookmarkAPI {
+    override suspend fun authenticate(
+        endpoint: String?,
+        token: String?,
+        validate: Boolean,
+    ): Res<Unit, APIError> {
+        return Ok(Unit)
+    }
+
     override suspend fun getBookmarks(
         page: Int,
         query: String?,
