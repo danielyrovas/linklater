@@ -11,12 +11,16 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.AppScope
 
 object Prefs {
     val LINKDING_URL = stringPreferencesKey("linkding_url")
     val LINKDING_TOKEN = stringPreferencesKey("linkding_token")
 }
 
+@AppScope
+@Inject
 class PreferenceStore(private val store: DataStore<Preferences>) : PrefDataStore {
     override suspend fun <T> getPrefs(
         key: Preferences.Key<T>,

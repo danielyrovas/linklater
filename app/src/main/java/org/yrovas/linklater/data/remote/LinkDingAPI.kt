@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.Bookmark
@@ -18,6 +19,7 @@ import java.io.File
 const val BOOKMARKS_CACHE_PATH = "bookmark_page_cache.json"
 const val TAGS_CACHE_PATH = "tags_cache.json"
 
+@AppScope
 @Inject
 class LinkDingAPI(
     private val client: HttpClient,

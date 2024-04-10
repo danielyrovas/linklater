@@ -2,7 +2,9 @@ package org.yrovas.linklater.data
 
 import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.flow.Flow
+import org.yrovas.linklater.AppScope
 
+@AppScope
 interface PrefDataStore {
     suspend fun <T> getPrefs(key: Preferences.Key<T>, default: T): Flow<T>
     suspend fun <T> getPref(key: Preferences.Key<T>, default: T): T
