@@ -4,14 +4,22 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.yrovas.linklater.AppViewModel
+import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.LocalBookmark
-import org.yrovas.linklater.domain.*
+import org.yrovas.linklater.data.remote.BookmarkAPI
+import org.yrovas.linklater.domain.APIError
+import org.yrovas.linklater.domain.Err
+import org.yrovas.linklater.domain.Ok
+import org.yrovas.linklater.domain.Res
 
-class SaveBookmarkScreenState(private val api: BookmarkAPI) : ViewModel() {
+@Inject
+class SaveBookmarkScreenState(private val bookmarkAPI: BookmarkAPI) :
+    ViewModel() {
     private val _bookmarkToSave: MutableStateFlow<LocalBookmark> =
         MutableStateFlow(LocalBookmark(""))
     var bookmarkToSave = _bookmarkToSave.asStateFlow()
@@ -78,10 +86,9 @@ class SaveBookmarkScreenState(private val api: BookmarkAPI) : ViewModel() {
             ).filter { it.isNotBlank() }).distinct()
         val bookmark =
             bookmarkToSave.value.withUpdates(tags = tags.ifEmpty { null })
-//        Log.d("DEBUG/save", "submitBookmark: $bookmark")
         viewModelScope.launch(Dispatchers.IO) {
             setSubmitResult(
-                when (val res = api.saveBookmark(bookmark)) {
+                when (val res = bookmarkAPI.saveBookmark(bookmark)) {
                     is Res.Err -> Err(res.error)
                     is Res.Ok -> Ok("Saved Bookmark to LinkDing")
                 }
@@ -93,7 +100,7 @@ class SaveBookmarkScreenState(private val api: BookmarkAPI) : ViewModel() {
 
     fun setup(context: Context) {
         viewModelScope.launch(Dispatchers.IO) {
-            setTags(api.getCachedTags(context))
+            setTags(bookmarkAPI.getCachedTags(context))
         }
     }
 

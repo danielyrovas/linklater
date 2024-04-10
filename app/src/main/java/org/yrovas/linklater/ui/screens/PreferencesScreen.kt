@@ -1,9 +1,16 @@
 package org.yrovas.linklater.ui.screens
 
 import android.content.Context
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Create
@@ -19,11 +26,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import org.yrovas.linklater.*
-import org.yrovas.linklater.ui.common.*
+import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
+import org.yrovas.linklater.ThemePreview
+import org.yrovas.linklater.checkBookmarkAPIToken
+import org.yrovas.linklater.checkURL
+import org.yrovas.linklater.data.local.EmptyPrefStore
+import org.yrovas.linklater.data.remote.EmptyBookmarkAPI
+import org.yrovas.linklater.getAppVersion
+import org.yrovas.linklater.ui.common.AppBar
+import org.yrovas.linklater.ui.common.Frame
+import org.yrovas.linklater.ui.common.TextPreference
 import org.yrovas.linklater.ui.state.PreferencesScreenState
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
@@ -33,10 +49,10 @@ import org.yrovas.linklater.ui.theme.padding
 fun PreferencesScreen(
     nav: DestinationsNavigator,
     snackState: SnackbarHostState,
-    appViewModel: AppViewModel,
-    state: PreferencesScreenState = PreferencesScreenState(appViewModel),
+    state: () -> PreferencesScreenState,
     context: Context = LocalContext.current,
 ) {
+    val state = viewModel { state() }
     Frame(appBar = {
         AppBar(page = "Preferences", back = { nav.popBackStack() })
     }, snackState = snackState) {
@@ -53,7 +69,7 @@ fun PreferencesScreen(
                 infoPreview = "include /api",
                 infoTitle = "Enter the LinkDing API URL",
                 info = {
-                    Column() {
+                    Column {
                         Text(
                             "Include the protocol (https://).",
                             color = colorScheme.onSecondaryContainer
@@ -99,7 +115,7 @@ fun PreferencesScreen(
                         }
                     }
                 },
-                state = state.bookmarkURL.collectAsState(),
+                state = state.bookmarkEndpoint.collectAsState(),
                 onSave = { state.saveBookmarkURL(it) },
                 onCheck = { checkURL(it) },
             )
@@ -140,8 +156,8 @@ fun PreferencesScreen(
 @Composable
 fun PreferencesScreenPreview() {
     AppTheme {
-//        PreferencesScreen(
-//            EmptyDestinationsNavigator, SnackbarHostState(), PreviewAppViewModel()
-//        )
+        PreferencesScreen(EmptyDestinationsNavigator,
+            SnackbarHostState(),
+            { PreferencesScreenState(EmptyBookmarkAPI(), EmptyPrefStore()) })
     }
 }

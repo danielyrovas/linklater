@@ -1,12 +1,28 @@
 package org.yrovas.linklater.ui.screens
 
+import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.AddLink
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.runtime.*
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
@@ -16,25 +32,33 @@ import com.ramcosta.composedestinations.generated.destinations.SaveBookmarkScree
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.*
+import org.yrovas.linklater.ThemePreview
 import org.yrovas.linklater.data.Bookmark
-import org.yrovas.linklater.domain.*
-import org.yrovas.linklater.ui.common.*
+import org.yrovas.linklater.data.remote.EmptyBookmarkAPI
+import org.yrovas.linklater.domain.APIError
+import org.yrovas.linklater.domain.Err
+import org.yrovas.linklater.domain.Ok
+import org.yrovas.linklater.ui.common.AppBar
+import org.yrovas.linklater.ui.common.BookmarkRow
+import org.yrovas.linklater.ui.common.Frame
+import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.state.HomeScreenState
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
 
 @Destination<RootGraph>(start = true)
-@Inject
 @Composable
 fun HomeScreen(
     nav: DestinationsNavigator,
     snackState: SnackbarHostState,
-    appViewModel: AppViewModel,
-    state: HomeScreenState = viewModel { HomeScreenState(appViewModel.bookmarkAPI) },
+    setup_complete: StateFlow<Boolean>,
+    state: () -> HomeScreenState,
 ) {
+    val state = viewModel { state() }
+    val setup_complete by setup_complete.collectAsState()
     val scope = rememberCoroutineScope()
     val bookmarks by state.displayedBookmarks.collectAsState()
     val listState = rememberLazyListState()
@@ -48,6 +72,13 @@ fun HomeScreen(
                     }
                 }
             }
+        }
+    }
+
+    LaunchedEffect(setup_complete) {
+        if (state.displayedBookmarks.value.isEmpty()) {
+            Log.d("DEBUG", "HomeScreen: REFRESHING")
+            refresh()
         }
     }
     Frame(appBar = {
@@ -64,17 +95,28 @@ fun HomeScreen(
                     tint = colorScheme.primary
                 )
             }
+
         }
     }, fab = {
         FloatingActionButton(modifier = Modifier.padding(padding.standard),
             onClick = { nav.navigate(SaveBookmarkScreenDestination) },
             content = { Icon(imageVector = Icons.Default.AddLink) })
     }, snackState = snackState) {
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.padding(horizontal = padding.standard)
-        ) {
-            items(bookmarks, key = { it.id }) { BookmarkRow(it) }
+        if (!setup_complete) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator()
+            }
+        } else {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.padding(horizontal = padding.standard)
+            ) {
+                items(bookmarks, key = { it.id }) { BookmarkRow(it) }
+            }
         }
     }
 }
@@ -129,7 +171,10 @@ fun HomeScreenPreview() {
     )
     AppTheme {
         HomeScreen(
-            EmptyDestinationsNavigator, SnackbarHostState(), PreviewAppViewModel(), state
+            EmptyDestinationsNavigator,
+            SnackbarHostState(),
+            MutableStateFlow(true),
+            { state }
         )
     }
 }

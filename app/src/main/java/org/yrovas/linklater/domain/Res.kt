@@ -41,6 +41,34 @@ fun <D, T : Any, E : Error> Res<D, E>.then(ok: (data: D) -> T, err: (error: E) -
     }
 }
 
+fun <D, T : Any, E : Error> Res<D, E>?.then(
+    ok: (data: D) -> T,
+    err: (error: E) -> T,
+    nil: () -> T,
+): T {
+    return this?.then(ok, err) ?: nil()
+}
+
+@Composable
+fun <D, T : Any, E : Error> Res<D, E>.apply(
+    ok: @Composable (data: D) -> T,
+    err: @Composable (error: E) -> T,
+): T {
+    return when (this) {
+        is Res.Err -> err(error)
+        is Res.Ok -> ok(data)
+    }
+}
+
+@Composable
+fun <D, T : Any, E : Error> Res<D, E>?.apply(
+    ok: @Composable (data: D) -> T,
+    err: @Composable (error: E) -> T,
+    nil: @Composable () -> T,
+): T {
+    return this?.apply(ok, err) ?: nil()
+}
+
 fun <D, E : Error> Res<D, E>.getOrNull(): D? {
     return when (this) {
         is Res.Err -> null

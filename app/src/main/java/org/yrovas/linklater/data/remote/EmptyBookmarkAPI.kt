@@ -1,9 +1,12 @@
-package org.yrovas.linklater.domain
+package org.yrovas.linklater.data.remote
 
 import android.content.Context
-import kotlinx.coroutines.delay
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
+import org.yrovas.linklater.domain.APIError
+import org.yrovas.linklater.domain.Err
+import org.yrovas.linklater.domain.Ok
+import org.yrovas.linklater.domain.Res
 
 class EmptyBookmarkAPI : BookmarkAPI {
     override suspend fun authenticate(

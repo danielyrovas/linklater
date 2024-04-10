@@ -65,16 +65,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import org.yrovas.linklater.AppViewModel
+import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import org.yrovas.linklater.ThemePreview
+import org.yrovas.linklater.data.remote.EmptyBookmarkAPI
 import org.yrovas.linklater.domain.APIError
-import org.yrovas.linklater.domain.EmptyBookmarkAPI
 import org.yrovas.linklater.domain.Err
-import org.yrovas.linklater.domain.Error
 import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.domain.apply
 import org.yrovas.linklater.domain.isNotNull
 import org.yrovas.linklater.domain.isOk
 import org.yrovas.linklater.launch
@@ -93,10 +94,9 @@ import kotlin.math.max
 @Composable
 fun SaveBookmarkScreen(
     nav: DestinationsNavigator,
-    appViewModel: AppViewModel,
     snackState: SnackbarHostState,
     context: Context = LocalContext.current,
-    state: SaveBookmarkScreenState = SaveBookmarkScreenState(appViewModel.bookmarkAPI),
+    state: () -> SaveBookmarkScreenState,
     back: () -> Unit = { nav.popBackStack() },
     onSubmitSuccess: suspend () -> Unit = {
         context.launch {
@@ -105,6 +105,7 @@ fun SaveBookmarkScreen(
         back()
     },
 ) {
+    val state = viewModel { state() }
     LaunchedEffect(true) { state.setup(context) }
     var isSubmitting by remember { mutableStateOf(false) }
     val submit = {
@@ -126,7 +127,6 @@ fun SaveBookmarkScreen(
     }, snackState = snackState) {
         if (isSubmitting) SaveBookmarkResult(
             state = state,
-            snackState = snackState,
             onSubmitSuccess = onSubmitSuccess
         )
         else SaveBookmarkFields(state = state, submit = submit)
@@ -134,28 +134,12 @@ fun SaveBookmarkScreen(
 }
 
 @Composable
-fun <D, T : Any, E : Error> Res<D, E>?.then(
-    ok: @Composable (data: D) -> T,
-    err: @Composable (error: E) -> T,
-    nil: @Composable () -> T,
-): T {
-    return when (this) {
-        is Res.Err -> err(error)
-        is Res.Ok -> ok(data)
-        null -> nil()
-    }
-}
-
-@Composable
 fun SaveBookmarkResult(
     state: SaveBookmarkScreenState,
-    snackState: SnackbarHostState,
     onSubmitSuccess: suspend () -> Unit,
     context: Context = LocalContext.current,
 ) {
     val submitResult by state.submitResult.collectAsState()
-//    var networking by remember { mutableStateOf(false) }
-
     LaunchedEffect(submitResult.isNotNull()) {
         if (submitResult.isNotNull() && submitResult!!.isOk) {
             onSubmitSuccess()
@@ -167,7 +151,7 @@ fun SaveBookmarkResult(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
     ) {
-        submitResult.then(ok = {
+        submitResult.apply(ok = {
             CheckIcon {}
             Spacer(Modifier.height(padding.double))
             Text("Saved Bookmark")
@@ -183,9 +167,7 @@ fun SaveBookmarkResult(
 
         }, nil = {
             CircularProgressIndicator()
-        }
-
-        )
+        })
     }
 }
 
@@ -506,11 +488,10 @@ fun SaveBookmarkScreenPreview() {
         state.toggleSelectTag("cool")
         state.toggleSelectTag("selfhost")
         state.setSubmitResult(Err(APIError.AUTH))
-//        SaveBookmarkScreen(
-//            nav = EmptyDestinationsNavigator,
-//            appViewModel = PreviewAppViewModel(),
-//            snackState = SnackbarHostState(),
-//            state = state
-//        )
+        SaveBookmarkScreen(
+            nav = EmptyDestinationsNavigator,
+            snackState = SnackbarHostState(),
+            state = { state }
+        )
     }
 }

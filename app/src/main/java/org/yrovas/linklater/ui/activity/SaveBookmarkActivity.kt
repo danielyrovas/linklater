@@ -5,8 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import com.ramcosta.composedestinations.annotation.NavHostGraph
 import com.ramcosta.composedestinations.generated.navgraphs.SaveBookmarkActivityNavGraph
-import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.AppViewModelImpl
 
 @NavHostGraph
 annotation class SaveBookmarkActivityGraph

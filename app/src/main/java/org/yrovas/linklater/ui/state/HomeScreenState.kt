@@ -3,13 +3,16 @@ package org.yrovas.linklater.ui.state
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.AppViewModel
-import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.data.Bookmark
-import org.yrovas.linklater.domain.*
+import org.yrovas.linklater.data.remote.BookmarkAPI
+import org.yrovas.linklater.domain.APIError
+import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.domain.ok
 
 @Inject
 class HomeScreenState(private val api: BookmarkAPI) : ViewModel() {

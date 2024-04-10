@@ -2,10 +2,24 @@ package org.yrovas.linklater.ui.common
 
 import android.content.Context
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,6 +33,7 @@ import org.yrovas.linklater.openUri
 import org.yrovas.linklater.timeAgo
 import org.yrovas.linklater.ui.theme.padding
 import java.net.URI
+
 @Composable
 fun Frame(
     appBar: @Composable () -> Unit,
@@ -28,8 +43,8 @@ fun Frame(
 ) {
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onBackground
+        color = colorScheme.background,
+        contentColor = colorScheme.onBackground
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column {
@@ -66,15 +81,13 @@ fun BookmarkRow(
             Text(
                 text = URI(bookmark.url).host ?: bookmark.url,
                 overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.outline,
+                style = typography.labelLarge,
+                color = colorScheme.outline,
             )
             Text(
                 text = if (bookmark.date_modified.isNullOrBlank()) "" else timeAgo(
                     Instant.parse(bookmark.date_modified), Clock.System.now()
-                ),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.outline
+                ), style = typography.labelLarge, color = colorScheme.outline
             )
         }
         Spacer(modifier = androidx.compose.ui.Modifier.height(padding.tiny))
@@ -88,14 +101,14 @@ fun BookmarkRow(
             },
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 2,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary,
+                style = typography.titleLarge,
+                color = colorScheme.primary,
                 modifier = Modifier.clickable {
                     context.openUri(bookmark.url.toUri())
                 })
         }
         if (!bookmark.description.isNullOrBlank() || !bookmark.website_description.isNullOrBlank()) {
-            Spacer(modifier = androidx.compose.ui.Modifier.height(padding.half))
+            Spacer(modifier = Modifier.height(padding.half))
             Row {
                 Text(
                     text = if (!bookmark.description.isNullOrBlank()) {
@@ -107,19 +120,19 @@ fun BookmarkRow(
                     },
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 2,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.outline
+                    style = typography.bodyMedium,
+                    color = colorScheme.outline
                 )
             }
         }
         if (bookmark.tags.isNotEmpty()) {
-            Spacer(modifier = androidx.compose.ui.Modifier.height(padding.half))
+            Spacer(modifier = Modifier.height(padding.half))
             LazyRow {
                 items(bookmark.tags, key = { it }) {
                     Text(
-                        text = "#$it", color = MaterialTheme.colorScheme.tertiary
+                        text = "#$it", color = colorScheme.tertiary
                     )
-                    Spacer(modifier = androidx.compose.ui.Modifier.width(padding.standard))
+                    Spacer(modifier = Modifier.width(padding.standard))
                 }
             }
         }

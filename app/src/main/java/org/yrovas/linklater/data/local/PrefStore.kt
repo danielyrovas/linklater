@@ -1,4 +1,4 @@
-package org.yrovas.linklater.data
+package org.yrovas.linklater.data.local
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -21,7 +21,7 @@ object Prefs {
 
 @AppScope
 @Inject
-class PreferenceStore(private val store: DataStore<Preferences>) : PrefDataStore {
+class PrefStore(private val store: DataStore<Preferences>) : PrefDataStore {
     override suspend fun <T> getPrefs(
         key: Preferences.Key<T>,
         default: T,

@@ -1,10 +1,13 @@
-package org.yrovas.linklater.domain
+package org.yrovas.linklater.data.remote
 
 import android.content.Context
 import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.*
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -14,6 +17,11 @@ import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
+import org.yrovas.linklater.domain.APIError
+import org.yrovas.linklater.domain.Err
+import org.yrovas.linklater.domain.Ok
+import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.domain.toRes
 import java.io.File
 
 const val BOOKMARKS_CACHE_PATH = "bookmark_page_cache.json"
@@ -27,14 +35,19 @@ class LinkDingAPI(
     private var token: String? = null,
     private val pageSize: Int = 20,
 ) : BookmarkAPI {
+    init {
+        Log.d("DEBUG", "CREATING BOOKMARK API: ")
+    }
 
-    private val authProvided = !endpoint.isNullOrBlank() && !token.isNullOrBlank()
+    private val authProvided
+        get() = !endpoint.isNullOrBlank() && !token.isNullOrBlank()
 
     override suspend fun authenticate(
         endpoint: String?,
         token: String?,
         validate: Boolean,
     ): Res<Unit, APIError> {
+        Log.d("DEBUG", "authenticate: with endpoint: $endpoint")
         if (!endpoint.isNullOrBlank()) {
             if (!checkURL(endpoint)) return Err(APIError.AUTH)
             this.endpoint = endpoint
