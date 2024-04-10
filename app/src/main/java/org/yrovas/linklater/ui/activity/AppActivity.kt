@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.generated.destinations.HomeScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.PreferencesScreenDestination
+import com.ramcosta.composedestinations.generated.destinations.SaveBookmarkActivityScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.SaveBookmarkScreenDestination
 import com.ramcosta.composedestinations.navigation.DependenciesContainerBuilder
 import com.ramcosta.composedestinations.navigation.dependency
@@ -84,6 +85,7 @@ fun DestinationHost(
         }
         provideState(HomeScreenDestination, homeScreenState)
         provideState(SaveBookmarkScreenDestination, saveBookmarkScreenState)
+        provideState(SaveBookmarkActivityScreenDestination, saveBookmarkScreenState)
         provideState(PreferencesScreenDestination, preferencesScreenState)
     })
 }
