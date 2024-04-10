@@ -55,7 +55,6 @@ abstract class AppActivity : ComponentActivity() {
                 endpoint = component.prefStore.getPref(Prefs.LINKDING_URL, ""),
                 token = component.prefStore.getPref(Prefs.LINKDING_TOKEN, ""),
             )
-            delay(3000)
             _setup_complete.update { true }
         }
         setContent {
