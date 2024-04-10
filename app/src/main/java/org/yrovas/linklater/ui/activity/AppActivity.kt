@@ -18,7 +18,6 @@ import com.ramcosta.composedestinations.navigation.dependency
 import com.ramcosta.composedestinations.navigation.destination
 import com.ramcosta.composedestinations.spec.DestinationSpec
 import com.ramcosta.composedestinations.spec.NavHostGraphSpec
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
