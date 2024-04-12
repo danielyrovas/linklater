@@ -2,6 +2,7 @@ package org.yrovas.linklater.data.local
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -17,6 +18,10 @@ import org.yrovas.linklater.AppScope
 object Prefs {
     val LINKDING_URL = stringPreferencesKey("linkding_url")
     val LINKDING_TOKEN = stringPreferencesKey("linkding_token")
+    val BOOKMARK_DEFAULT_TAG_NAMES = stringPreferencesKey("bookmark_default_tag_names")
+    val BOOKMARK_DEFAULT_UNREAD = booleanPreferencesKey("bookmark_default_unread")
+    val BOOKMARK_DEFAULT_SHARED = booleanPreferencesKey("bookmark_default_shared")
+    val BOOKMARK_DEFAULT_ARCHIVED = booleanPreferencesKey("bookmark_default_archived")
 }
 
 @AppScope

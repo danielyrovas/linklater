@@ -11,6 +11,8 @@ import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.LocalBookmark
+import org.yrovas.linklater.data.local.PrefDataStore
+import org.yrovas.linklater.data.local.Prefs
 import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.domain.Err
@@ -18,11 +20,15 @@ import org.yrovas.linklater.domain.Ok
 import org.yrovas.linklater.domain.Res
 
 @Inject
-class SaveBookmarkScreenState(private val bookmarkAPI: BookmarkAPI) :
+class SaveBookmarkScreenState(
+    private val bookmarkAPI: BookmarkAPI,
+    private val prefStore: PrefDataStore,
+) :
     ViewModel() {
     private val _bookmarkToSave: MutableStateFlow<LocalBookmark> =
         MutableStateFlow(LocalBookmark(""))
     var bookmarkToSave = _bookmarkToSave.asStateFlow()
+
     fun updateBookmark(
         url: String? = null,
         title: String? = null,
@@ -106,5 +112,20 @@ class SaveBookmarkScreenState(private val bookmarkAPI: BookmarkAPI) :
 
     fun validateBookmark(): Boolean {
         return checkURL(bookmarkToSave.value.url)
+    }
+
+    init {
+        viewModelScope.launch {
+            updateBookmark(
+                is_archived = prefStore.getPref(
+                    Prefs.BOOKMARK_DEFAULT_ARCHIVED, false
+                ),
+                unread = prefStore.getPref(Prefs.BOOKMARK_DEFAULT_UNREAD, false),
+                shared = prefStore.getPref(Prefs.BOOKMARK_DEFAULT_SHARED, false)
+            )
+            updateTagNames(
+                prefStore.getPref(Prefs.BOOKMARK_DEFAULT_TAG_NAMES, "")
+            )
+        }
     }
 }

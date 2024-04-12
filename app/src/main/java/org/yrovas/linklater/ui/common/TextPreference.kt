@@ -39,7 +39,7 @@ fun TextPreference(
     info: (@Composable () -> Unit)? = null,
     state: State<String>,
     onSave: (String) -> Unit,
-    onCheck: (String) -> Boolean,
+    onCheck: (String) -> Boolean = { true },
 ) {
     TextPreference(
         icon = { Icon(icon) },
@@ -88,11 +88,13 @@ private fun TextPreference(
         }
     }
 
-    Surface(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(padding.standard),
-        onClick = { showDialog = true },
+            .padding(padding.standard)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable {  showDialog = true  }
+        ,
     ) {
         Column {
             Row(

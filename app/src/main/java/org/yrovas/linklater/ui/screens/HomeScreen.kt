@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddLink
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
@@ -45,6 +44,7 @@ import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.BookmarkRow
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
+import org.yrovas.linklater.ui.common.RefreshIcon
 import org.yrovas.linklater.ui.state.HomeScreenState
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
@@ -57,8 +57,8 @@ fun HomeScreen(
     setup_complete: StateFlow<Boolean>,
     state: () -> HomeScreenState,
 ) {
-    val state = viewModel { state() }
-    val setup_complete by setup_complete.collectAsState()
+    @Suppress("NAME_SHADOWING") val state = viewModel { state() }
+    @Suppress("NAME_SHADOWING") val setup_complete by setup_complete.collectAsState()
     val scope = rememberCoroutineScope()
     val bookmarks by state.displayedBookmarks.collectAsState()
     val listState = rememberLazyListState()
@@ -76,18 +76,19 @@ fun HomeScreen(
     }
 
     LaunchedEffect(setup_complete) {
-        if (state.displayedBookmarks.value.isEmpty()) {
+        if (setup_complete && bookmarks.isEmpty()) {
             Log.d("DEBUG", "HomeScreen: REFRESHING")
             refresh()
         }
     }
+    LaunchedEffect(false) {
+
+    }
+
     Frame(appBar = {
         AppBar(page = "Bookmarks", back = null) {
             IconButton(onClick = { refresh() }) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    tint = colorScheme.primary
-                )
+                RefreshIcon(refreshing = state.isRefreshing)
             }
             IconButton(onClick = { nav.navigate(PreferencesScreenDestination) }) {
                 Icon(
@@ -102,7 +103,7 @@ fun HomeScreen(
             onClick = { nav.navigate(SaveBookmarkScreenDestination) },
             content = { Icon(imageVector = Icons.Default.AddLink) })
     }, snackState = snackState) {
-        if (!setup_complete) {
+        if (!setup_complete && bookmarks.isEmpty()) {
             Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center,

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
 import org.yrovas.linklater.data.remote.BookmarkAPI
@@ -21,12 +22,6 @@ class PreferencesScreenState(
     private val bookmarkAPI: BookmarkAPI,
     private val prefStore: PrefDataStore,
 ) : ViewModel() {
-    init {
-        viewModelScope.launch(Dispatchers.IO) {
-            saveBookmarkAPIToken(prefStore.getPref(Prefs.LINKDING_TOKEN, ""))
-            saveBookmarkURL(prefStore.getPref(Prefs.LINKDING_URL, ""))
-        }
-    }
     private val _bookmarkEndpoint: MutableStateFlow<String> = MutableStateFlow("")
     var bookmarkEndpoint = _bookmarkEndpoint.asStateFlow()
     private val _bookmarkAPIToken: MutableStateFlow<String> = MutableStateFlow("")
@@ -55,4 +50,76 @@ class PreferencesScreenState(
     fun saveBookmarkAPIToken(token: String) {
         saveBookmarkConf(token = token)
     }
+
+    private val _tag_names: MutableStateFlow<String> = MutableStateFlow("")
+    var tag_names = _tag_names.asStateFlow()
+    private val _defaultBookmark: MutableStateFlow<LocalBookmark> =
+        MutableStateFlow(LocalBookmark(""))
+    var defaultBookmark = _defaultBookmark.asStateFlow()
+
+    fun saveDefaultBookmark(
+        tag_names: String? = null,
+        unread: Boolean? = null,
+        shared: Boolean? = null,
+        is_archived: Boolean? = null,
+    ) {
+        updateDefaultBookmark(
+            tag_names = tag_names,
+            unread = unread,
+            shared = shared,
+            is_archived = is_archived,
+        )
+        viewModelScope.launch {
+            prefStore.setPref(
+                Prefs.BOOKMARK_DEFAULT_TAG_NAMES,
+                defaultBookmark.value.tags.joinToString(separator = " ")
+            )
+            prefStore.setPref(
+                Prefs.BOOKMARK_DEFAULT_UNREAD, defaultBookmark.value.unread
+            )
+            prefStore.setPref(
+                Prefs.BOOKMARK_DEFAULT_SHARED, defaultBookmark.value.shared
+            )
+            prefStore.setPref(
+                Prefs.BOOKMARK_DEFAULT_ARCHIVED, defaultBookmark.value.is_archived
+            )
+        }
+    }
+
+    private fun updateDefaultBookmark(
+        tag_names: String? = null,
+        unread: Boolean? = null,
+        shared: Boolean? = null,
+        is_archived: Boolean? = null,
+    ) {
+        tag_names?.let { this._tag_names.update { tag_names } }
+        val tags = (defaultBookmark.value.tags + this.tag_names.value.split(" ")
+            .filter { it.isNotBlank() }).distinct()
+        _defaultBookmark.update {
+            it.withUpdates(is_archived = is_archived,
+                unread = unread,
+                shared = shared,
+                tags = tags.ifEmpty { null })
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            saveBookmarkAPIToken(prefStore.getPref(Prefs.LINKDING_TOKEN, ""))
+            saveBookmarkURL(prefStore.getPref(Prefs.LINKDING_URL, ""))
+            updateDefaultBookmark(
+                tag_names = prefStore.getPref(
+                    Prefs.BOOKMARK_DEFAULT_TAG_NAMES, ""
+                ),
+                unread = prefStore.getPref(Prefs.BOOKMARK_DEFAULT_UNREAD, false),
+                shared = prefStore.getPref(Prefs.BOOKMARK_DEFAULT_SHARED, false),
+                is_archived = prefStore.getPref(
+                    Prefs.BOOKMARK_DEFAULT_ARCHIVED, false
+                ),
+            )
+        }
+    }
 }
+
+//fun String.intoTags(): List<String> =
+//    split(" ").filter { it.isNotBlank() }.distinct()

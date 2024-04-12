@@ -71,6 +71,7 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import org.yrovas.linklater.ThemePreview
+import org.yrovas.linklater.data.local.EmptyPrefStore
 import org.yrovas.linklater.data.remote.EmptyBookmarkAPI
 import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.domain.Err
@@ -381,7 +382,7 @@ fun StyledTextField(
 }
 
 @Composable
-fun StyledCheckBox(
+private fun StyledCheckBox(
     name: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
@@ -459,7 +460,7 @@ private fun StyledBoxIcon(
 @Composable
 fun SaveBookmarkScreenPreview() {
     AppTheme {
-        val state = SaveBookmarkScreenState(EmptyBookmarkAPI())
+        val state = SaveBookmarkScreenState(EmptyBookmarkAPI(), EmptyPrefStore())
         state.updateBookmark("https://alpinelinux.org/arbitrary/URL/that-is-far-to-long-andhassomelongerwordsthatareannoying-especially-for-a-text-field.html")
         state.setTags(
             listOf(

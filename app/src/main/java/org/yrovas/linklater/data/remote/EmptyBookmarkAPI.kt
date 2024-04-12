@@ -1,6 +1,7 @@
 package org.yrovas.linklater.data.remote
 
 import android.content.Context
+import kotlinx.coroutines.delay
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.domain.APIError
@@ -21,8 +22,9 @@ class EmptyBookmarkAPI : BookmarkAPI {
         page: Int,
         query: String?,
     ): Res<List<Bookmark>, APIError> {
-//        return Ok(emptyList())
-        return Err(APIError.AUTH)
+        delay(4300)
+        return Ok(emptyList())
+//        return Err(APIError.AUTH)
     }
 
     override suspend fun getCachedBookmarks(context: Context): List<Bookmark> {

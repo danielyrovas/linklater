@@ -8,6 +8,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -71,6 +72,7 @@ class LinkDingAPI(
         page: Int,
         query: String?,
     ): Res<List<Bookmark>, APIError> {
+//        delay(4300)
         if (!authProvided) return Err(APIError.AUTH)
         return runCatching {
             Log.d("DEBUG/net", "getBookmarks: starting request")

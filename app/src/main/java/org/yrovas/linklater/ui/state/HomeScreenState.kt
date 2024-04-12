@@ -3,7 +3,9 @@ package org.yrovas.linklater.ui.state
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -17,8 +19,8 @@ import org.yrovas.linklater.domain.ok
 @Inject
 class HomeScreenState(private val api: BookmarkAPI) : ViewModel() {
     fun refreshBookmarks(onRefresh: suspend (Res<Any, APIError>) -> Unit) {
+        _isRefreshing.update { true }
         viewModelScope.launch(Dispatchers.IO) {
-            _isRefreshing.update { true }
             val res = api.getBookmarks(page = 0)
             res.ok { setDisplayedBookmarks(it) }
             _isRefreshing.update { false }
