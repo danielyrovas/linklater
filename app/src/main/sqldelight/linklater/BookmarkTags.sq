@@ -1,0 +1,99 @@
+import kotlin.Boolean;
+
+CREATE TABLE bookmarkEntity (
+    id INTEGER NOT NULL PRIMARY KEY,
+    url TEXT UNIQUE NOT NULL,
+    title TEXT,
+    description TEXT,
+    notes TEXT,
+    website_title TEXT,
+    website_description TEXT,
+    is_archived INTEGER AS Boolean DEFAULT 0,
+    unread INTEGER AS Boolean DEFAULT 0,
+    shared INTEGER AS Boolean DEFAULT 0,
+    date_added TEXT,
+    date_modified TEXT
+);
+
+CREATE TABLE tagEntity (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE
+);
+
+CREATE TABLE bookmarkTags (
+    bookmarkID INTEGER NOT NULL,
+    tagID INTEGER NOT NULL,
+    PRIMARY KEY(bookmarkID, tagID),
+    FOREIGN KEY (bookmarkID) REFERENCES bookmarkEntity(id) ON DELETE CASCADE,
+    FOREIGN KEY (tagID) REFERENCES tagEntity(id) ON DELETE CASCADE
+);
+
+getBookmarks:
+SELECT * FROM bookmarkEntity;
+
+getBookmarkByID:
+SELECT b.*
+FROM bookmarkEntity AS b
+WHERE b.id = :id
+;
+
+getBookmarkByIDwithTags:
+SELECT b.*, group_concat(t.name, ':: ::') AS tagNames
+FROM bookmarkEntity AS b
+LEFT JOIN bookmarkTags AS bt ON b.id = bt.bookmarkID
+LEFT JOIN tagEntity AS t ON t.id = bt.tagID
+WHERE b.id = :id
+GROUP BY b.id
+ORDER BY b.date_modified DESC
+;
+
+getBookmarkByURLwithTags:
+SELECT b.*, group_concat(t.name, ':: ::') AS tagNames
+FROM bookmarkEntity AS b
+LEFT JOIN bookmarkTags AS bt ON b.id = bt.bookmarkID
+LEFT JOIN tagEntity AS t ON t.id = bt.tagID
+WHERE b.url = :url
+GROUP BY b.id
+ORDER BY b.date_modified DESC
+;
+
+getBookmarksWithTags:
+SELECT b.*, group_concat(t.name, ':: ::') AS tagNames
+FROM bookmarkEntity AS b
+LEFT JOIN bookmarkTags AS bt ON b.id = bt.bookmarkID
+LEFT JOIN tagEntity AS t ON t.id = bt.tagID
+GROUP BY b.id
+ORDER BY b.date_modified DESC
+;
+
+insertBookmark {
+INSERT OR REPLACE INTO bookmarkEntity
+VALUES (?,?,?,?,?,?,?,?,?,?,?,?);
+SELECT last_insert_rowid();
+}
+
+deleteBookmarkByID:
+DELETE FROM bookmarkEntity WHERE id = :id;
+
+getTagByID:
+SELECT (name) FROM tagEntity WHERE id = :id;
+
+getTagByName:
+SELECT (id) FROM tagEntity WHERE name = :name;
+
+getTagNames:
+SELECT (name) FROM tagEntity;
+
+insertTag:
+INSERT OR IGNORE INTO tagEntity (name)
+VALUES (:name);
+
+insertTagForBookmark:
+INSERT OR REPLACE INTO bookmarkTags
+VALUES (:bookmarkID, :tagID);
+
+deleteTagByID:
+DELETE FROM tagEntity WHERE id = :id;
+
+deleteTagByName:
+DELETE FROM tagEntity WHERE name = :name;

@@ -16,6 +16,9 @@ import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
@@ -88,10 +91,11 @@ fun BookmarkRow(
                 )
             }
         }
+        val tags by remember { mutableStateOf(bookmark.tags.sorted()) } // prevent re-sorting every render
         if (bookmark.tags.isNotEmpty()) {
             Spacer(modifier = Modifier.height(padding.half))
             LazyRow {
-                items(bookmark.tags, key = { it }) {
+                items(tags, key = { it }) {
                     Text(
                         text = "#$it", color = colorScheme.tertiary
                     )

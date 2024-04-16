@@ -1,7 +1,7 @@
 [versions]
 app-versionID = "org.yrovas.linklater"
-app-versionCode = "6"
-app-versionName = "0.1.5"
+app-versionCode = "7"
+app-versionName = "0.1.6"
 app-compileSDK = "34"
 app-targetSDK = "34"
 app-minimumSDK = "23"
@@ -10,7 +10,7 @@ app-kotlinJVMTarget = "19"
 #noinspection GradleDependency
 app-composeCompiler = "1.5.11"
 
-agp = "8.3.1"
+agp = "8.3.2"
 kotlin = "1.9.23"
 kotlinInjectCompilerKsp = "0.6.3"
 ksp = "1.9.23-1.0.19"
@@ -18,20 +18,23 @@ kotlinxDatetime = "0.5.0"
 core-ktx = "1.12.0"
 activity-compose = "1.8.2"
 compose-bom = "2024.03.00"
-ktor = "2.3.9"
+ktor = "2.3.10"
 kotlinxSerializationJson = "1.6.3"
 material3 = "1.2.1"
-material = "1.6.4"
+material = "1.6.5"
 destinations = "2.0.0-beta01"
 junit = "4.13.2"
 androidx-test-ext-junit = "1.1.5"
 espresso-core = "3.5.1"
 lifecycle-runtime-ktx = "2.7.0"
 datastore = "1.0.0"
+sqldelight = "2.0.2"
 
 [libraries]
+android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "material" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "material" }
+coroutines-extensions = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
 kotlin-inject-compiler-ksp = { module = "me.tatarka.inject:kotlin-inject-compiler-ksp", version.ref = "kotlinInjectCompilerKsp" }
 kotlin-inject-runtime = { module = "me.tatarka.inject:kotlin-inject-runtime", version.ref = "kotlinInjectCompilerKsp" }
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
@@ -65,5 +68,6 @@ android = { id = "com.android.application", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 
 [bundles]

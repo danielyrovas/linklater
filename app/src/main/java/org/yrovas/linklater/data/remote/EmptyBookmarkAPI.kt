@@ -27,25 +27,9 @@ class EmptyBookmarkAPI : BookmarkAPI {
 //        return Err(APIError.AUTH)
     }
 
-    override suspend fun getCachedBookmarks(context: Context): List<Bookmark> {
-        return emptyList()
+    override suspend fun saveBookmark(bookmark: LocalBookmark): Res<Bookmark, APIError> {
+        return Err(APIError.CONNECTION)
     }
-
-    override suspend fun saveBookmark(bookmark: LocalBookmark): Res<Int, APIError> {
-        return Ok(200)
-    }
-
-    override suspend fun cacheBookmarks(
-        context: Context,
-        bookmarks: List<Bookmark>,
-    ) {
-    }
-
-    override suspend fun getCachedTags(context: Context): List<String> {
-        return emptyList()
-    }
-
-    override suspend fun cacheTags(context: Context, tags: List<String>) {}
 
     override suspend fun getTags(page: Int): Res<List<String>, APIError> {
         return Ok(emptyList())

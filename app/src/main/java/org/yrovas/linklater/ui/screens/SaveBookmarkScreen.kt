@@ -8,9 +8,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +22,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
@@ -71,10 +76,11 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import org.yrovas.linklater.ThemePreview
+import org.yrovas.linklater.data.local.EmptyBookmarkSource
 import org.yrovas.linklater.data.local.EmptyPrefStore
+import org.yrovas.linklater.data.local.EmptyTagSource
 import org.yrovas.linklater.data.remote.EmptyBookmarkAPI
 import org.yrovas.linklater.domain.APIError
-import org.yrovas.linklater.domain.Err
 import org.yrovas.linklater.domain.Res
 import org.yrovas.linklater.domain.apply
 import org.yrovas.linklater.domain.isNotNull
@@ -90,6 +96,7 @@ import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.round
 
 @Destination<RootGraph>
 @Composable
@@ -107,7 +114,7 @@ fun SaveBookmarkScreen(
     },
 ) {
     val state = viewModel { state() }
-    LaunchedEffect(true) { state.setup(context) }
+
     var isSubmitting by remember { mutableStateOf(false) }
     val submit = {
         if (state.validateBookmark()) {
@@ -173,16 +180,12 @@ fun SaveBookmarkResult(
 }
 
 @Composable
-fun SaveBookmarkFields(
+private fun SaveBookmarkFields(
     state: SaveBookmarkScreenState,
     submit: () -> Unit,
     context: Context = LocalContext.current,
 ) {
     val bookmark by state.bookmarkToSave.collectAsState()
-    val tagNames by state.tagNames.collectAsState()
-    val tags by state.tags.collectAsState()
-    val selectedTags by state.selectedTags.collectAsState()
-    var collapseTags by remember { mutableStateOf(true) }
     val showPaste by state.showPaste.collectAsState()
 
     Column(
@@ -200,66 +203,18 @@ fun SaveBookmarkFields(
             onPaste = { state.updateBookmark(url = context.readClipboard()) },
             onChange = { state.updateBookmark(url = it) })
 
-        StyledTextField(name = "Tags",
-            placeholder = "Enter tags...",
-            value = tagNames,
-            icon = Icons.Default.Tag,
-            onChange = { state.updateTagNames(tagNames = it) })
+        StyledTagRow(state)
 
-        var rows by remember { mutableIntStateOf(max(abs(tags.size / 4), 1)) }
-        if (collapseTags && rows > 3) rows = 3
-        if (!collapseTags) rows = max(abs(tags.size / 4), 1)
+        Spacer(modifier = Modifier.height(padding.standard))
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height((rows * 40).dp)
-        ) {
-            LazyHorizontalStaggeredGrid(
-                rows = StaggeredGridCells.Adaptive(40.dp)
-            ) {
-                items(selectedTags.toList().sorted()) {
-                    TextButton(onClick = {
-                        state.toggleSelectTag(it)
-                    }) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(100.dp))
-                                .background(colorScheme.tertiary)
-                                .fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                modifier = Modifier.padding(horizontal = 10.dp),
-                                text = "#$it", color = colorScheme.onTertiary
-                            )
-                        }
-                    }
-                }
-                items((tags - selectedTags).sorted()) {
-                    TextButton(
-                        onClick = { state.toggleSelectTag(it) },
-                    ) {
-                        Text(
-                            modifier = Modifier
-                                .padding(horizontal = 2.dp)
-                                .background(colorScheme.background),
-                            text = "#$it",
-                            color = colorScheme.tertiary
-                        )
-                    }
-                }
-            }
-        }
-        Row(
-            horizontalArrangement = Arrangement.End,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            IconButton(onClick = { collapseTags = !collapseTags }) {
-                Icon(imageVector = if (collapseTags) Icons.Default.ArrowDropDown else Icons.Default.ArrowDropUp)
-            }
-        }
-//        Spacer(modifier = Modifier.height(padding.double))
+        StyledCheckBox("Share", bookmark.shared, onCheckedChange = {
+            state.updateBookmark(shared = it)
+        })
+        StyledCheckBox("Mark as unread", bookmark.unread, onCheckedChange = {
+            state.updateBookmark(unread = it)
+        })
+
+        Spacer(modifier = Modifier.height(padding.standard))
 
         StyledTextField(name = "Title",
             value = bookmark.title ?: "",
@@ -272,42 +227,208 @@ fun SaveBookmarkFields(
             placeholder = "Leave blank to use website description",
             onChange = { state.updateBookmark(description = it.ifBlank { null }) })
 
-        StyledCheckBox("Share", bookmark.shared, onCheckedChange = {
-            state.updateBookmark(shared = it)
-        })
-        StyledCheckBox("Mark as unread", bookmark.unread, onCheckedChange = {
-            state.updateBookmark(unread = it)
-        })
-
-        Spacer(modifier = Modifier.height(padding.standard))
-
         StyledTextField(name = "Notes",
             value = bookmark.notes ?: "",
             icon = Icons.AutoMirrored.Filled.Notes,
             placeholder = "Enter some notes...",
             onChange = { state.updateBookmark(notes = it.ifBlank { null }) })
+        SubmitButton { submit() }
+    }
+}
 
-        Row(
-            horizontalArrangement = Arrangement.End, modifier = Modifier
-                .padding(
-                    end = padding.half, bottom = padding.standard
-                )
-                .fillMaxWidth()
-        ) {
-            Button(onClick = { submit() }) {
-                Icon(imageVector = Icons.Default.Bookmark)
-                Spacer(modifier = Modifier.width(padding.half))
-                Text(
-                    modifier = Modifier.padding(vertical = padding.half),
-                    text = "Save Bookmark"
-                )
-            }
+@Composable
+fun SubmitButton(onClick: () -> Unit) {
+    Row(
+        horizontalArrangement = Arrangement.End,
+        modifier = Modifier
+            .padding(end = padding.half, bottom = padding.standard)
+            .fillMaxWidth()
+    ) {
+        Button(onClick = onClick) {
+            Icon(imageVector = Icons.Default.Bookmark)
+            Spacer(modifier = Modifier.width(padding.half))
+            Text(
+                modifier = Modifier.padding(vertical = padding.half),
+                text = "Save Bookmark"
+            )
         }
     }
 }
 
 @Composable
-fun StyledURLRow(
+fun Tag(tag: String, onClick: () -> Unit) {
+    TextButton(onClick = onClick) {
+        Text(
+            modifier = Modifier
+                .padding(horizontal = 2.dp)
+                .background(colorScheme.background),
+            text = "#$tag",
+            color = colorScheme.tertiary
+        )
+    }
+}
+
+@Composable
+fun SelectedTag(tag: String, onClick: (() -> Unit)) {
+    TextButton(onClick = onClick) {
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(100.dp))
+                .background(colorScheme.tertiary)
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                modifier = Modifier.padding(horizontal = 10.dp),
+                text = "#$tag",
+                color = colorScheme.onTertiary
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun StyledTagRow(
+    state: SaveBookmarkScreenState,
+) {
+    var collapseTags by remember { mutableStateOf(true) }
+    val tagNames by state.tagNames.collectAsState()
+    val tags by state.tags.collectAsState()
+    val selectedTags by state.selectedTags.collectAsState()
+    val unselectedTags = remember(tags, selectedTags) {
+        mutableStateOf(tags - selectedTags.toSet())
+    }
+
+    StyledTextField(name = "Tags",
+        placeholder = "Enter tags...",
+        value = tagNames,
+        icon = Icons.Default.Tag,
+        onChange = { state.updateTagNames(tagNames = it) })
+
+    if (selectedTags.isNotEmpty()) {
+        LazyRow {
+            items(selectedTags) {
+                SelectedTag(it) {
+                    state.toggleSelectTag(it)
+                }
+            }
+        }
+    }
+    val rowSize by remember(unselectedTags.value) {
+        mutableIntStateOf(
+            max(round(unselectedTags.value.size / 3f).toInt() + 1, 8)
+        )
+    }
+    if (unselectedTags.value.isNotEmpty()) {
+        Text(text = "Add more tags...", style = typography.titleMedium)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .animateContentSize()
+        ) {
+            if (collapseTags && unselectedTags.value.size >= 7) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animateContentSize()
+                        .horizontalScroll(rememberScrollState())
+                ) {
+                    FlowRow(
+                        maxItemsInEachRow = rowSize
+                    ) {
+                        unselectedTags.value.forEach {
+                            Tag(it) {
+                                state.toggleSelectTag(it)
+                            }
+                        }
+                    }
+                }
+            } else {
+                FlowRow() {
+                    unselectedTags.value.forEach {
+                        Tag(it) {
+                            state.toggleSelectTag(it)
+                        }
+                    }
+                }
+            }
+        }
+        if (unselectedTags.value.size > 8) {
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                IconButton(onClick = { collapseTags = !collapseTags }) {
+                    Icon(imageVector = if (collapseTags) Icons.Default.ArrowDropDown else Icons.Default.ArrowDropUp)
+                }
+            }
+        }
+    }
+//    TagPredictRow(state) // attached to top of keyboard similar to Brave/Chrome
+}
+
+@Composable
+private fun TagPredictRow(state: SaveBookmarkScreenState) {
+    val tagNames by state.tagNames.collectAsState()
+
+    // TODO:
+    // if textfield is focussed, show a bar above the keyboard
+    // that displays autofill options for known tags
+    // uses the current word as tag suggestion prompt
+}
+
+@Composable
+private fun TagRow(
+    state: SaveBookmarkScreenState,
+) {
+    val tagNames by state.tagNames.collectAsState()
+    val tags by state.tags.collectAsState()
+    val selectedTags by state.selectedTags.collectAsState()
+    var collapseTags by remember { mutableStateOf(true) }
+
+    var rows by remember { mutableIntStateOf(max(abs(tags.size / 4), 1)) }
+    if (collapseTags && rows > 3) rows = 3
+    if (!collapseTags) rows = max(abs(tags.size / 4), 1)
+
+    StyledTextField(name = "Tags",
+        placeholder = "Enter tags...",
+        value = tagNames,
+        icon = Icons.Default.Tag,
+        onChange = { state.updateTagNames(tagNames = it) })
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height((rows * 40).dp)
+    ) {
+        LazyHorizontalStaggeredGrid(
+            rows = StaggeredGridCells.Adaptive(40.dp)
+        ) {
+            items(selectedTags.toList().sorted()) {
+                SelectedTag(it) {
+                    state.toggleSelectTag(it)
+                }
+            }
+            items((tags - selectedTags.toSet())) {
+                Tag(it) {
+                    state.toggleSelectTag(it)
+                }
+            }
+        }
+    }
+    Row(
+        horizontalArrangement = Arrangement.End,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        IconButton(onClick = { collapseTags = !collapseTags }) {
+            Icon(imageVector = if (collapseTags) Icons.Default.ArrowDropDown else Icons.Default.ArrowDropUp)
+        }
+    }
+}
+
+@Composable
+private fun StyledURLRow(
     value: String,
     showPaste: Boolean,
     onPaste: () -> Unit,
@@ -460,8 +581,12 @@ private fun StyledBoxIcon(
 @Composable
 fun SaveBookmarkScreenPreview() {
     AppTheme {
-        val state = SaveBookmarkScreenState(EmptyBookmarkAPI(), EmptyPrefStore())
-        state.updateBookmark("https://alpinelinux.org/arbitrary/URL/that-is-far-to-long-andhassomelongerwordsthatareannoying-especially-for-a-text-field.html")
+        val state = SaveBookmarkScreenState(
+            EmptyBookmarkAPI(),
+            EmptyPrefStore(),
+            EmptyTagSource(),
+            EmptyBookmarkSource()
+        )
         state.setTags(
             listOf(
                 "cool",
@@ -486,9 +611,10 @@ fun SaveBookmarkScreenPreview() {
                 "chetland",
             )
         )
+        state.updateBookmark("https://alpinelinux.org/arbitrary/URL/that-is-far-to-long-andhassomelongerwordsthatareannoying-especially-for-a-text-field.html")
         state.toggleSelectTag("cool")
         state.toggleSelectTag("selfhost")
-        state.setSubmitResult(Err(APIError.AUTH))
+//        state.setSubmitResult(Err(APIError.AUTH))
         SaveBookmarkScreen(
             nav = EmptyDestinationsNavigator,
             snackState = SnackbarHostState(),

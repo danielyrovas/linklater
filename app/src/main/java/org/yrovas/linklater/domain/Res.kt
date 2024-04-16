@@ -27,7 +27,21 @@ fun <D, E : Error> Res<D, E>.ok(function: (data: D) -> Unit) {
     }
 }
 
+suspend fun <D, E : Error> Res<D, E>.ifOk(function: suspend (data: D) -> Unit) {
+    when (this) {
+        is Res.Err -> Unit
+        is Res.Ok -> function(data)
+    }
+}
+
 fun <D, E : Error> Res<D, E>.err(function: (error: E) -> Unit) {
+    when (this) {
+        is Res.Err -> function(error)
+        is Res.Ok -> Unit
+    }
+}
+
+suspend fun <D, E : Error> Res<D, E>.ifErr(function: suspend (error: E) -> Unit) {
     when (this) {
         is Res.Err -> function(error)
         is Res.Ok -> Unit

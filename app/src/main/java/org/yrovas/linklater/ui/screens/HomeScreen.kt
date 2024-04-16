@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.yrovas.linklater.ThemePreview
 import org.yrovas.linklater.data.Bookmark
+import org.yrovas.linklater.data.local.EmptyBookmarkSource
 import org.yrovas.linklater.data.remote.EmptyBookmarkAPI
 import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.domain.Err
@@ -62,6 +63,7 @@ fun HomeScreen(
     val scope = rememberCoroutineScope()
     val bookmarks by state.displayedBookmarks.collectAsState()
     val listState = rememberLazyListState()
+    val hasRefreshed by state.hasRefreshed.collectAsState()
     val refresh = {
         state.refreshBookmarks { result ->
             scope.launch {
@@ -76,13 +78,10 @@ fun HomeScreen(
     }
 
     LaunchedEffect(setup_complete) {
-        if (setup_complete && bookmarks.isEmpty()) {
+        if (!hasRefreshed && setup_complete) {
             Log.d("DEBUG", "HomeScreen: REFRESHING")
             refresh()
         }
-    }
-    LaunchedEffect(false) {
-
     }
 
     Frame(appBar = {
@@ -132,7 +131,7 @@ private suspend fun SnackbarHostState.show(error: APIError) {
 @ThemePreview
 @Composable
 fun HomeScreenPreview() {
-    val state = HomeScreenState(EmptyBookmarkAPI())
+    val state = HomeScreenState(EmptyBookmarkAPI(), EmptyBookmarkSource())
     state.setDisplayedBookmarks(
         listOf(
             Bookmark(
@@ -174,8 +173,7 @@ fun HomeScreenPreview() {
         HomeScreen(
             EmptyDestinationsNavigator,
             SnackbarHostState(),
-            MutableStateFlow(true),
-            { state }
-        )
+            MutableStateFlow(true)
+        ) { state }
     }
 }

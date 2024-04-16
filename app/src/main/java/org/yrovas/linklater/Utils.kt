@@ -77,10 +77,6 @@ fun Context.getAppVersion(): String {
     }
 }
 
-fun Context.toast(text: String, length: Int = Toast.LENGTH_LONG) {
-    Toast.makeText(this, text, length).show()
-}
-
 @Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 annotation class ThemePreview
@@ -96,3 +92,6 @@ fun String?.isNull(): Boolean {
 fun String?.isNotNull(): Boolean {
     return this != null
 }
+
+fun String.intoTags(): List<String> =
+    split(" ").filter { it.isNotBlank() }.distinct()

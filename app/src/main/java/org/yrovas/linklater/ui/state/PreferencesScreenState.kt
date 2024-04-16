@@ -12,6 +12,7 @@ import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
 import org.yrovas.linklater.data.remote.BookmarkAPI
+import org.yrovas.linklater.intoTags
 
 //@Provides
 //fun providePreferencesScreenState(appViewModel: () -> AppViewModelImpl): PreferencesScreenState =
@@ -92,9 +93,8 @@ class PreferencesScreenState(
         shared: Boolean? = null,
         is_archived: Boolean? = null,
     ) {
-        tag_names?.let { this._tag_names.update { tag_names } }
-        val tags = (defaultBookmark.value.tags + this.tag_names.value.split(" ")
-            .filter { it.isNotBlank() }).distinct()
+        this._tag_names.update { tag_names ?: "" }
+        val tags = this.tag_names.value.intoTags()
         _defaultBookmark.update {
             it.withUpdates(is_archived = is_archived,
                 unread = unread,
@@ -120,6 +120,3 @@ class PreferencesScreenState(
         }
     }
 }
-
-//fun String.intoTags(): List<String> =
-//    split(" ").filter { it.isNotBlank() }.distinct()
