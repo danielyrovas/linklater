@@ -23,8 +23,9 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     }
 
     override fun getBookmarks(): Flow<List<Bookmark>> {
-        return q.getBookmarksWithTags().asFlow().mapToList(Dispatchers.IO).map { list ->
-            list.map { it.toBookmark() }
+        return q.getBookmarksWithTags().asFlow().mapToList(Dispatchers.IO)
+            .map { list ->
+                list.map { it.toBookmark() }
         }
     }
 
