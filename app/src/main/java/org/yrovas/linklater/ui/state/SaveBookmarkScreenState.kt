@@ -10,16 +10,15 @@ import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.LocalBookmark
-import org.yrovas.linklater.data.local.BookmarkDataSource
-import org.yrovas.linklater.data.local.EmptyBookmarkSource
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.data.local.TagDataSource
-import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.domain.APIError
+import org.yrovas.linklater.domain.BookmarkAPI
+import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.Err
 import org.yrovas.linklater.domain.Ok
 import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.domain.TagDataSource
 import org.yrovas.linklater.intoTags
 
 @Inject
@@ -30,9 +29,24 @@ class SaveBookmarkScreenState(
     private val bookmarkSource: BookmarkDataSource,
 ) :
     ViewModel() {
-    private val _bookmarkToSave: MutableStateFlow<LocalBookmark> =
-        MutableStateFlow(LocalBookmark(""))
+    private val _bookmarkToSave = MutableStateFlow(LocalBookmark(""))
     var bookmarkToSave = _bookmarkToSave.asStateFlow()
+
+    private val _tagNames = MutableStateFlow("")
+    var tagNames = _tagNames.asStateFlow()
+
+    private val _tags: MutableStateFlow<List<String>> = MutableStateFlow(listOf())
+    var tags = _tags.asStateFlow()
+
+    private val _selectedTags = MutableStateFlow(emptyList<String>())
+    var selectedTags = _selectedTags.asStateFlow()
+
+    private val _showPaste = MutableStateFlow(bookmarkToSave.value.url.isBlank())
+    var showPaste = _showPaste.asStateFlow()
+
+    private val _submitResult: MutableStateFlow<Res<String, APIError>?> =
+        MutableStateFlow(null)
+    var submitResult = _submitResult.asStateFlow()
 
     fun updateBookmark(
         url: String? = null,
@@ -58,23 +72,9 @@ class SaveBookmarkScreenState(
         }
     }
 
-    private val _showPaste: MutableStateFlow<Boolean> =
-        MutableStateFlow(bookmarkToSave.value.url.isBlank())
-    var showPaste = _showPaste.asStateFlow()
-
-    private val _tagNames: MutableStateFlow<String> = MutableStateFlow("")
-    var tagNames = _tagNames.asStateFlow()
-
     fun updateTagNames(tagNames: String) {
         _tagNames.update { tagNames }
     }
-
-    private val _tags: MutableStateFlow<List<String>> = MutableStateFlow(listOf())
-    var tags = _tags.asStateFlow()
-
-    private val _selectedTags: MutableStateFlow<List<String>> =
-        MutableStateFlow(emptyList())
-    var selectedTags = _selectedTags.asStateFlow()
 
     fun toggleSelectTag(tag: String) {
         _selectedTags.update {
@@ -83,12 +83,8 @@ class SaveBookmarkScreenState(
         }
     }
 
-    private val _submitResult: MutableStateFlow<Res<String, APIError>?> =
-        MutableStateFlow(null)
-    var submitResult = _submitResult.asStateFlow()
     private fun setSubmitResult(result: Res<String, APIError>) =
         _submitResult.update { result }
-//    fun clearSubmitResult() {}
 
     fun submitBookmark() {
         val tags =

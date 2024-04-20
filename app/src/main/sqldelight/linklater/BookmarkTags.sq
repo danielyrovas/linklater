@@ -72,6 +72,10 @@ VALUES (?,?,?,?,?,?,?,?,?,?,?,?);
 SELECT last_insert_rowid();
 }
 
+countBookmarks:
+SELECT COUNT(*) FROM bookmarkEntity
+;
+
 deleteBookmarkByID:
 DELETE FROM bookmarkEntity WHERE id = :id;
 

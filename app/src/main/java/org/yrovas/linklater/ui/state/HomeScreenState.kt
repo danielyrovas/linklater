@@ -1,60 +1,103 @@
 package org.yrovas.linklater.ui.state
 
-import androidx.lifecycle.ViewModel
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.data.Bookmark
-import org.yrovas.linklater.data.local.BookmarkDataSource
-import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.domain.APIError
-import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.domain.BookmarkAPI
+import org.yrovas.linklater.domain.BookmarkDataSource
+import org.yrovas.linklater.domain.errorOrThrow
 import org.yrovas.linklater.domain.ifOk
+import org.yrovas.linklater.domain.isOk
+
+const val TAG = "DEBUG/state"
 
 @Inject
 class HomeScreenState(
     private val api: BookmarkAPI,
     private val bookmarkSource: BookmarkDataSource,
-) : ViewModel() {
-    fun refreshBookmarks(onRefresh: suspend (Res<Any, APIError>) -> Unit) {
-        _isRefreshing.update { true }
-        _hasRefreshed.update { true }
-        viewModelScope.launch(Dispatchers.IO) {
-            val res = api.getBookmarks(page = 0)
-//            res.ok { setDisplayedBookmarks(it) }
-            _isRefreshing.update { false }
-            onRefresh(res)
+) : ScreenState<HomeScreenState.Event, HomeScreenState.Effect>() {
 
-            res.ifOk {
-                bookmarkSource.insertBookmarks(it)
-            }
-        }
+    sealed interface Event : ScreenEvent {
+        data object RefreshBookmarks : Event
+    }
+
+    sealed interface Effect : ScreenEffect {
+        data class RefreshError(val error: APIError) : Effect
+        data object RefreshOk : Effect
     }
 
     private val _isRefreshing = MutableStateFlow(false)
-    var isRefreshing = _isRefreshing.asStateFlow()
-
-    private val _hasRefreshed = MutableStateFlow(false)
-    var hasRefreshed = _hasRefreshed.asStateFlow()
+    val isRefreshing = _isRefreshing.asStateFlow()
 
     private val _displayedBookmarks = MutableStateFlow(listOf<Bookmark>())
     val displayedBookmarks = _displayedBookmarks.asStateFlow()
 
-    fun setDisplayedBookmarks(bookmarks: List<Bookmark>) {
-        _displayedBookmarks.update { bookmarks }
+    private val _bookmarkCount = MutableStateFlow(0)
+    val bookmarkCount = _bookmarkCount.asStateFlow()
+
+    private fun refreshBookmarks() {
+        _isRefreshing.update { true }
+        viewModelScope.launch(Dispatchers.IO) {
+            val res = api.getBookmarks(page = 0)
+            sendEffect {
+                if (res.isOk) Effect.RefreshOk
+                else Effect.RefreshError(res.errorOrThrow())
+            }
+            _isRefreshing.update { false }
+            res.ifOk { bookmarkSource.insertBookmarks(it) }
+        }
     }
+
+//    fun fullSync() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            var res = api.getBookmarks(0)
+//            var page = 0
+//            while (true) when (res) {
+//                is Res.Err -> break
+//                is Res.Ok -> {
+//                    if (res.data.isEmpty()) {
+//                        break
+//                    }
+//                    Log.d(
+//                        "DEBUG", "fullSync: FETCHED ${res.data} from page $page"
+//                    )
+//                    bookmarkSource.insertBookmarks(res.data)
+//                    res = api.getBookmarks(page++)
+//                }
+//            }
+//        }
+//    }
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            bookmarkSource.getBookmarks().collect {
-                _displayedBookmarks.update { list ->
-                    (list + it).distinct().sortedByDescending { it.date_modified }
+            bookmarkSource.getBookmarks().collect { bookmarks ->
+                _displayedBookmarks.update {
+                    bookmarks.distinct().sortedByDescending { it.date_modified }
+                }
+                _bookmarkCount.emit(bookmarkSource.getBookmarkCount())
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            // when authenticated refresh
+            api.authProvided.transformWhile { emit(it); !it }.collect {
+                if (it) {
+                    refreshBookmarks()
                 }
             }
+        }
+    }
+
+    override fun handleEvent(event: Event) {
+        when (event) {
+            Event.RefreshBookmarks -> refreshBookmarks()
         }
     }
 }

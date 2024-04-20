@@ -1,6 +1,5 @@
 package org.yrovas.linklater.data.remote
 
-import android.content.Context
 import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -8,10 +7,11 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.encodeToJsonElement
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.checkBookmarkAPIToken
@@ -19,11 +19,10 @@ import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.domain.APIError
+import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.Err
 import org.yrovas.linklater.domain.Ok
 import org.yrovas.linklater.domain.Res
-import org.yrovas.linklater.domain.toRes
-import java.io.File
 
 @AppScope
 @Inject
@@ -34,30 +33,33 @@ class LinkDingAPI(
     private val pageSize: Int = 20,
 ) : BookmarkAPI {
     init {
-        Log.d("DEBUG", "CREATING BOOKMARK API: ")
+        Log.d("DEBUG/create", "LinkDingAPI: CREATE")
     }
 
-    private val authProvided
-        get() = !endpoint.isNullOrBlank() && !token.isNullOrBlank()
+    private val _authProvided = MutableStateFlow(false)
+    override val authProvided: StateFlow<Boolean> = _authProvided.asStateFlow()
 
-    override suspend fun authenticate(
+    override fun authenticate(
         endpoint: String?,
         token: String?,
-        validate: Boolean,
     ): Res<Unit, APIError> {
         Log.d("DEBUG", "authenticate: with endpoint: $endpoint")
         if (!endpoint.isNullOrBlank()) {
-            if (!checkURL(endpoint)) return Err(APIError.AUTH)
+            if (!checkURL(endpoint)) return Err(APIError.INCORRECT_ENDPOINT)
             this.endpoint = endpoint
         }
         if (!token.isNullOrBlank()) {
-            if (!checkBookmarkAPIToken(token)) return Err(APIError.AUTH)
+            if (!checkBookmarkAPIToken(token)) return Err(APIError.INCORRECT_AUTH)
             this.token = token
         }
 
-        if (!validate) return Ok(Unit)
+        _authProvided.update { !endpoint.isNullOrBlank() && !token.isNullOrBlank() }
+        if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
+        return Ok(Unit)
+    }
 
-        if (!authProvided) return Err(APIError.AUTH)
+    override suspend fun checkConnection(): Res<Unit, APIError> {
+        if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
 
         return when (val res = getBookmarks(page = 0)) {
             is Res.Err -> Err(res.error)
@@ -70,8 +72,8 @@ class LinkDingAPI(
         query: String?,
     ): Res<List<Bookmark>, APIError> {
 //        delay(3200)
-        if (!authProvided) return Err(APIError.AUTH)
-        return runCatching {
+        if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
+        return try {
             Log.d("DEBUG/net", "getBookmarks: starting request")
             val response = client.get("${endpoint!!}/bookmarks/") {
                 header("Authorization", "Token ${token!!}")
@@ -84,16 +86,15 @@ class LinkDingAPI(
                     url.parameters.append("q", query)
                 }
             }
-//            Json.decodeFromString<BookmarkResponse>(response.bodyAsText()).results
-            response.body<BookmarkResponse>().results // ?? very kool Ktor
-        }.onFailure {
-            Log.i("DEBUG/net", "getBookmarks: ${it.message}")
-            Result.failure<List<Bookmark>>(it)
-        }.toRes(withError = APIError.CONNECTION)
+            Ok(response.body<BookmarkResponse>().results)
+        } catch (e: Exception) {
+            Log.i("DEBUG/net", "getBookmarks: ${e.message}")
+            Err(APIError.NO_CONNECTION)
+        }
     }
 
     override suspend fun saveBookmark(bookmark: LocalBookmark): Res<Bookmark, APIError> {
-        if (!authProvided) return Err(APIError.AUTH)
+        if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
         return try {
             val response = client.post("${endpoint!!}/bookmarks/") {
                 setBody(bookmark)
@@ -101,16 +102,16 @@ class LinkDingAPI(
             }
             when (response.status.value) {
                 in 200..299 -> Ok(response.body<Bookmark>())
-                else -> Err(APIError.AUTH)
+                else -> Err(APIError.INCORRECT_AUTH)
             }
         } catch (e: Exception) {
-            Err(APIError.CONNECTION)
+            Err(APIError.NO_CONNECTION)
         }
     }
 
     override suspend fun getTags(page: Int): Res<List<String>, APIError> {
-        if (!authProvided) return Err(APIError.AUTH)
-        return runCatching {
+        if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
+        return try {
             Log.d("DEBUG/net", "getTags: starting request")
             val response = client.get("${endpoint!!}/tags/") {
                 header("Authorization", "Token ${token!!}")
@@ -118,11 +119,10 @@ class LinkDingAPI(
                     url.parameters.append("offset", (pageSize * page).toString())
                 }
             }
-            response.body<TagResponse>().results
-        }.onFailure {
-            Log.i("DEBUG/net", "getTags: ${it.message}")
-            Result.failure<List<String>>(it)
-        }.toRes(APIError.CONNECTION)
+            Ok(response.body<TagResponse>().results)
+        } catch (e: Exception) {
+            Err(APIError.NO_CONNECTION)
+        }
     }
 
 //    @Serializable

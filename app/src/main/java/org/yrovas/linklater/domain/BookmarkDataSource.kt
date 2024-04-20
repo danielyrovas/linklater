@@ -1,4 +1,4 @@
-package org.yrovas.linklater.data.local
+package org.yrovas.linklater.domain
 
 import kotlinx.coroutines.flow.Flow
 import org.yrovas.linklater.data.Bookmark
@@ -6,6 +6,7 @@ import org.yrovas.linklater.data.Bookmark
 interface BookmarkDataSource {
     suspend fun getBookmark(id: Long): Bookmark?
     fun getBookmarks(): Flow<List<Bookmark>>
+    fun getBookmarkCount(): Int
     suspend fun insertBookmark(bookmark: Bookmark)
     suspend fun insertBookmarks(bookmarks: List<Bookmark>)
     suspend fun deleteBookmark(id: Long)

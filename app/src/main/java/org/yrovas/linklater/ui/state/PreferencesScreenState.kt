@@ -11,27 +11,27 @@ import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.data.remote.BookmarkAPI
+import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.intoTags
-
-//@Provides
-//fun providePreferencesScreenState(appViewModel: () -> AppViewModelImpl): PreferencesScreenState =
-//    PreferencesScreenState(appViewModel)
 
 @Inject
 class PreferencesScreenState(
     private val bookmarkAPI: BookmarkAPI,
     private val prefStore: PrefDataStore,
 ) : ViewModel() {
-    private val _bookmarkEndpoint: MutableStateFlow<String> = MutableStateFlow("")
+    private val _bookmarkEndpoint = MutableStateFlow("")
     var bookmarkEndpoint = _bookmarkEndpoint.asStateFlow()
-    private val _bookmarkAPIToken: MutableStateFlow<String> = MutableStateFlow("")
+
+    private val _bookmarkAPIToken = MutableStateFlow("")
     var bookmarkAPIToken = _bookmarkAPIToken.asStateFlow()
 
-    private fun saveBookmarkConf(
-        url: String? = null,
-        token: String? = null,
-    ) {
+    private val _tag_names: MutableStateFlow<String> = MutableStateFlow("")
+    var tag_names = _tag_names.asStateFlow()
+
+    private val _defaultBookmark = MutableStateFlow(LocalBookmark(""))
+    var defaultBookmark = _defaultBookmark.asStateFlow()
+
+    private fun saveBookmarkConf(url: String? = null, token: String? = null) {
         if (url != null) _bookmarkEndpoint.update { url }
         if (token != null) _bookmarkAPIToken.update { token }
 
@@ -51,12 +51,6 @@ class PreferencesScreenState(
     fun saveBookmarkAPIToken(token: String) {
         saveBookmarkConf(token = token)
     }
-
-    private val _tag_names: MutableStateFlow<String> = MutableStateFlow("")
-    var tag_names = _tag_names.asStateFlow()
-    private val _defaultBookmark: MutableStateFlow<LocalBookmark> =
-        MutableStateFlow(LocalBookmark(""))
-    var defaultBookmark = _defaultBookmark.asStateFlow()
 
     fun saveDefaultBookmark(
         tag_names: String? = null,
@@ -96,10 +90,12 @@ class PreferencesScreenState(
         this._tag_names.update { tag_names ?: "" }
         val tags = this.tag_names.value.intoTags()
         _defaultBookmark.update {
-            it.withUpdates(is_archived = is_archived,
+            it.withUpdates(
+                is_archived = is_archived,
                 unread = unread,
                 shared = shared,
-                tags = tags.ifEmpty { null })
+                tags = tags
+            )
         }
     }
 

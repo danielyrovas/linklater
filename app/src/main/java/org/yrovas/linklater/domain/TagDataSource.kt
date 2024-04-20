@@ -1,4 +1,4 @@
-package org.yrovas.linklater.data.local
+package org.yrovas.linklater.domain
 
 import kotlinx.coroutines.flow.Flow
 import org.yrovas.linklater.data.Bookmark

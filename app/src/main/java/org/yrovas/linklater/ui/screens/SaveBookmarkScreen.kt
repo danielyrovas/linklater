@@ -113,7 +113,7 @@ fun SaveBookmarkScreen(
         back()
     },
 ) {
-    val state = viewModel { state() }
+    @Suppress("NAME_SHADOWING") val state = viewModel { state() }
 
     var isSubmitting by remember { mutableStateOf(false) }
     val submit = {
@@ -168,8 +168,10 @@ fun SaveBookmarkResult(
             Spacer(Modifier.height(padding.double))
             Text(
                 when ((submitResult as Res.Err<String, APIError>).error) {
-                    APIError.CONNECTION -> "Failed to connect to LinkDing"
-                    APIError.AUTH -> "Failed to authenticate"
+                    APIError.NO_CONNECTION -> "Failed to connect to LinkDing"
+                    APIError.INCORRECT_AUTH -> "Failed to authenticate"
+                    APIError.NO_AUTH_PROVIDED -> "Failed to authenticate"
+                    APIError.INCORRECT_ENDPOINT -> "Failed to connect"
                 }
             )
 
@@ -321,7 +323,7 @@ private fun StyledTagRow(
         )
     }
     if (unselectedTags.value.isNotEmpty()) {
-        Text(text = "Add more tags...", style = typography.titleMedium)
+        Text(text = "Add tags...", style = typography.titleMedium)
         Row(
             modifier = Modifier
                 .fillMaxWidth()

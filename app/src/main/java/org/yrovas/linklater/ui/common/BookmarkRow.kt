@@ -23,13 +23,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.core.net.toUri
+import io.ktor.http.Url
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.openUri
 import org.yrovas.linklater.timeAgo
 import org.yrovas.linklater.ui.theme.padding
-import java.net.URI
 
 @Composable
 fun BookmarkRow(
@@ -45,7 +45,7 @@ fun BookmarkRow(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = URI(bookmark.url).host ?: bookmark.url,
+                text = Url(bookmark.url).host,
                 overflow = TextOverflow.Ellipsis,
                 style = typography.labelLarge,
                 color = colorScheme.outline,
@@ -56,7 +56,7 @@ fun BookmarkRow(
                 ), style = typography.labelLarge, color = colorScheme.outline
             )
         }
-        Spacer(modifier = androidx.compose.ui.Modifier.height(padding.tiny))
+        Spacer(modifier = Modifier.height(padding.tiny))
         Row {
             Text(text = if (!bookmark.title.isNullOrBlank()) {
                 bookmark.title

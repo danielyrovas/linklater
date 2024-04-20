@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.yrovas.linklater.Database
+import org.yrovas.linklater.domain.TagDataSource
 
 class TagDataSourceImpl(db: Database) : TagDataSource {
     private val q = db.bookmarkTagsQueries

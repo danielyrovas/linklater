@@ -1,13 +1,15 @@
-package org.yrovas.linklater.data.remote
+package org.yrovas.linklater.domain
 
-import android.content.Context
+import kotlinx.coroutines.flow.StateFlow
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.domain.Res
 
 interface BookmarkAPI {
-    suspend fun authenticate(endpoint: String? = null, token: String? = null, validate: Boolean = false): Res<Unit, APIError>
+    val authProvided: StateFlow<Boolean>
+    fun authenticate(endpoint: String? = null, token: String? = null): Res<Unit, APIError>
+    suspend fun checkConnection(): Res<Unit, APIError>
     suspend fun getBookmarks(page: Int, query: String? = null): Res<List<Bookmark>, APIError>
     suspend fun saveBookmark(bookmark: LocalBookmark): Res<Bookmark, APIError>
     suspend fun getTags(page: Int): Res<List<String>, APIError>

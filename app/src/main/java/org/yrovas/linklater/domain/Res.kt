@@ -17,6 +17,7 @@ val <D, E : Error> Res<D, E>.isOk: Boolean
         is Res.Ok -> true
         is Res.Err -> false
     }
+
 val <D, E : Error> Res<D, E>.isErr: Boolean
     get() = !isOk
 
@@ -55,6 +56,20 @@ fun <D, T : Any, E : Error> Res<D, E>.then(ok: (data: D) -> T, err: (error: E) -
     }
 }
 
+fun <D, T, E : Error> Res<T, E>.into(withData: D): Res<D, E> {
+    return when (this) {
+        is Res.Err -> Res.Err(this.error)
+        is Res.Ok -> Res.Ok(withData)
+    }
+}
+
+fun <T, E : Error> Res<T, E>.into(withError: E): Res<T, E> {
+    return when (this) {
+        is Res.Err -> Err(withError)
+        is Res.Ok -> Ok(this.data)
+    }
+}
+
 fun <D, T : Any, E : Error> Res<D, E>?.then(
     ok: (data: D) -> T,
     err: (error: E) -> T,
@@ -81,6 +96,21 @@ fun <D, T : Any, E : Error> Res<D, E>?.apply(
     nil: @Composable () -> T,
 ): T {
     return this?.apply(ok, err) ?: nil()
+}
+
+fun <D, E : Error> Res<D, E>.errorOrNull(): E? {
+    return when (this) {
+        is Res.Err -> error
+        is Res.Ok -> null
+    }
+}
+
+fun <D, E : Error> Res<D, E>.errorOrThrow(): E {
+    return (this as Res.Err).error
+}
+
+fun <D, E : Error> Res<D, E>.getOrThrow(): D {
+    return (this as Res.Ok).data
 }
 
 fun <D, E : Error> Res<D, E>.getOrNull(): D? {
