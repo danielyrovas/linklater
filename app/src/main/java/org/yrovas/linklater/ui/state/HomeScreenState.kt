@@ -1,6 +1,5 @@
 package org.yrovas.linklater.ui.state
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,40 +42,7 @@ class HomeScreenState(
     private val _bookmarkCount = MutableStateFlow(0)
     val bookmarkCount = _bookmarkCount.asStateFlow()
 
-    private fun refreshBookmarks() {
-        _isRefreshing.update { true }
-        viewModelScope.launch(Dispatchers.IO) {
-            val res = api.getBookmarks(page = 0)
-            sendEffect {
-                if (res.isOk) Effect.RefreshOk
-                else Effect.RefreshError(res.errorOrThrow())
-            }
-            _isRefreshing.update { false }
-            res.ifOk { bookmarkSource.insertBookmarks(it) }
-        }
-    }
-
-//    fun fullSync() {
-//        viewModelScope.launch(Dispatchers.IO) {
-//            var res = api.getBookmarks(0)
-//            var page = 0
-//            while (true) when (res) {
-//                is Res.Err -> break
-//                is Res.Ok -> {
-//                    if (res.data.isEmpty()) {
-//                        break
-//                    }
-//                    Log.d(
-//                        "DEBUG", "fullSync: FETCHED ${res.data} from page $page"
-//                    )
-//                    bookmarkSource.insertBookmarks(res.data)
-//                    res = api.getBookmarks(page++)
-//                }
-//            }
-//        }
-//    }
-
-    init {
+    private fun fetchLocalBookmarks() =
         viewModelScope.launch(Dispatchers.IO) {
             bookmarkSource.getBookmarks().collect { bookmarks ->
                 _displayedBookmarks.update {
@@ -85,6 +51,8 @@ class HomeScreenState(
                 _bookmarkCount.emit(bookmarkSource.getBookmarkCount())
             }
         }
+
+    private fun fetchRemoteBookmarks() =
         viewModelScope.launch(Dispatchers.IO) {
             // when authenticated refresh
             api.authProvided.transformWhile { emit(it); !it }.collect {
@@ -93,11 +61,28 @@ class HomeScreenState(
                 }
             }
         }
+
+    private fun refreshBookmarks() {
+        _isRefreshing.update { true }
+        viewModelScope.launch(Dispatchers.IO) {
+            val res = api.getBookmarks(page = 0)
+            sendEffect(
+                if (res.isOk) Effect.RefreshOk
+                else Effect.RefreshError(res.errorOrThrow())
+            )
+            _isRefreshing.update { false }
+            res.ifOk { bookmarkSource.insertBookmarks(it) }
+        }
     }
 
     override fun handleEvent(event: Event) {
         when (event) {
             Event.RefreshBookmarks -> refreshBookmarks()
         }
+    }
+
+    init {
+        fetchLocalBookmarks()
+        fetchRemoteBookmarks()
     }
 }

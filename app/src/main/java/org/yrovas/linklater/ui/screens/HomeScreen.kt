@@ -27,6 +27,7 @@ import com.ramcosta.composedestinations.generated.destinations.SaveBookmarkScree
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
 import org.yrovas.linklater.domain.APIError
+import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.BookmarkRow
 import org.yrovas.linklater.ui.common.Frame
@@ -103,15 +104,6 @@ fun HomeScreen(
             }
             items(bookmarks, key = { it.id }) { BookmarkRow(it) }
         }
-    }
-}
-
-private suspend fun SnackbarHostState.show(error: APIError) {
-    when (error) {
-        APIError.NO_CONNECTION -> showSnackbar("Could not connect to LinkDing ")
-        APIError.INCORRECT_AUTH -> showSnackbar("Invalid Token")
-        APIError.INCORRECT_ENDPOINT -> showSnackbar("Invalid API Endpoint")
-        APIError.NO_AUTH_PROVIDED -> {}
     }
 }
 

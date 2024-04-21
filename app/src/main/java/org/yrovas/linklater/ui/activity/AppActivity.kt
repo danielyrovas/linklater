@@ -10,6 +10,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.remember
 import androidx.lifecycle.lifecycleScope
 import com.ramcosta.composedestinations.spec.NavHostGraphSpec
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainCoroutineDispatcher
 import kotlinx.coroutines.launch
 import org.yrovas.linklater.AppComponent
 import org.yrovas.linklater.create
@@ -22,8 +25,8 @@ abstract class AppActivity : ComponentActivity() {
         AppComponent::class.create(this)
     }
 
-    fun launch(job: suspend () -> Unit) {
-        lifecycleScope.launch { job() }
+    fun launch(dispatcher: CoroutineDispatcher = Dispatchers.Main, job: suspend () -> Unit) {
+        lifecycleScope.launch(dispatcher) { job() }
     }
 
     protected fun setContent(navGraph: NavHostGraphSpec) {

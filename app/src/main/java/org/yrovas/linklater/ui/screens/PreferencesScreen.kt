@@ -19,9 +19,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -29,8 +29,10 @@ import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,19 +45,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
-import org.yrovas.linklater.ThemePreview
+import kotlinx.coroutines.launch
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
-import org.yrovas.linklater.data.local.EmptyPrefStore
-import org.yrovas.linklater.data.remote.EmptyBookmarkAPI
 import org.yrovas.linklater.getAppVersion
 import org.yrovas.linklater.openUri
+import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.TextPreference
 import org.yrovas.linklater.ui.state.PreferencesScreenState
-import org.yrovas.linklater.ui.theme.AppTheme
+import org.yrovas.linklater.ui.state.PreferencesScreenState.Effect
+import org.yrovas.linklater.ui.state.PreferencesScreenState.Event
 import org.yrovas.linklater.ui.theme.padding
 
 @Destination<RootGraph>
@@ -69,6 +70,23 @@ fun PreferencesScreen(
     @Suppress("NAME_SHADOWING") val state = viewModel { state() }
 
     val defaultBookmark by state.defaultBookmark.collectAsState()
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(true) {
+        scope.launch {
+            state.effect.collect { effect ->
+                when (effect) {
+                    is Effect.RefreshError -> {
+                        snackState.show(effect.error)
+                    }
+
+                    Effect.RefreshComplete -> {
+                        snackState.showSnackbar("Refresh Completed")
+                    }
+                }
+            }
+        }
+    }
 
     Frame(
         page = "Preferences",
@@ -181,7 +199,13 @@ fun PreferencesScreen(
                 onCheckedChange = {
                     state.saveDefaultBookmark(shared = it)
                 })
+
             Spacer(modifier = Modifier.weight(1F))
+            Button(modifier = Modifier.align(Alignment.CenterHorizontally),
+                onClick = { state.sendEvent(Event.FetchAllBookmarks) }) {
+                Text(text = "Fetch All Bookmarks")
+            }
+            Spacer(modifier = Modifier.height(padding.double))
             Text(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -238,12 +262,14 @@ private fun StyledCheckPreference(
     }
 }
 
-@ThemePreview
-@Composable
-fun PreferencesScreenPreview() {
-    AppTheme {
-        PreferencesScreen(EmptyDestinationsNavigator,
-            SnackbarHostState(),
-            { PreferencesScreenState(EmptyBookmarkAPI(), EmptyPrefStore()) })
-    }
-}
+//@ThemePreview
+//@Composable
+//fun PreferencesScreenPreview() {
+//    AppTheme {
+//        PreferencesScreen(EmptyDestinationsNavigator,
+//            SnackbarHostState(),
+//            { PreferencesScreenState(EmptyBookmarkAPI(),
+//                EmptyPrefStore()
+//            ) })
+//    }
+//}

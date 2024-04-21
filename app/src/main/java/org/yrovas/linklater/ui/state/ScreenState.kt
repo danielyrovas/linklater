@@ -27,14 +27,14 @@ abstract class ScreenState<Event : ScreenEvent, Effect : ScreenEffect> :
         }
     }
 
+    fun sendEvent(builder: () -> Event) = sendEvent(builder())
     fun sendEvent(event: Event) {
-        val newEvent = event
-        viewModelScope.launch { _event.emit(newEvent) }
+        viewModelScope.launch { _event.emit(event) }
     }
 
-    protected fun sendEffect(builder: () -> Effect) {
-        val effectValue = builder()
-        viewModelScope.launch { _effect.send(effectValue) }
+    protected fun sendEffect(builder: () -> Effect) = sendEffect(builder())
+    protected fun sendEffect(effect: Effect) {
+        viewModelScope.launch { _effect.send(effect) }
     }
 
     abstract fun handleEvent(event: Event)

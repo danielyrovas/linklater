@@ -19,8 +19,11 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import me.tatarka.inject.annotations.Component
+import me.tatarka.inject.annotations.Inject
 import me.tatarka.inject.annotations.Provides
 import me.tatarka.inject.annotations.Scope
 import org.yrovas.linklater.data.local.BookmarkDataSourceImpl
@@ -44,6 +47,16 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "pr
 )
 annotation class AppScope
 
+@Inject
+class ApplicationScope(private val context: Context) {
+    fun launch(
+        dispatcher: CoroutineDispatcher = Dispatchers.Main,
+        job: suspend () -> Unit,
+    ) {
+        context.launch(dispatcher, job)
+    }
+}
+
 @Component
 @AppScope
 abstract class AppComponent(
@@ -51,6 +64,7 @@ abstract class AppComponent(
 ) {
     abstract val destinationHost: DestinationHost
     abstract val prefStore: PrefDataStore
+    abstract val appScope: ApplicationScope
 
     val store: DataStore<Preferences>
         @AppScope @Provides get() = context.dataStore

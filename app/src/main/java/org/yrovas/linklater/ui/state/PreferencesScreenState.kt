@@ -1,6 +1,6 @@
 package org.yrovas.linklater.ui.state
 
-import androidx.lifecycle.ViewModel
+import android.util.Log
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,17 +8,36 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.ApplicationScope
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
+import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.domain.BookmarkAPI
+import org.yrovas.linklater.domain.BookmarkDataSource
+import org.yrovas.linklater.domain.Res
 import org.yrovas.linklater.intoTags
+import org.yrovas.linklater.ui.state.PreferencesScreenState.Effect
+import org.yrovas.linklater.ui.state.PreferencesScreenState.Event
 
 @Inject
 class PreferencesScreenState(
     private val bookmarkAPI: BookmarkAPI,
     private val prefStore: PrefDataStore,
-) : ViewModel() {
+    private val appScope: ApplicationScope,
+    private val bookmarkSource: BookmarkDataSource,
+    private val api: BookmarkAPI,
+) : ScreenState<Event, Effect>() {
+
+    sealed interface Event : ScreenEvent {
+        data object FetchAllBookmarks : Event
+    }
+
+    sealed interface Effect : ScreenEffect {
+        data class RefreshError(val error: APIError) : Effect
+        data object RefreshComplete : Effect
+    }
+
     private val _bookmarkEndpoint = MutableStateFlow("")
     var bookmarkEndpoint = _bookmarkEndpoint.asStateFlow()
 
@@ -99,6 +118,41 @@ class PreferencesScreenState(
         }
     }
 
+    private fun fetchAllRemoteBookmarks() {
+        // guard against going back to home by launching from application scope
+        appScope.launch(Dispatchers.IO) {
+            var res = api.getBookmarks(0)
+            var page = 0
+            while (true) when (res) {
+                is Res.Err -> {
+                    Log.d(
+                        TAG,
+                        "fetchAllRemoteBookmarks: stopping due to ${res.error}"
+                    )
+                    break
+                }
+
+                is Res.Ok -> {
+                    if (res.data.isEmpty()) {
+                        Log.d(
+                            TAG,
+                            "fetchAllRemoteBookmarks: stopping due to empty result set"
+                        )
+                        break
+                    }
+                    Log.d(
+                        TAG,
+                        "fetchAllRemoteBookmarks: FETCHED ${res.data} from page $page"
+                    )
+                    bookmarkSource.insertBookmarks(res.data)
+                    res = api.getBookmarks(page++)
+                }
+            }
+            sendEffect(Effect.RefreshComplete)
+        }
+    }
+
+
     init {
         viewModelScope.launch {
             saveBookmarkAPIToken(prefStore.getPref(Prefs.LINKDING_TOKEN, ""))
@@ -113,6 +167,12 @@ class PreferencesScreenState(
                     Prefs.BOOKMARK_DEFAULT_ARCHIVED, false
                 ),
             )
+        }
+    }
+
+    override fun handleEvent(event: Event) {
+        when (event) {
+            Event.FetchAllBookmarks -> fetchAllRemoteBookmarks()
         }
     }
 }
