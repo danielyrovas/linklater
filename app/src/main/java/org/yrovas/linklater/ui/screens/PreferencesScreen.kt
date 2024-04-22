@@ -29,10 +29,8 @@ import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,17 +43,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import kotlinx.coroutines.launch
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.getAppVersion
 import org.yrovas.linklater.openUri
-import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.TextPreference
 import org.yrovas.linklater.ui.state.PreferencesScreenState
-import org.yrovas.linklater.ui.state.PreferencesScreenState.Effect
 import org.yrovas.linklater.ui.state.PreferencesScreenState.Event
 import org.yrovas.linklater.ui.theme.padding
 
@@ -70,23 +65,6 @@ fun PreferencesScreen(
     @Suppress("NAME_SHADOWING") val state = viewModel { state() }
 
     val defaultBookmark by state.defaultBookmark.collectAsState()
-    val scope = rememberCoroutineScope()
-
-    LaunchedEffect(true) {
-        scope.launch {
-            state.effect.collect { effect ->
-                when (effect) {
-                    is Effect.RefreshError -> {
-                        snackState.show(effect.error)
-                    }
-
-                    Effect.RefreshComplete -> {
-                        snackState.showSnackbar("Refresh Completed")
-                    }
-                }
-            }
-        }
-    }
 
     Frame(
         page = "Preferences",
@@ -154,7 +132,9 @@ fun PreferencesScreen(
                     }
                 },
                 state = state.bookmarkEndpoint.collectAsState(),
-                onSave = { state.saveBookmarkURL(it) },
+                onSave = {
+                    state.sendEvent(Event.SaveEndpoint(url = it))
+                },
                 onCheck = { checkURL(it) },
             )
             TextPreference(
@@ -176,7 +156,7 @@ fun PreferencesScreen(
                     }
                 },
                 state = state.bookmarkAPIToken.collectAsState(),
-                onSave = { state.saveBookmarkAPIToken(it) },
+                onSave = { state.sendEvent(Event.SaveToken(it)) },
                 onCheck = { checkBookmarkAPIToken(it) },
             )
             Spacer(modifier = Modifier.height(padding.double))
@@ -185,19 +165,21 @@ fun PreferencesScreen(
                 icon = Icons.Default.Tag,
                 name = "Tags",
                 state = state.tag_names.collectAsState(),
-                onSave = { state.saveDefaultBookmark(tag_names = it) },
+                onSave = {
+                    state.sendEvent(Event.SaveDefaults(tag_names = it))
+                },
             )
             StyledCheckPreference(name = "Unread",
                 icon = Icons.Default.Visibility,
                 checked = defaultBookmark.unread,
                 onCheckedChange = {
-                    state.saveDefaultBookmark(unread = it)
+                    state.sendEvent(Event.SaveDefaults(unread = it))
                 })
             StyledCheckPreference(name = "Shared",
                 icon = Icons.Default.Public,
                 checked = defaultBookmark.shared,
                 onCheckedChange = {
-                    state.saveDefaultBookmark(shared = it)
+                    state.sendEvent(Event.SaveDefaults(shared = it))
                 })
 
             Spacer(modifier = Modifier.weight(1F))

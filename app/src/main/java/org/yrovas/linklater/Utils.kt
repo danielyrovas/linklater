@@ -1,23 +1,19 @@
 package org.yrovas.linklater
 
 import android.app.Activity
-import android.content.*
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.preferencesDataStore
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.datetime.Instant
 import org.yrovas.linklater.domain.APIError
-import org.yrovas.linklater.ui.activity.AppActivity
 import kotlin.math.abs
+
 fun checkURL(url: String) = url.contains(Regex("^https?://.+[.].+"))
 fun checkBookmarkAPIToken(token: String) = token.length in 10..120
 
@@ -85,18 +81,14 @@ fun Context.getAppVersion(): String {
 @Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 annotation class ThemePreview
 
-fun Context.launch(dispatcher: CoroutineDispatcher = Dispatchers.Main, job: suspend () -> Unit) {
-    (this as AppActivity).launch(dispatcher, job)
-}
-
 fun String.intoTags(): List<String> =
     split(" ").filter { it.isNotBlank() }.distinct()
 
 suspend fun SnackbarHostState.show(error: APIError) {
     when (error) {
-        APIError.NO_CONNECTION -> showSnackbar("Could not connect to LinkDing ")
+        APIError.NO_CONNECTION -> showSnackbar("Could not connect to LinkDing")
         APIError.INCORRECT_AUTH -> showSnackbar("Invalid Token")
         APIError.INCORRECT_ENDPOINT -> showSnackbar("Invalid API Endpoint")
-        APIError.NO_AUTH_PROVIDED -> {}
+        APIError.NO_AUTH_PROVIDED -> showSnackbar("No authentication provided")
     }
 }

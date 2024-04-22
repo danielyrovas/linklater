@@ -24,9 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,6 +57,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,27 +72,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
-import org.yrovas.linklater.ThemePreview
-import org.yrovas.linklater.data.local.EmptyBookmarkSource
-import org.yrovas.linklater.data.local.EmptyPrefStore
-import org.yrovas.linklater.data.local.EmptyTagSource
-import org.yrovas.linklater.data.remote.EmptyBookmarkAPI
-import org.yrovas.linklater.domain.APIError
-import org.yrovas.linklater.domain.Res
-import org.yrovas.linklater.domain.apply
-import org.yrovas.linklater.domain.isNotNull
-import org.yrovas.linklater.domain.isOk
-import org.yrovas.linklater.launch
-import org.yrovas.linklater.onBackPressed
+import kotlinx.coroutines.launch
 import org.yrovas.linklater.readClipboard
+import org.yrovas.linklater.show
+import org.yrovas.linklater.ui.activity.launch
 import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.state.SaveBookmarkScreenState
-import org.yrovas.linklater.ui.theme.AppTheme
+import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Effect
+import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Event
 import org.yrovas.linklater.ui.theme.padding
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.round
 
@@ -115,17 +103,29 @@ fun SaveBookmarkScreen(
 ) {
     @Suppress("NAME_SHADOWING") val state = viewModel { state() }
 
-    var isSubmitting by remember { mutableStateOf(false) }
-    val submit = {
-        if (state.validateBookmark()) {
-            state.submitBookmark()
-            isSubmitting = true
+    val isSubmitting by state.isSubmitting.collectAsState()
+    val scope = rememberCoroutineScope()
+    LaunchedEffect(true) {
+        scope.launch {
+            state.effect.collect { effect ->
+                when (effect) {
+                    Effect.SubmitSuccess -> onSubmitSuccess()
+                    is Effect.SubmitError -> {
+                        snackState.show(effect.error)
+                    }
+
+                    is Effect.InvalidBookmark -> {
+                        snackState.showSnackbar(effect.message)
+                    }
+                }
+            }
         }
     }
 
+
     Frame(appBar = {
         AppBar(page = "Add Bookmark", back = back) {
-            IconButton(onClick = submit) {
+            IconButton(onClick = { state.sendEvent(Event.SubmitBookmark) }) {
                 Icon(
                     imageVector = Icons.Default.Bookmark,
                     tint = colorScheme.primary
@@ -133,58 +133,21 @@ fun SaveBookmarkScreen(
             }
         }
     }, snackState = snackState) {
-        if (isSubmitting) SaveBookmarkResult(
-            state = state,
-            onSubmitSuccess = onSubmitSuccess
-        )
-        else SaveBookmarkFields(state = state, submit = submit)
-    }
-}
-
-@Composable
-fun SaveBookmarkResult(
-    state: SaveBookmarkScreenState,
-    onSubmitSuccess: suspend () -> Unit,
-    context: Context = LocalContext.current,
-) {
-    val submitResult by state.submitResult.collectAsState()
-    LaunchedEffect(submitResult.isNotNull()) {
-        if (submitResult.isNotNull() && submitResult!!.isOk) {
-            onSubmitSuccess()
-        }
-    }
-
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        submitResult.apply(ok = {
-            CheckIcon {}
-            Spacer(Modifier.height(padding.double))
-            Text("Saved Bookmark")
-        }, err = {
-            CrossIcon { context.onBackPressed() }
-            Spacer(Modifier.height(padding.double))
-            Text(
-                when ((submitResult as Res.Err<String, APIError>).error) {
-                    APIError.NO_CONNECTION -> "Failed to connect to LinkDing"
-                    APIError.INCORRECT_AUTH -> "Failed to authenticate"
-                    APIError.NO_AUTH_PROVIDED -> "Failed to authenticate"
-                    APIError.INCORRECT_ENDPOINT -> "Failed to connect"
-                }
-            )
-
-        }, nil = {
+        if (isSubmitting) Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize()
+        ) {
             CircularProgressIndicator()
-        })
+        } else {
+            SaveBookmarkFields(state = state)
+        }
     }
 }
 
 @Composable
 private fun SaveBookmarkFields(
     state: SaveBookmarkScreenState,
-    submit: () -> Unit,
     context: Context = LocalContext.current,
 ) {
     val bookmark by state.bookmarkToSave.collectAsState()
@@ -200,20 +163,21 @@ private fun SaveBookmarkFields(
             )
             .verticalScroll(rememberScrollState()),
     ) {
-        StyledURLRow(value = bookmark.url,
-            showPaste = showPaste,
-            onPaste = { state.updateBookmark(url = context.readClipboard()) },
-            onChange = { state.updateBookmark(url = it) })
+        StyledURLRow(value = bookmark.url, showPaste = showPaste, onPaste = {
+            state.sendEvent(Event.UpdateBookmark(url = context.readClipboard()))
+        }, onChange = {
+            state.sendEvent(Event.UpdateBookmark(url = it))
+        })
 
         StyledTagRow(state)
 
         Spacer(modifier = Modifier.height(padding.standard))
 
         StyledCheckBox("Share", bookmark.shared, onCheckedChange = {
-            state.updateBookmark(shared = it)
+            state.sendEvent(Event.UpdateBookmark(shared = it))
         })
         StyledCheckBox("Mark as unread", bookmark.unread, onCheckedChange = {
-            state.updateBookmark(unread = it)
+            state.sendEvent(Event.UpdateBookmark(unread = it))
         })
 
         Spacer(modifier = Modifier.height(padding.standard))
@@ -222,19 +186,25 @@ private fun SaveBookmarkFields(
             value = bookmark.title ?: "",
             icon = Icons.Default.Title,
             placeholder = "Leave blank to use website title",
-            onChange = { state.updateBookmark(title = it.ifBlank { null }) })
+            onChange = {
+                state.sendEvent(Event.UpdateBookmark(title = it.ifBlank { null }))
+            })
         StyledTextField(name = "Description",
             value = bookmark.description ?: "",
             icon = Icons.AutoMirrored.Filled.ShortText,
             placeholder = "Leave blank to use website description",
-            onChange = { state.updateBookmark(description = it.ifBlank { null }) })
+            onChange = {
+                state.sendEvent(Event.UpdateBookmark(description = it.ifBlank { null }))
+            })
 
         StyledTextField(name = "Notes",
             value = bookmark.notes ?: "",
             icon = Icons.AutoMirrored.Filled.Notes,
             placeholder = "Enter some notes...",
-            onChange = { state.updateBookmark(notes = it.ifBlank { null }) })
-        SubmitButton { submit() }
+            onChange = {
+                state.sendEvent(Event.UpdateBookmark(notes = it.ifBlank { null }))
+            })
+        SubmitButton { state.sendEvent(Event.SubmitBookmark) }
     }
 }
 
@@ -306,13 +276,13 @@ private fun StyledTagRow(
         placeholder = "Enter tags...",
         value = tagNames,
         icon = Icons.Default.Tag,
-        onChange = { state.updateTagNames(tagNames = it) })
+        onChange = { state.sendEvent(Event.UpdateTagNames(tagNames = it)) })
 
     if (selectedTags.isNotEmpty()) {
         LazyRow {
             items(selectedTags) {
                 SelectedTag(it) {
-                    state.toggleSelectTag(it)
+                    state.sendEvent(Event.ToggleSelectTag(it))
                 }
             }
         }
@@ -341,7 +311,7 @@ private fun StyledTagRow(
                     ) {
                         unselectedTags.value.forEach {
                             Tag(it) {
-                                state.toggleSelectTag(it)
+                                state.sendEvent(Event.ToggleSelectTag(it))
                             }
                         }
                     }
@@ -350,7 +320,7 @@ private fun StyledTagRow(
                 FlowRow() {
                     unselectedTags.value.forEach {
                         Tag(it) {
-                            state.toggleSelectTag(it)
+                            state.sendEvent(Event.ToggleSelectTag(it))
                         }
                     }
                 }
@@ -370,64 +340,15 @@ private fun StyledTagRow(
 //    TagPredictRow(state) // attached to top of keyboard similar to Brave/Chrome
 }
 
-@Composable
-private fun TagPredictRow(state: SaveBookmarkScreenState) {
-    val tagNames by state.tagNames.collectAsState()
+//@Composable
+//private fun TagPredictRow(state: SaveBookmarkScreenState) {
+//    val tagNames by state.tagNames.collectAsState()
 
     // TODO:
     // if textfield is focussed, show a bar above the keyboard
     // that displays autofill options for known tags
     // uses the current word as tag suggestion prompt
-}
-
-@Composable
-private fun TagRow(
-    state: SaveBookmarkScreenState,
-) {
-    val tagNames by state.tagNames.collectAsState()
-    val tags by state.tags.collectAsState()
-    val selectedTags by state.selectedTags.collectAsState()
-    var collapseTags by remember { mutableStateOf(true) }
-
-    var rows by remember { mutableIntStateOf(max(abs(tags.size / 4), 1)) }
-    if (collapseTags && rows > 3) rows = 3
-    if (!collapseTags) rows = max(abs(tags.size / 4), 1)
-
-    StyledTextField(name = "Tags",
-        placeholder = "Enter tags...",
-        value = tagNames,
-        icon = Icons.Default.Tag,
-        onChange = { state.updateTagNames(tagNames = it) })
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height((rows * 40).dp)
-    ) {
-        LazyHorizontalStaggeredGrid(
-            rows = StaggeredGridCells.Adaptive(40.dp)
-        ) {
-            items(selectedTags.toList().sorted()) {
-                SelectedTag(it) {
-                    state.toggleSelectTag(it)
-                }
-            }
-            items((tags - selectedTags.toSet())) {
-                Tag(it) {
-                    state.toggleSelectTag(it)
-                }
-            }
-        }
-    }
-    Row(
-        horizontalArrangement = Arrangement.End,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        IconButton(onClick = { collapseTags = !collapseTags }) {
-            Icon(imageVector = if (collapseTags) Icons.Default.ArrowDropDown else Icons.Default.ArrowDropUp)
-        }
-    }
-}
+//}
 
 @Composable
 private fun StyledURLRow(
@@ -578,49 +499,48 @@ private fun StyledBoxIcon(
     }
 }
 
-
-@ThemePreview
-@Composable
-fun SaveBookmarkScreenPreview() {
-    AppTheme {
-        val state = SaveBookmarkScreenState(
-            EmptyBookmarkAPI(),
-            EmptyPrefStore(),
-            EmptyTagSource(),
-            EmptyBookmarkSource()
-        )
-        state.setTags(
-            listOf(
-                "cool",
-                "selfhost",
-                "tag",
-                "name",
-                "\$hit",
-                "is",
-                "cool",
-                "jetpack-compose",
-                "android",
-                "development",
-                "selfhost",
-                "server",
-                "gaming",
-                "amazon",
-                "prime",
-                "garbage",
-                "man",
-                "why-though",
-                "chadland",
-                "chetland",
-            )
-        )
-        state.updateBookmark("https://alpinelinux.org/arbitrary/URL/that-is-far-to-long-andhassomelongerwordsthatareannoying-especially-for-a-text-field.html")
-        state.toggleSelectTag("cool")
-        state.toggleSelectTag("selfhost")
+//@ThemePreview
+//@Composable
+//fun SaveBookmarkScreenPreview() {
+//    AppTheme {
+//        val state = SaveBookmarkScreenState(
+//            EmptyBookmarkAPI(),
+//            EmptyPrefStore(),
+//            EmptyTagSource(),
+//            EmptyBookmarkSource()
+//        )
+//        state.setTags(
+//            listOf(
+//                "cool",
+//                "selfhost",
+//                "tag",
+//                "name",
+//                "\$hit",
+//                "is",
+//                "cool",
+//                "jetpack-compose",
+//                "android",
+//                "development",
+//                "selfhost",
+//                "server",
+//                "gaming",
+//                "amazon",
+//                "prime",
+//                "garbage",
+//                "man",
+//                "why-though",
+//                "chadland",
+//                "chetland",
+//            )
+//        )
+//        state.updateBookmark("https://alpinelinux.org/arbitrary/URL/that-is-far-to-long-andhassomelongerwordsthatareannoying-especially-for-a-text-field.html")
+//        state.toggleSelectTag("cool")
+//        state.toggleSelectTag("selfhost")
 //        state.setSubmitResult(Err(APIError.AUTH))
-        SaveBookmarkScreen(
-            nav = EmptyDestinationsNavigator,
-            snackState = SnackbarHostState(),
-            state = { state }
-        )
-    }
-}
+//        SaveBookmarkScreen(
+//            nav = EmptyDestinationsNavigator,
+//            snackState = SnackbarHostState(),
+//            state = { state }
+//        )
+//    }
+//}

@@ -1,6 +1,5 @@
 package org.yrovas.linklater.ui.state
 
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,11 +14,11 @@ import org.yrovas.linklater.data.local.Prefs
 import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.BookmarkDataSource
-import org.yrovas.linklater.domain.Err
-import org.yrovas.linklater.domain.Ok
 import org.yrovas.linklater.domain.Res
 import org.yrovas.linklater.domain.TagDataSource
 import org.yrovas.linklater.intoTags
+import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Effect
+import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Event
 
 @Inject
 class SaveBookmarkScreenState(
@@ -27,8 +26,30 @@ class SaveBookmarkScreenState(
     private val prefStore: PrefDataStore,
     private val tagSource: TagDataSource,
     private val bookmarkSource: BookmarkDataSource,
-) :
-    ViewModel() {
+) : ScreenState<Event, Effect>() {
+
+    sealed interface Event : ScreenEvent {
+        data object SubmitBookmark : Event
+        data class UpdateBookmark(
+            val url: String? = null,
+            val title: String? = null,
+            val description: String? = null,
+            val notes: String? = null,
+            val unread: Boolean? = null,
+            val shared: Boolean? = null,
+            val is_archived: Boolean? = null,
+        ) : Event
+
+        data class UpdateTagNames(val tagNames: String) : Event
+        data class ToggleSelectTag(val tagName: String) : Event
+    }
+
+    sealed interface Effect : ScreenEffect {
+        data object SubmitSuccess : Effect
+        data class SubmitError(val error: APIError) : Effect
+        data class InvalidBookmark(val message: String) : Effect
+    }
+
     private val _bookmarkToSave = MutableStateFlow(LocalBookmark(""))
     var bookmarkToSave = _bookmarkToSave.asStateFlow()
 
@@ -44,11 +65,10 @@ class SaveBookmarkScreenState(
     private val _showPaste = MutableStateFlow(bookmarkToSave.value.url.isBlank())
     var showPaste = _showPaste.asStateFlow()
 
-    private val _submitResult: MutableStateFlow<Res<String, APIError>?> =
-        MutableStateFlow(null)
-    var submitResult = _submitResult.asStateFlow()
+    private val _isSubmitting = MutableStateFlow(false)
+    var isSubmitting = _isSubmitting.asStateFlow()
 
-    fun updateBookmark(
+    private fun updateBookmark(
         url: String? = null,
         title: String? = null,
         description: String? = null,
@@ -56,7 +76,6 @@ class SaveBookmarkScreenState(
         is_archived: Boolean? = null,
         unread: Boolean? = null,
         shared: Boolean? = null,
-        tag: List<String> = emptyList(),
     ) {
         _showPaste.update { url.isNullOrBlank() }
         _bookmarkToSave.update {
@@ -72,45 +91,40 @@ class SaveBookmarkScreenState(
         }
     }
 
-    fun updateTagNames(tagNames: String) {
+    private fun updateTagNames(tagNames: String) {
         _tagNames.update { tagNames }
     }
 
-    fun toggleSelectTag(tag: String) {
+    private fun toggleSelectTag(tag: String) {
         _selectedTags.update {
             (if (it.contains(tag)) it - tag
             else it + tag).sorted().distinct()
         }
     }
 
-    private fun setSubmitResult(result: Res<String, APIError>) =
-        _submitResult.update { result }
-
-    fun submitBookmark() {
+    private fun submitBookmark() {
+        if (!checkURL(bookmarkToSave.value.url)) {
+            sendEffect(Effect.InvalidBookmark(message = "Invalid URL"))
+            return
+        }
+        _isSubmitting.update { true }
         val tags =
-            (bookmarkToSave.value.tags + selectedTags.value + tagNames.value.split(
-                " "
-            ).filter { it.isNotBlank() }).distinct()
+            (bookmarkToSave.value.tags + selectedTags.value + tagNames.value.intoTags()).distinct()
         val bookmark =
             bookmarkToSave.value.withUpdates(tags = tags.ifEmpty { null })
         viewModelScope.launch(Dispatchers.IO) {
-            setSubmitResult(
-                when (val res = bookmarkAPI.saveBookmark(bookmark)) {
-                    is Res.Err -> Err(res.error)
-                    is Res.Ok -> {
-                        bookmarkSource.insertBookmark(res.data)
-                        Ok("Saved Bookmark to LinkDing")
-                    }
+            when (val res = bookmarkAPI.saveBookmark(bookmark)) {
+                is Res.Err -> sendEffect(Effect.SubmitError(res.error))
+                is Res.Ok -> {
+                    bookmarkSource.insertBookmark(res.data)
+                    sendEffect(Effect.SubmitSuccess)
                 }
-            )
+            }
+            _isSubmitting.update { false }
         }
     }
 
-    fun setTags(tagList: List<String>) = _tags.update { tagList.sorted() }
-
-    fun validateBookmark(): Boolean {
-        return checkURL(bookmarkToSave.value.url)
-    }
+    private fun setTags(tagList: List<String>) = _tags.update { tagList.sorted() }
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -134,6 +148,24 @@ class SaveBookmarkScreenState(
             tagList.forEach {
                 toggleSelectTag(it)
             }
+        }
+    }
+
+    override fun handleEvent(event: Event) {
+        when (event) {
+            Event.SubmitBookmark -> submitBookmark()
+            is Event.ToggleSelectTag -> toggleSelectTag(event.tagName)
+            is Event.UpdateBookmark -> updateBookmark(
+                url = event.url,
+                title = event.title,
+                description = event.description,
+                notes = event.notes,
+                is_archived = event.is_archived,
+                unread = event.unread,
+                shared = event.shared,
+            )
+
+            is Event.UpdateTagNames -> updateTagNames(event.tagNames)
         }
     }
 }

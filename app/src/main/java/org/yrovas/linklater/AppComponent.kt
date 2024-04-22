@@ -34,6 +34,7 @@ import org.yrovas.linklater.data.remote.LinkDingAPI
 import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.TagDataSource
+import org.yrovas.linklater.ui.activity.AppActivity
 import org.yrovas.linklater.ui.common.DestinationHost
 
 const val TAG = "DEBUG/create"
@@ -53,7 +54,10 @@ class ApplicationScope(private val context: Context) {
         dispatcher: CoroutineDispatcher = Dispatchers.Main,
         job: suspend () -> Unit,
     ) {
-        context.launch(dispatcher, job)
+        (context as AppActivity).launch(dispatcher, job)
+    }
+    fun showSnackbar( message: String ) {
+        (context as AppActivity).showSnackbar(message)
     }
 }
 

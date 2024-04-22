@@ -12,7 +12,6 @@ import org.yrovas.linklater.ApplicationScope
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.Res
@@ -31,12 +30,16 @@ class PreferencesScreenState(
 
     sealed interface Event : ScreenEvent {
         data object FetchAllBookmarks : Event
+        data class SaveEndpoint(val url: String) : Event
+        data class SaveToken(val token: String) : Event
+        data class SaveDefaults(
+            val tag_names: String? = null,
+            val unread: Boolean? = null,
+            val shared: Boolean? = null,
+        ) : Event
     }
 
-    sealed interface Effect : ScreenEffect {
-        data class RefreshError(val error: APIError) : Effect
-        data object RefreshComplete : Effect
-    }
+    sealed interface Effect : ScreenEffect {}
 
     private val _bookmarkEndpoint = MutableStateFlow("")
     var bookmarkEndpoint = _bookmarkEndpoint.asStateFlow()
@@ -63,15 +66,7 @@ class PreferencesScreenState(
         }
     }
 
-    fun saveBookmarkURL(url: String) {
-        saveBookmarkConf(url = url)
-    }
-
-    fun saveBookmarkAPIToken(token: String) {
-        saveBookmarkConf(token = token)
-    }
-
-    fun saveDefaultBookmark(
+    private fun saveDefaultBookmark(
         tag_names: String? = null,
         unread: Boolean? = null,
         shared: Boolean? = null,
@@ -148,15 +143,19 @@ class PreferencesScreenState(
                     res = api.getBookmarks(page++)
                 }
             }
-            sendEffect(Effect.RefreshComplete)
+            appScope.showSnackbar("Refresh Complete")
         }
     }
 
 
     init {
         viewModelScope.launch {
-            saveBookmarkAPIToken(prefStore.getPref(Prefs.LINKDING_TOKEN, ""))
-            saveBookmarkURL(prefStore.getPref(Prefs.LINKDING_URL, ""))
+            _bookmarkAPIToken.update {
+                prefStore.getPref(Prefs.LINKDING_TOKEN, "")
+            }
+            _bookmarkEndpoint.update {
+                prefStore.getPref(Prefs.LINKDING_URL, "")
+            }
             updateDefaultBookmark(
                 tag_names = prefStore.getPref(
                     Prefs.BOOKMARK_DEFAULT_TAG_NAMES, ""
@@ -172,7 +171,15 @@ class PreferencesScreenState(
 
     override fun handleEvent(event: Event) {
         when (event) {
-            Event.FetchAllBookmarks -> fetchAllRemoteBookmarks()
+            is Event.FetchAllBookmarks -> fetchAllRemoteBookmarks()
+            is Event.SaveDefaults -> saveDefaultBookmark(
+                tag_names = event.tag_names,
+                unread = event.unread,
+                shared = event.shared,
+            )
+
+            is Event.SaveEndpoint -> saveBookmarkConf(url = event.url)
+            is Event.SaveToken -> saveBookmarkConf(token = event.token)
         }
     }
 }
