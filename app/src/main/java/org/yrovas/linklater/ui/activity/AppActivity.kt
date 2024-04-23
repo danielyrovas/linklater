@@ -2,12 +2,15 @@ package org.yrovas.linklater.ui.activity
 
 import android.content.Context
 import android.content.Intent
+import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.SnackbarHostState
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
+import com.ramcosta.composedestinations.generated.navgraphs.RootNavGraph
 import com.ramcosta.composedestinations.spec.NavHostGraphSpec
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +29,8 @@ fun Context.launch(
 
 abstract class AppActivity : ComponentActivity() {
 
+    abstract val navGraph: NavHostGraphSpec
+
     private val component by lazy(LazyThreadSafetyMode.NONE) {
         AppComponent::class.create(this)
     }
@@ -40,14 +45,18 @@ abstract class AppActivity : ComponentActivity() {
         launch { snackState.showSnackbar(message) }
     }
 
-    protected fun setContent(navGraph: NavHostGraphSpec) {
-        StrictMode.setVmPolicy(
-            VmPolicy.Builder(StrictMode.getVmPolicy())
-                .detectLeakedClosableObjects()
-                .build()
-        )
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+//        StrictMode.setVmPolicy(
+//            VmPolicy.Builder(StrictMode.getVmPolicy())
+//                .detectLeakedClosableObjects()
+//                .build()
+//        )
 
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+
+        // https://stackoverflow.com/questions/73331594/how-can-i-show-a-composable-on-top-of-the-visible-keyboard
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         val destinationHost = component.destinationHost
         launch {

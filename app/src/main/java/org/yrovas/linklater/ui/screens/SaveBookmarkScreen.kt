@@ -7,8 +7,11 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,6 +46,7 @@ import androidx.compose.material.icons.outlined.ContentPasteGo
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
@@ -50,6 +54,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -68,6 +73,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -79,6 +85,7 @@ import org.yrovas.linklater.ui.activity.launch
 import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
+import org.yrovas.linklater.ui.common.KeyboardRow
 import org.yrovas.linklater.ui.state.SaveBookmarkScreenState
 import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Effect
 import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Event
@@ -122,17 +129,29 @@ fun SaveBookmarkScreen(
         }
     }
 
+    var showTagRow by remember { mutableStateOf(false) }
+    val onTagFocus = { b: Boolean ->
+        showTagRow = b
+    }
 
-    Frame(appBar = {
-        AppBar(page = "Add Bookmark", back = back) {
-            IconButton(onClick = { state.sendEvent(Event.SubmitBookmark) }) {
-                Icon(
-                    imageVector = Icons.Default.Bookmark,
-                    tint = colorScheme.primary
-                )
+    Frame(
+        appBar = {
+            AppBar(page = "Add Bookmark", back = back) {
+                IconButton(onClick = { state.sendEvent(Event.SubmitBookmark) }) {
+                    Icon(
+                        imageVector = Icons.Default.Bookmark,
+                        tint = colorScheme.primary
+                    )
+                }
             }
-        }
-    }, snackState = snackState) {
+        },
+        snackState = snackState,
+        globalContent = {
+            KeyboardRow {
+                if (showTagRow) TagPredictRow(state)
+            }
+        },
+    ) {
         if (isSubmitting) Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -140,7 +159,7 @@ fun SaveBookmarkScreen(
         ) {
             CircularProgressIndicator()
         } else {
-            SaveBookmarkFields(state = state)
+            SaveBookmarkFields(state = state, onTagFocus = onTagFocus)
         }
     }
 }
@@ -148,6 +167,7 @@ fun SaveBookmarkScreen(
 @Composable
 private fun SaveBookmarkFields(
     state: SaveBookmarkScreenState,
+    onTagFocus: (Boolean) -> Unit,
     context: Context = LocalContext.current,
 ) {
     val bookmark by state.bookmarkToSave.collectAsState()
@@ -169,7 +189,7 @@ private fun SaveBookmarkFields(
             state.sendEvent(Event.UpdateBookmark(url = it))
         })
 
-        StyledTagRow(state)
+        StyledTagRow(state, onTagFocus)
 
         Spacer(modifier = Modifier.height(padding.standard))
 
@@ -182,28 +202,31 @@ private fun SaveBookmarkFields(
 
         Spacer(modifier = Modifier.height(padding.standard))
 
-        StyledTextField(name = "Title",
+        StyledTextField(
+            name = "Title",
             value = bookmark.title ?: "",
             icon = Icons.Default.Title,
-            placeholder = "Leave blank to use website title",
-            onChange = {
-                state.sendEvent(Event.UpdateBookmark(title = it.ifBlank { null }))
-            })
-        StyledTextField(name = "Description",
+            placeholder = "Leave blank to use website title"
+        ) {
+            state.sendEvent(Event.UpdateBookmark(title = it.ifBlank { null }))
+        }
+        StyledTextField(
+            name = "Description",
             value = bookmark.description ?: "",
             icon = Icons.AutoMirrored.Filled.ShortText,
-            placeholder = "Leave blank to use website description",
-            onChange = {
-                state.sendEvent(Event.UpdateBookmark(description = it.ifBlank { null }))
-            })
+            placeholder = "Leave blank to use website description"
+        ) {
+            state.sendEvent(Event.UpdateBookmark(description = it.ifBlank { null }))
+        }
 
-        StyledTextField(name = "Notes",
+        StyledTextField(
+            name = "Notes",
             value = bookmark.notes ?: "",
             icon = Icons.AutoMirrored.Filled.Notes,
-            placeholder = "Enter some notes...",
-            onChange = {
-                state.sendEvent(Event.UpdateBookmark(notes = it.ifBlank { null }))
-            })
+            placeholder = "Enter some notes..."
+        ) {
+            state.sendEvent(Event.UpdateBookmark(notes = it.ifBlank { null }))
+        }
         SubmitButton { state.sendEvent(Event.SubmitBookmark) }
     }
 }
@@ -263,6 +286,7 @@ fun SelectedTag(tag: String, onClick: (() -> Unit)) {
 @Composable
 private fun StyledTagRow(
     state: SaveBookmarkScreenState,
+    onFocus: (Boolean) -> Unit,
 ) {
     var collapseTags by remember { mutableStateOf(true) }
     val tagNames by state.tagNames.collectAsState()
@@ -272,11 +296,11 @@ private fun StyledTagRow(
         mutableStateOf(tags - selectedTags.toSet())
     }
 
-    StyledTextField(name = "Tags",
+    StyledTextField(
+        name = "Tags",
         placeholder = "Enter tags...",
-        value = tagNames,
-        icon = Icons.Default.Tag,
-        onChange = { state.sendEvent(Event.UpdateTagNames(tagNames = it)) })
+        value = tagNames, icon = Icons.Default.Tag, onFocusChanged = onFocus
+    ) { state.sendEvent(Event.UpdateTagNames(tagNames = it)) }
 
     if (selectedTags.isNotEmpty()) {
         LazyRow {
@@ -337,18 +361,38 @@ private fun StyledTagRow(
             }
         }
     }
-//    TagPredictRow(state) // attached to top of keyboard similar to Brave/Chrome
 }
 
-//@Composable
-//private fun TagPredictRow(state: SaveBookmarkScreenState) {
-//    val tagNames by state.tagNames.collectAsState()
-
-    // TODO:
-    // if textfield is focussed, show a bar above the keyboard
-    // that displays autofill options for known tags
-    // uses the current word as tag suggestion prompt
-//}
+@Composable
+private fun TagPredictRow(state: SaveBookmarkScreenState) {
+    val tagPredictions by state.predictedTags.collectAsState()
+    if (tagPredictions.isEmpty()) return
+    Column {
+        HorizontalDivider(color = colorScheme.outline)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .zIndex(4f)
+                .background(colorScheme.background)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            tagPredictions.forEach {
+                Tag(tag = it) {
+                    state.sendEvent(Event.SelectTagPrediction(it))
+                }
+                if (it != tagPredictions.last()) {
+                    VerticalDivider(
+                        modifier = Modifier.height(20.dp),
+                        color = colorScheme.outline
+                    )
+                }
+            }
+        }
+        HorizontalDivider(color = colorScheme.outline)
+    }
+}
 
 @Composable
 private fun StyledURLRow(
@@ -407,8 +451,17 @@ fun StyledTextField(
     value: String,
     icon: ImageVector,
     placeholder: String? = null,
+    onFocusChanged: ((Boolean) -> Unit)? = null,
     onChange: (String) -> Unit,
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    if (onFocusChanged != null) {
+        LaunchedEffect(isFocused) {
+            onFocusChanged(isFocused)
+        }
+    }
+
     Column(
         modifier = Modifier.animateContentSize(
             animationSpec = tween(durationMillis = 50)
@@ -420,7 +473,9 @@ fun StyledTextField(
             placeholder = { if (!placeholder.isNullOrBlank()) Text(placeholder) },
             leadingIcon = { Icon(icon) },
             modifier = Modifier.fillMaxWidth(),
-            onValueChange = { onChange(it) })
+            onValueChange = { onChange(it) },
+            interactionSource = interactionSource
+        )
         Spacer(modifier = Modifier.height(padding.double))
     }
 }

@@ -1,7 +1,7 @@
 [versions]
 app-versionID = "org.yrovas.linklater"
-app-versionCode = "9"
-app-versionName = "0.1.8"
+app-versionCode = "10"
+app-versionName = "0.1.9"
 app-compileSDK = "34"
 app-targetSDK = "34"
 app-minimumSDK = "23"

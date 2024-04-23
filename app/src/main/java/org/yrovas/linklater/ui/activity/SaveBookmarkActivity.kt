@@ -1,15 +1,17 @@
 package org.yrovas.linklater.ui.activity
 
 import android.content.Intent
-import android.os.Bundle
 import android.util.Log
 import com.ramcosta.composedestinations.annotation.NavHostGraph
 import com.ramcosta.composedestinations.generated.navgraphs.SaveBookmarkActivityNavGraph
+import com.ramcosta.composedestinations.spec.NavHostGraphSpec
 
 @NavHostGraph
 annotation class SaveBookmarkActivityGraph
 
 class SaveBookmarkActivity : AppActivity() {
+    override val navGraph: NavHostGraphSpec = SaveBookmarkActivityNavGraph
+
     fun extractURL(): String {
         var s = intent.data.toString()
         if (s.isNotBlank() && s != "null") {
@@ -27,10 +29,5 @@ class SaveBookmarkActivity : AppActivity() {
             return s
         }
         return ""
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent(SaveBookmarkActivityNavGraph)
     }
 }
