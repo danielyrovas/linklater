@@ -105,8 +105,7 @@ class SaveBookmarkScreenState(
                 } else {
                     val partialTag =
                         tagNameString.trim().split("\\s+".toRegex()).last()
-                    Log.d(TAG, "updateTagNames: partialTag: $partialTag")
-                    tags.value.filter { it.startsWith(partialTag) }.take(5)
+                    tags.value.filter { it.startsWith(partialTag, ignoreCase = true) }.take(5)
                 }
             }
         }
