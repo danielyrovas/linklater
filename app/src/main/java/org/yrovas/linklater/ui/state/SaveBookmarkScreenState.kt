@@ -124,8 +124,13 @@ class SaveBookmarkScreenState(
             toggleSelectTag(tag)
         }
         _predictionTags.update { emptyList() }
-        val tagList = tagNames.value.trim().split("\\s+".toRegex())
-        _tagNames.update { tagList.dropLast(1).joinToString(" ") }
+        var tagNameString =
+            tagNames.value.trim().split("\\s+".toRegex()).dropLast(1)
+                .joinToString(" ")
+        if (tagNameString.isNotBlank()) {
+            tagNameString += " "
+        }
+        _tagNames.update { tagNameString }
     }
 
     private fun submitBookmark() {
