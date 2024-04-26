@@ -1,4 +1,4 @@
-package org.yrovas.linklater.ui.common
+package org.yrovas.linklater.ui.component
 
 import android.annotation.SuppressLint
 import androidx.compose.material3.SnackbarHostState

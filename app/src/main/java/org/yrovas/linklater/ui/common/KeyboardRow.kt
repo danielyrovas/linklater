@@ -26,10 +26,10 @@ import androidx.compose.ui.zIndex
 fun KeyboardRow(content: @Composable () -> Unit) {
     val isImeVisible = WindowInsets.isImeVisible
     val density = LocalDensity.current
-    val offsetY =
-        WindowInsets.ime.getBottom(density) - WindowInsets.systemBars.getBottom(
-            density
-        )
+
+    val offsetY = WindowInsets.ime.getBottom(density) -
+            // take into account padding from system bars (navigation pill/buttons)
+            WindowInsets.systemBars.getBottom(density)
 
     var previousOffset by remember { mutableStateOf(0) }
 
@@ -54,11 +54,7 @@ fun KeyboardRow(content: @Composable () -> Unit) {
             contentAlignment = Alignment.BottomStart
         ) {
             Box(modifier = Modifier
-                .offset {
-                    IntOffset(0, -offsetY)
-                }
-//                    .height(100.dp)
-//                    .border(5.dp, colorScheme.tertiaryContainer)
+                .offset { IntOffset(0, -offsetY) }
                 .fillMaxWidth()) {
                 content()
             }

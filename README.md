@@ -5,15 +5,19 @@ An unofficial Android client for [LinkDing](https://github.com/sissbruecker/link
 
 ## Features
 - Save bookmarks through the Android share menu.
+- Easily add tags to bookmarks.
 - View recent bookmarks.
-## Install
+## Installation
 
 1. Use [Obtainium](https://github.com/ImranR98/Obtainium) to install and update from GitHub, or
 2. Download the latest apk from the [releases page](https://github.com/danielyrovas/linklater/releases/latest).
 
 ## TODO:
-- Provide typical CRUD operations on bookmarks
-- Simplify selecting/searching for tags when saving bookmarks
+- Provide management operations on bookmarks: edit/delete.
+- Make tag predictions smarter.
+- Tests.
+- Use Fastlane to release on the Play store.
+- F-Droid release.
 
 ## Free Software
 

@@ -35,7 +35,7 @@ import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.TagDataSource
 import org.yrovas.linklater.ui.activity.AppActivity
-import org.yrovas.linklater.ui.common.DestinationHost
+import org.yrovas.linklater.ui.component.DestinationHost
 
 const val TAG = "DEBUG/create"
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "preferences")

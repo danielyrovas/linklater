@@ -26,10 +26,9 @@ import com.ramcosta.composedestinations.generated.destinations.PreferencesScreen
 import com.ramcosta.composedestinations.generated.destinations.SaveBookmarkScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
-import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.common.AppBar
-import org.yrovas.linklater.ui.common.BookmarkRow
+import org.yrovas.linklater.ui.component.BookmarkRow
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.RefreshIcon
@@ -70,7 +69,7 @@ fun HomeScreen(
     Frame(appBar = {
         AppBar(page = "Bookmarks", back = null) {
             IconButton(onClick = { state.sendEvent(Event.RefreshBookmarks) }) {
-                RefreshIcon(refreshing = state.isRefreshing)
+                RefreshIcon(isRefreshing = state.isRefreshing)
             }
             IconButton(onClick = { nav.navigate(PreferencesScreenDestination) }) {
                 Icon(

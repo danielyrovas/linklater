@@ -24,6 +24,26 @@ data class Bookmark(
     @SerialName("tag_names") val tags: List<String> = emptyList(),
 )
 
+fun Bookmark.showTitleOrElse(value: String): String {
+    return if (!title.isNullOrBlank()) {
+        title
+    } else if (!website_title.isNullOrBlank()) {
+        website_title
+    } else {
+        value
+    }
+}
+
+fun Bookmark.showDescriptionOrElse(value: String): String {
+    return if (!description.isNullOrBlank()) {
+        description
+    } else if (!website_description.isNullOrBlank()) {
+        website_description
+    } else {
+        value
+    }
+}
+
 fun GetBookmarksWithTags.toBookmark() = Bookmark(
     id = id,
     url = url,

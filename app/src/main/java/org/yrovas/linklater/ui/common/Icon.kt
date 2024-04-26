@@ -7,35 +7,55 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 
 @Composable
-fun Icon(painter: Painter, tint: Color, modifier: Modifier = Modifier) {
+fun Icon(
+    painter: Painter,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+) {
     androidx.compose.material3.Icon(
         modifier = modifier,
         painter = painter,
-        tint = tint,
-        contentDescription = null
+        tint = tint, contentDescription = contentDescription
     )
 }
 
 @Composable
-fun Icon(painter: Painter, modifier: Modifier = Modifier) {
+fun Icon(
+    painter: Painter,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+) {
     androidx.compose.material3.Icon(
-        modifier = modifier, painter = painter, contentDescription = null
+        modifier = modifier,
+        painter = painter,
+        contentDescription = contentDescription
     )
 }
 
 @Composable
-fun Icon(imageVector: ImageVector, modifier: Modifier = Modifier) {
-    androidx.compose.material3.Icon(
-        modifier = modifier, imageVector = imageVector, contentDescription = null
-    )
-}
-
-@Composable
-fun Icon(imageVector: ImageVector, tint: Color, modifier: Modifier = Modifier) {
+fun Icon(
+    imageVector: ImageVector,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+) {
     androidx.compose.material3.Icon(
         modifier = modifier,
         imageVector = imageVector,
-        tint = tint,
-        contentDescription = null
+        contentDescription = contentDescription
+    )
+}
+
+@Composable
+fun Icon(
+    imageVector: ImageVector,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    contentDescription: String? = null,
+) {
+    androidx.compose.material3.Icon(
+        modifier = modifier,
+        imageVector = imageVector,
+        tint = tint, contentDescription = contentDescription
     )
 }
