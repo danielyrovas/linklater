@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -25,13 +24,12 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.PreferencesScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.SaveBookmarkScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import kotlinx.coroutines.launch
 import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.common.AppBar
-import org.yrovas.linklater.ui.component.BookmarkRow
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.RefreshIcon
+import org.yrovas.linklater.ui.component.BookmarkRow
 import org.yrovas.linklater.ui.state.HomeScreenState
 import org.yrovas.linklater.ui.state.HomeScreenState.Effect
 import org.yrovas.linklater.ui.state.HomeScreenState.Event
@@ -50,18 +48,14 @@ fun HomeScreen(
     val bookmarkCount by state.bookmarkCount.collectAsState()
     val listState = rememberLazyListState()
 
-    LaunchedEffect(true) {
-        scope.launch {
-            state.effect.collect { effect ->
-                when (effect) {
-                    is Effect.RefreshError -> {
-                        snackState.show(effect.error)
-                    }
+    state.subscribeEffects(scope) { effect ->
+        when (effect) {
+            is Effect.RefreshError -> {
+                snackState.show(effect.error)
+            }
 
-                    Effect.RefreshOk -> {
-                        listState.animateScrollToItem(0)
-                    }
-                }
+            Effect.RefreshOk -> {
+                listState.animateScrollToItem(0)
             }
         }
     }

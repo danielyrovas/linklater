@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -78,7 +77,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import kotlinx.coroutines.launch
 import org.yrovas.linklater.readClipboard
 import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.activity.launch
@@ -98,8 +96,8 @@ import kotlin.math.round
 fun SaveBookmarkScreen(
     nav: DestinationsNavigator,
     snackState: SnackbarHostState,
-    context: Context = LocalContext.current,
     state: () -> SaveBookmarkScreenState,
+    context: Context = LocalContext.current,
     back: () -> Unit = { nav.popBackStack() },
     onSubmitSuccess: suspend () -> Unit = {
         context.launch {
@@ -109,29 +107,22 @@ fun SaveBookmarkScreen(
     },
 ) {
     @Suppress("NAME_SHADOWING") val state = viewModel { state() }
-
     val isSubmitting by state.isSubmitting.collectAsState()
     val scope = rememberCoroutineScope()
-    LaunchedEffect(true) {
-        scope.launch {
-            state.effect.collect { effect ->
-                when (effect) {
-                    Effect.SubmitSuccess -> onSubmitSuccess()
-                    is Effect.SubmitError -> {
-                        snackState.show(effect.error)
-                    }
-
-                    is Effect.InvalidBookmark -> {
-                        snackState.showSnackbar(effect.message)
-                    }
-                }
-            }
-        }
-    }
 
     var showTagRow by remember { mutableStateOf(false) }
-    val onTagFocus = { b: Boolean ->
-        showTagRow = b
+
+    state.subscribeEffects(scope) { effect ->
+        when (effect) {
+            Effect.SubmitSuccess -> onSubmitSuccess()
+            is Effect.SubmitError -> {
+                snackState.show(effect.error)
+            }
+
+            is Effect.InvalidBookmark -> {
+                snackState.showSnackbar(effect.message)
+            }
+        }
     }
 
     Frame(
@@ -159,7 +150,9 @@ fun SaveBookmarkScreen(
         ) {
             CircularProgressIndicator()
         } else {
-            SaveBookmarkFields(state = state, onTagFocus = onTagFocus)
+            SaveBookmarkFields(state = state, onTagFocus = {
+                showTagRow = it
+            })
         }
     }
 }

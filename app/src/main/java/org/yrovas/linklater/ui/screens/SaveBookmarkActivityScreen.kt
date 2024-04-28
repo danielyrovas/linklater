@@ -23,8 +23,8 @@ fun SaveBookmarkActivityScreen(
     nav: DestinationsNavigator,
     saveBookmarkScreenState: () -> SaveBookmarkScreenState,
     snackState: SnackbarHostState,
-    context: Context = LocalContext.current,
 ) {
+    val context: Context = LocalContext.current
     val state = viewModel { saveBookmarkScreenState() }
     LaunchedEffect(true) {
         val url = (context as SaveBookmarkActivity).extractURL()

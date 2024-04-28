@@ -1,12 +1,21 @@
 package org.yrovas.linklater.ui.state
 
+import android.annotation.SuppressLint
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 interface ScreenEvent
 
@@ -15,9 +24,9 @@ interface ScreenEffect
 abstract class ScreenState<Event : ScreenEvent, Effect : ScreenEffect> :
     ViewModel() {
     private val _event: MutableSharedFlow<Event> = MutableSharedFlow()
-    protected val event = _event.asSharedFlow()
+    private val event = _event.asSharedFlow()
     private val _effect: Channel<Effect> = Channel()
-    val effect = _effect.receiveAsFlow() // consumeAsFlow?
+    private val effect = _effect.receiveAsFlow() // consumeAsFlow?
 
     private fun subscribeEvents() {
         viewModelScope.launch {
@@ -41,5 +50,36 @@ abstract class ScreenState<Event : ScreenEvent, Effect : ScreenEffect> :
 
     init {
         subscribeEvents()
+    }
+
+    @SuppressLint("ComposableNaming")
+    @Composable
+    fun subscribeEffects(onEffect: (Effect) -> Unit) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+        LaunchedEffect(effect, lifecycleOwner.lifecycle) {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                withContext(Dispatchers.Main.immediate) {
+                    effect.collect(onEffect)
+                }
+            }
+        }
+    }
+
+    @SuppressLint("ComposableNaming")
+    @Composable
+    fun subscribeEffects(
+        scope: CoroutineScope,
+        onEffect: suspend (Effect) -> Unit,
+    ) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+        LaunchedEffect(effect, lifecycleOwner.lifecycle) {
+            lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                withContext(Dispatchers.Main.immediate) {
+                    effect.collect {
+                        scope.launch { onEffect(it) }
+                    }
+                }
+            }
+        }
     }
 }
