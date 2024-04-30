@@ -1,12 +1,18 @@
-# LinkLater
-
-An unofficial Android client for [LinkDing](https://github.com/sissbruecker/linkding).
-
+<h2 align="center"><strong>Linklater</strong></h2>
+<h4 align="center">An unofficial Android client for <a href="https://github.com/sissbruecker/linkding">LinkDing</a>.</h4>
 
 ## Features
 - Save bookmarks through the Android share menu.
 - Easily add tags to bookmarks.
 - View recent bookmarks.
+
+## Examples
+<div align="center">
+<img alt="Home Page" src="fastlane/metadata/android/en-GB/images/1.png" width="204">
+<img alt="Save Bookmark Page" src="fastlane/metadata/android/en-GB/images/2.png" width="204">
+<img alt="Preferences Page" src="fastlane/metadata/android/en-GB/images/3.png" width="204">
+</div>
+
 ## Installation
 
 1. Use [Obtainium](https://github.com/ImranR98/Obtainium) to install and update from GitHub, or
