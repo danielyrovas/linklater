@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.header
+import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +18,7 @@ import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.Bookmark
+import org.yrovas.linklater.data.BookmarkMetadata
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.domain.BookmarkAPI
@@ -78,6 +80,7 @@ class LinkDingAPI(
             val response = client.get("${endpoint!!}/bookmarks/") {
                 header("Authorization", "Token ${token!!}")
                 if (page > 0) {
+//                    parameter("offset", pageSize * page)
                     url.parameters.append(
                         "offset", (pageSize * page).toString()
                     )
@@ -125,11 +128,29 @@ class LinkDingAPI(
         }
     }
 
-//    @Serializable
-//    data class BookmarkSavedResponse(
-//        val id: Long,
-//        val url: String,
-//    )
+    override suspend fun checkExists(url: String): Pair<Bookmark?, BookmarkMetadata?> {
+        if (!authProvided.value) return null to null
+        if (url.isBlank()) return null to null
+
+        return try {
+            Log.d("DEBUG/net", "checkExists")
+            val response =
+                client.get("${endpoint!!}/bookmarks/check/") {
+                    header("Authorization", "Token ${token!!}")
+                    parameter("url", url)
+                }
+            val r = response.body<BookmarkExistsResponse>()
+            r.bookmark to r.metadata
+        } catch (e: Exception) {
+            null to null
+        }
+    }
+
+    @Serializable
+    data class BookmarkExistsResponse(
+        val bookmark: Bookmark?,
+        val metadata: BookmarkMetadata,
+    )
 
     @Serializable
     data class BookmarkResponse(

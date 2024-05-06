@@ -4,6 +4,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.yrovas.linklater.data.Bookmark
+import org.yrovas.linklater.data.BookmarkMetadata
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.domain.BookmarkAPI
@@ -41,5 +42,9 @@ class EmptyBookmarkAPI : BookmarkAPI {
 
     override suspend fun getTags(page: Int): Res<List<String>, APIError> {
         return Ok(emptyList())
+    }
+
+    override suspend fun checkExists(url: String): Pair<Bookmark?, BookmarkMetadata?> {
+        return null to null
     }
 }

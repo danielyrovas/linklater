@@ -108,6 +108,7 @@ fun SaveBookmarkScreen(
 ) {
     @Suppress("NAME_SHADOWING") val state = viewModel { state() }
     val isSubmitting by state.isSubmitting.collectAsState()
+    val bookmarkExists by state.bookmarkExists.collectAsState()
     val scope = rememberCoroutineScope()
 
     var showTagRow by remember { mutableStateOf(false) }
@@ -127,7 +128,7 @@ fun SaveBookmarkScreen(
 
     Frame(
         appBar = {
-            AppBar(page = "Add Bookmark", back = back) {
+            AppBar(page = if (bookmarkExists) "Edit Bookmark" else "Add Bookmark", back = back) {
                 IconButton(onClick = { state.sendEvent(Event.SubmitBookmark) }) {
                     Icon(
                         imageVector = Icons.Default.Bookmark,
@@ -164,6 +165,8 @@ private fun SaveBookmarkFields(
     context: Context = LocalContext.current,
 ) {
     val bookmark by state.bookmarkToSave.collectAsState()
+    val previewTitle by state.previewTitle.collectAsState()
+    val previewDescription by state.previewDescription.collectAsState()
     val showPaste by state.showPaste.collectAsState()
 
     Column(
@@ -184,6 +187,26 @@ private fun SaveBookmarkFields(
 
         StyledTagRow(state, onTagFocus)
 
+        StyledTextField(
+            name = "Title",
+            value = bookmark.title ?: "",
+            icon = Icons.Default.Title,
+            placeholder = previewTitle ?: "Leave blank to use website title"
+        ) {
+            state.sendEvent(Event.UpdateBookmark(title = it.ifBlank { null }))
+        }
+
+        StyledTextField(
+            name = "Description",
+            value = bookmark.description ?: "",
+            icon = Icons.AutoMirrored.Filled.ShortText,
+            placeholder = previewDescription ?: "Leave blank to use website description"
+        ) {
+            state.sendEvent(Event.UpdateBookmark(description = it.ifBlank { null }))
+        }
+
+        TagSelectRow(state)
+
         Spacer(modifier = Modifier.height(padding.standard))
 
         StyledCheckBox("Share", bookmark.shared, onCheckedChange = {
@@ -194,23 +217,6 @@ private fun SaveBookmarkFields(
         })
 
         Spacer(modifier = Modifier.height(padding.standard))
-
-        StyledTextField(
-            name = "Title",
-            value = bookmark.title ?: "",
-            icon = Icons.Default.Title,
-            placeholder = "Leave blank to use website title"
-        ) {
-            state.sendEvent(Event.UpdateBookmark(title = it.ifBlank { null }))
-        }
-        StyledTextField(
-            name = "Description",
-            value = bookmark.description ?: "",
-            icon = Icons.AutoMirrored.Filled.ShortText,
-            placeholder = "Leave blank to use website description"
-        ) {
-            state.sendEvent(Event.UpdateBookmark(description = it.ifBlank { null }))
-        }
 
         StyledTextField(
             name = "Notes",
@@ -275,19 +281,13 @@ fun SelectedTag(tag: String, onClick: (() -> Unit)) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun StyledTagRow(
     state: SaveBookmarkScreenState,
     onFocus: (Boolean) -> Unit,
 ) {
-    var collapseTags by remember { mutableStateOf(true) }
     val tagNames by state.tagNames.collectAsState()
-    val tags by state.tags.collectAsState()
     val selectedTags by state.selectedTags.collectAsState()
-    val unselectedTags = remember(tags, selectedTags) {
-        mutableStateOf(tags - selectedTags.toSet())
-    }
 
     StyledTextField(
         name = "Tags",
@@ -304,6 +304,20 @@ private fun StyledTagRow(
             }
         }
     }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun TagSelectRow(
+    state: SaveBookmarkScreenState,
+) {
+    var collapseTags by remember { mutableStateOf(true) }
+    val tags by state.tags.collectAsState()
+    val selectedTags by state.selectedTags.collectAsState()
+    val unselectedTags = remember(tags, selectedTags) {
+        mutableStateOf(tags - selectedTags.toSet())
+    }
+
     val rowSize by remember(unselectedTags.value) {
         mutableIntStateOf(
             max(round(unselectedTags.value.size / 3f).toInt() + 1, 8)
@@ -354,6 +368,7 @@ private fun StyledTagRow(
             }
         }
     }
+
 }
 
 @Composable

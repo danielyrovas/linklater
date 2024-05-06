@@ -1,8 +1,8 @@
 package org.yrovas.linklater.ui.state
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -67,6 +67,16 @@ class SaveBookmarkScreenState(
     private val _predictionTags = MutableStateFlow(emptyList<String>())
     val predictedTags = _predictionTags.asStateFlow()
 
+    private val _previewTitle: MutableStateFlow<String?> = MutableStateFlow(null)
+    val previewTitle = _previewTitle.asStateFlow()
+
+    private val _previewDescription: MutableStateFlow<String?> =
+        MutableStateFlow(null)
+    val previewDescription = _previewDescription.asStateFlow()
+
+    private val _bookmarkExists = MutableStateFlow(false)
+    val bookmarkExists = _bookmarkExists.asStateFlow()
+
     private val _showPaste = MutableStateFlow(bookmarkToSave.value.url.isBlank())
     val showPaste = _showPaste.asStateFlow()
 
@@ -82,7 +92,6 @@ class SaveBookmarkScreenState(
         unread: Boolean? = null,
         shared: Boolean? = null,
     ) {
-        _showPaste.update { url.isNullOrBlank() }
         _bookmarkToSave.update {
             bookmarkToSave.value.withUpdates(
                 url = url,
@@ -94,6 +103,7 @@ class SaveBookmarkScreenState(
                 shared = shared,
             )
         }
+        _showPaste.update { bookmarkToSave.value.url.isBlank() }
     }
 
     private fun updateTagNames(tagNameString: String) {
@@ -158,26 +168,36 @@ class SaveBookmarkScreenState(
         _tags.update { tagList.sorted() }
     }
 
+    private lateinit var defaultBookmark: LocalBookmark
     private fun getDefaultBookmark() {
         viewModelScope.launch(Dispatchers.IO) {
-            updateBookmark(
+            defaultBookmark = LocalBookmark(
+                url = "",
                 is_archived = prefStore.getPref(
                     Prefs.BOOKMARK_DEFAULT_ARCHIVED, false
                 ),
                 unread = prefStore.getPref(Prefs.BOOKMARK_DEFAULT_UNREAD, false),
                 shared = prefStore.getPref(Prefs.BOOKMARK_DEFAULT_SHARED, false)
             )
+            setDefaultBookmark()
         }
     }
 
+    private fun setDefaultBookmark() {
+        updateBookmark(
+            is_archived = defaultBookmark.is_archived,
+            unread = defaultBookmark.unread,
+            shared = defaultBookmark.shared
+        )
+    }
+
+    private lateinit var defaultTags: List<String>
     private fun getDefaultTags() {
         viewModelScope.launch(Dispatchers.IO) {
-            val selectedTagList =
+            defaultTags =
                 prefStore.getPref(Prefs.BOOKMARK_DEFAULT_TAG_NAMES, "").intoTags()
-            setTagList((tags.value + selectedTagList).distinct())
-            selectedTagList.forEach {
-                toggleSelectTag(it)
-            }
+            setTagList((tags.value + defaultTags).distinct())
+            _selectedTags.update { defaultTags }
         }
     }
 
@@ -189,17 +209,66 @@ class SaveBookmarkScreenState(
         }
     }
 
+    private fun checkBookmarkExists(url: String): Job {
+        return viewModelScope.launch {
+            val (b, m) = bookmarkAPI.checkExists(url)
+            m?.title?.let { title ->
+                _previewTitle.update { title }
+            }
+            m?.description?.let { description ->
+                _previewDescription.update { description }
+            }
+
+            if (b != null) {
+                _bookmarkExists.update { true }
+                updateBookmark(
+                    url = b.url,
+                    title = b.title,
+                    description = b.description,
+                    notes = b.notes,
+                    is_archived = b.is_archived,
+                    unread = b.unread,
+                    shared = b.shared,
+                )
+
+                setTagList((tags.value + b.tags).distinct()) // guard against tags not being present in database
+//                _tagNames.update { "" }
+                _selectedTags.update { emptyList() }
+                _selectedTags.update { b.tags }
+            } else {
+                _bookmarkExists.update { false }
+            }
+        }
+    }
+
     init {
         getTagList()
         getDefaultBookmark()
         getDefaultTags()
     }
 
+    private fun clearPreview() {
+        _bookmarkExists.update { false }
+        _previewTitle.update { null }
+        _previewDescription.update { null }
+        _selectedTags.update { defaultTags }
+        setDefaultBookmark()
+    }
+
+    private var checkExistsJob: Job? = null
     override fun handleEvent(event: Event) {
         when (event) {
             Event.SubmitBookmark -> submitBookmark()
             is Event.ToggleSelectTag -> toggleSelectTag(event.tagName)
-            is Event.UpdateBookmark -> updateBookmark(
+            is Event.UpdateBookmark -> {
+                viewModelScope.launch {
+                    checkExistsJob?.cancel()
+                    clearPreview()
+                    if (!event.url.isNullOrBlank() && checkURL(event.url)) {
+                        checkExistsJob = checkBookmarkExists(event.url)
+                    }
+                }
+                updateBookmark(
                 url = event.url,
                 title = event.title,
                 description = event.description,
@@ -207,7 +276,8 @@ class SaveBookmarkScreenState(
                 is_archived = event.is_archived,
                 unread = event.unread,
                 shared = event.shared,
-            )
+                )
+            }
 
             is Event.UpdateTagNames -> updateTagNames(event.tagNames)
             is Event.SelectTagPrediction -> selectTagPrediction(event.tagName)
