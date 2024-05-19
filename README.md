@@ -15,15 +15,15 @@
 
 ## Installation
 
-1. Use [Obtainium](https://github.com/ImranR98/Obtainium) to install and update from GitHub, or
-2. Download the latest apk from the [releases page](https://github.com/danielyrovas/linklater/releases/latest).
+1. Use an [F-Droid](https://f-droid.org/) [client](https://android.izzysoft.de/applists/category/named/apps_markets#group_1181) such as [Droid-ify](https://f-droid.org/en/packages/com.looker.droidify/) to install it from the [IzzySoft repository](https://apt.izzysoft.de/packages/org.yrovas.linklater/),
+2. Use [Obtainium](https://github.com/ImranR98/Obtainium) to install and update from GitHub, or
+3. Download the latest apk from the [releases page](https://github.com/danielyrovas/linklater/releases/latest).
 
 ## TODO:
 - Provide management operations on bookmarks: edit/delete.
 - Make tag predictions smarter.
 - Tests.
 - Use Fastlane to release on the Play store.
-- F-Droid release.
 
 ## Free Software
 
