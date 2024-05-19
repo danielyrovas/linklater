@@ -8,9 +8,9 @@
 
 ## Examples
 <div align="center">
-<img alt="Home Page" src="fastlane/metadata/android/en-GB/images/1.png" width="204">
-<img alt="Save Bookmark Page" src="fastlane/metadata/android/en-GB/images/2.png" width="204">
-<img alt="Preferences Page" src="fastlane/metadata/android/en-GB/images/3.png" width="204">
+<img alt="Home Page" src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="204">
+<img alt="Save Bookmark Page" src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="204">
+<img alt="Preferences Page" src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="204">
 </div>
 
 ## Installation
