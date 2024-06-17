@@ -40,9 +40,8 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.annotation.RootGraph
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import androidx.navigation.NavController
+import kotlinx.serialization.Serializable
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.getAppVersion
@@ -54,21 +53,23 @@ import org.yrovas.linklater.ui.state.PreferencesScreenState
 import org.yrovas.linklater.ui.state.PreferencesScreenState.Event
 import org.yrovas.linklater.ui.theme.padding
 
-@Destination<RootGraph>
+@Serializable
+object PreferencesScreen
+
 @Composable
 fun PreferencesScreen(
-    nav: DestinationsNavigator,
+    nav: NavController,
     snackState: SnackbarHostState,
     state: () -> PreferencesScreenState,
-    context: Context = LocalContext.current,
 ) {
+    val context = LocalContext.current
     @Suppress("NAME_SHADOWING") val state = viewModel { state() }
 
     val defaultBookmark by state.defaultBookmark.collectAsState()
 
     Frame(
         page = "Preferences",
-        back = { nav.popBackStack() },
+        back = { nav.navigateUp() },
         snackState = snackState
     ) {
         Column(

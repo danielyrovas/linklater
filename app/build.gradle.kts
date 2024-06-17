@@ -2,30 +2,31 @@ import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 
 plugins {
     alias(libs.plugins.android)
-    alias(libs.plugins.kotlinAndroid)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
-    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
 }
 
 sqldelight {
     databases {
         create("Database") {
-            packageName.set("org.yrovas.linklater")
+            packageName.set(libs.versions.app.version.id.get())
         }
     }
 }
 
 android {
-    namespace = libs.versions.app.versionID.get()
-    compileSdk = libs.versions.app.compileSDK.get().toInt()
+    namespace = libs.versions.app.version.id.get()
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = libs.versions.app.versionID.get()
-        minSdk = libs.versions.app.minimumSDK.get().toInt()
-        targetSdk = libs.versions.app.targetSDK.get().toInt()
-        versionCode = libs.versions.app.versionCode.get().toInt()
-        versionName = libs.versions.app.versionName.get()
+        applicationId = libs.versions.app.version.id.get()
+        minSdk = libs.versions.android.minSdk.get().toInt()
+        targetSdk = libs.versions.android.targetSdk.get().toInt()
+        versionCode = libs.versions.app.version.code.get().toInt()
+        versionName = libs.versions.app.version.name.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -48,11 +49,11 @@ android {
         sourceCompatibility = javaVersion
         targetCompatibility = javaVersion
     }
-    kotlinOptions { jvmTarget = libs.versions.app.kotlinJVMTarget.get() }
+    kotlinOptions { jvmTarget = libs.versions.android.kotlinJVMTarget.get() }
     buildFeatures { compose = true }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.app.composeCompiler.get()
-    }
+//    composeOptions {
+//        kotlinCompilerExtensionVersion = libs.versions.app.composeCompiler.get()
+//    }
     packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
 
     applicationVariants.all { variant ->
@@ -65,25 +66,25 @@ android {
 }
 
 dependencies {
-    implementation(libs.core.ktx)
+    implementation(libs.androidx.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
-    implementation(libs.activity.compose)
     implementation(platform(libs.compose.bom))
-    implementation(libs.ui)
-    implementation(libs.ui.graphics)
-    implementation(libs.ui.tooling.preview)
-    implementation(libs.material3)
-    implementation(libs.destinations)
+    implementation(libs.activity.compose)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.ui.graphics)
+    implementation(libs.compose.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.material)
+
+    implementation(libs.navigation.compose)
+
     implementation(libs.androidx.datastore.preferences)
-    ksp(libs.destinations.ksp)
 
     ksp(libs.kotlin.inject.compiler.ksp)
     implementation(libs.kotlin.inject.runtime)
-
     implementation(libs.kotlinx.datetime)
-    implementation(libs.androidx.material.icons.extended)
-    implementation(libs.androidx.material)
 
     implementation(libs.ktor.client.android)
     implementation(libs.kotlinx.serialization.json)
@@ -92,14 +93,14 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
 
-    implementation(libs.coroutines.extensions)
-    implementation(libs.android.driver)
+    implementation(libs.sqldelight.coroutines.extensions)
+    implementation(libs.sqldelight.android.driver)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
-    debugImplementation(libs.ui.tooling)
+    debugImplementation(libs.compose.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
 }

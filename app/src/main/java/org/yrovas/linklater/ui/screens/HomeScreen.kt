@@ -19,11 +19,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.annotation.RootGraph
-import com.ramcosta.composedestinations.generated.destinations.PreferencesScreenDestination
-import com.ramcosta.composedestinations.generated.destinations.SaveBookmarkScreenDestination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import androidx.navigation.NavController
+import kotlinx.serialization.Serializable
 import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.Frame
@@ -35,10 +32,12 @@ import org.yrovas.linklater.ui.state.HomeScreenState.Effect
 import org.yrovas.linklater.ui.state.HomeScreenState.Event
 import org.yrovas.linklater.ui.theme.padding
 
-@Destination<RootGraph>(start = true)
+@Serializable
+object HomeScreen: NavEntryScreen
+
 @Composable
 fun HomeScreen(
-    nav: DestinationsNavigator,
+    nav: NavController,
     snackState: SnackbarHostState,
     state: () -> HomeScreenState,
 ) {
@@ -65,7 +64,7 @@ fun HomeScreen(
             IconButton(onClick = { state.sendEvent(Event.RefreshBookmarks) }) {
                 RefreshIcon(isRefreshing = state.isRefreshing)
             }
-            IconButton(onClick = { nav.navigate(PreferencesScreenDestination) }) {
+            IconButton(onClick = { nav.navigate(PreferencesScreen) }) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     tint = colorScheme.primary
@@ -75,7 +74,7 @@ fun HomeScreen(
         }
     }, fab = {
         FloatingActionButton(modifier = Modifier.padding(padding.standard),
-            onClick = { nav.navigate(SaveBookmarkScreenDestination) },
+            onClick = { nav.navigate(SaveBookmarkScreen) },
             content = { Icon(imageVector = Icons.Default.AddLink) })
     }, snackState = snackState) {
         LazyColumn(

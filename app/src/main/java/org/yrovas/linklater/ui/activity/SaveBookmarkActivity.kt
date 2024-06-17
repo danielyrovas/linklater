@@ -2,15 +2,13 @@ package org.yrovas.linklater.ui.activity
 
 import android.content.Intent
 import android.util.Log
-import com.ramcosta.composedestinations.annotation.NavHostGraph
-import com.ramcosta.composedestinations.generated.navgraphs.SaveBookmarkActivityNavGraph
-import com.ramcosta.composedestinations.spec.NavHostGraphSpec
+import org.yrovas.linklater.ui.screens.NavEntryScreen
+import org.yrovas.linklater.ui.screens.SaveBookmarkActivityScreen
 
-@NavHostGraph
 annotation class SaveBookmarkActivityGraph
 
 class SaveBookmarkActivity : AppActivity() {
-    override val navGraph: NavHostGraphSpec = SaveBookmarkActivityNavGraph
+    override val entryScreen = SaveBookmarkActivityScreen
 
     fun extractURL(): String {
         var s = intent.data.toString()

@@ -74,9 +74,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.annotation.RootGraph
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import androidx.navigation.NavController
+import kotlinx.serialization.Serializable
 import org.yrovas.linklater.readClipboard
 import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.activity.launch
@@ -91,10 +90,12 @@ import org.yrovas.linklater.ui.theme.padding
 import kotlin.math.max
 import kotlin.math.round
 
-@Destination<RootGraph>
+@Serializable
+object SaveBookmarkScreen
+
 @Composable
 fun SaveBookmarkScreen(
-    nav: DestinationsNavigator,
+    nav: NavController,
     snackState: SnackbarHostState,
     state: () -> SaveBookmarkScreenState,
     context: Context = LocalContext.current,

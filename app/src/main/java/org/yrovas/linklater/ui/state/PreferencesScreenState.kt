@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -43,6 +44,9 @@ class PreferencesScreenState(
 
     private val _bookmarkEndpoint = MutableStateFlow("")
     var bookmarkEndpoint = _bookmarkEndpoint.asStateFlow()
+    // TODO backing fields
+//    val bookmarkEndpoint: StateFlow<String>
+//        field = MutableStateFlow("")
 
     private val _bookmarkAPIToken = MutableStateFlow("")
     var bookmarkAPIToken = _bookmarkAPIToken.asStateFlow()

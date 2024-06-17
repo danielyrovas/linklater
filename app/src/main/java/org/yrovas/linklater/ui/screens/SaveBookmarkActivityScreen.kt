@@ -8,8 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ramcosta.composedestinations.annotation.Destination
-import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import androidx.navigation.NavController
+import kotlinx.serialization.Serializable
 import org.yrovas.linklater.onBackPressed
 import org.yrovas.linklater.ui.activity.AppActivity
 import org.yrovas.linklater.ui.activity.SaveBookmarkActivity
@@ -17,12 +17,14 @@ import org.yrovas.linklater.ui.activity.SaveBookmarkActivityGraph
 import org.yrovas.linklater.ui.state.SaveBookmarkScreenState
 import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Event
 
-@Destination<SaveBookmarkActivityGraph>(start = true)
+@Serializable
+object SaveBookmarkActivityScreen : NavEntryScreen
+
 @Composable
 fun SaveBookmarkActivityScreen(
-    nav: DestinationsNavigator,
-    saveBookmarkScreenState: () -> SaveBookmarkScreenState,
+    nav: NavController,
     snackState: SnackbarHostState,
+    saveBookmarkScreenState: () -> SaveBookmarkScreenState,
 ) {
     val context: Context = LocalContext.current
     val state = viewModel { saveBookmarkScreenState() }
