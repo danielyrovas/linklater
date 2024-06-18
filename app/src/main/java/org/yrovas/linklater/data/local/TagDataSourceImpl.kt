@@ -28,9 +28,9 @@ class TagDataSourceImpl(db: Database) : TagDataSource {
 }
 
 class EmptyTagSource() : TagDataSource {
-    override suspend fun getTag(id: Long): String? = "Not-A-Tag"
+    override suspend fun getTag(id: Long) = "Not-A-Tag"
 
     override fun getTags(): Flow<List<String>> {
-        return listOf(listOf("Not-A-Tag")).asFlow()
+        return listOf(listOf("Not-A-Tag", "Not-A-Two")).asFlow()
     }
 }

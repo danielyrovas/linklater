@@ -14,8 +14,8 @@ import kotlinx.coroutines.launch
 import org.yrovas.linklater.AppComponent
 import org.yrovas.linklater.create
 import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.ui.screens.HomeScreen
-import org.yrovas.linklater.ui.screens.NavEntryScreen
+import org.yrovas.linklater.ui.screens.EntryDestination
+import org.yrovas.linklater.ui.screens.home.HomeDestination
 import org.yrovas.linklater.ui.theme.AppTheme
 
 fun Context.launch(
@@ -27,7 +27,7 @@ fun Context.launch(
 
 abstract class AppActivity : ComponentActivity() {
 
-    abstract val entryScreen: NavEntryScreen
+    abstract val entryScreen: EntryDestination
 
     private val component by lazy(LazyThreadSafetyMode.NONE) {
         AppComponent::class.create(this)
@@ -51,7 +51,7 @@ abstract class AppActivity : ComponentActivity() {
 //                .build()
 //        )
 
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
         // https://stackoverflow.com/questions/73331594/how-can-i-show-a-composable-on-top-of-the-visible-keyboard
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -67,7 +67,7 @@ abstract class AppActivity : ComponentActivity() {
         }
         setContent {
             AppTheme {
-                appHost(HomeScreen, snackState)
+                appHost(HomeDestination, snackState)
             }
         }
     }

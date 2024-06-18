@@ -1,4 +1,4 @@
-package org.yrovas.linklater.ui.state
+package org.yrovas.linklater.ui.screens.home
 
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -15,14 +15,17 @@ import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.errorOrThrow
 import org.yrovas.linklater.domain.ifOk
 import org.yrovas.linklater.domain.isOk
+import org.yrovas.linklater.ui.screens.ScreenEffect
+import org.yrovas.linklater.ui.screens.ScreenEvent
+import org.yrovas.linklater.ui.screens.ScreenState
 
 const val TAG = "DEBUG/state"
 
 @Inject
-class HomeScreenState(
+class HomeState(
     private val api: BookmarkAPI,
     private val bookmarkSource: BookmarkDataSource,
-) : ScreenState<HomeScreenState.Event, HomeScreenState.Effect>() {
+) : ScreenState<HomeState.Event, HomeState.Effect>() {
 
     sealed interface Event : ScreenEvent {
         data object RefreshBookmarks : Event

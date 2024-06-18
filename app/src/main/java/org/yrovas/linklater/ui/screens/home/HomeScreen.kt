@@ -1,4 +1,4 @@
-package org.yrovas.linklater.ui.screens
+package org.yrovas.linklater.ui.screens.home
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,26 +20,23 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import kotlinx.serialization.Serializable
 import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.RefreshIcon
 import org.yrovas.linklater.ui.component.BookmarkRow
-import org.yrovas.linklater.ui.state.HomeScreenState
-import org.yrovas.linklater.ui.state.HomeScreenState.Effect
-import org.yrovas.linklater.ui.state.HomeScreenState.Event
+import org.yrovas.linklater.ui.screens.preferences.PreferencesDestination
+import org.yrovas.linklater.ui.screens.home.HomeState.Effect
+import org.yrovas.linklater.ui.screens.home.HomeState.Event
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkDestination
 import org.yrovas.linklater.ui.theme.padding
-
-@Serializable
-object HomeScreen: NavEntryScreen
 
 @Composable
 fun HomeScreen(
     nav: NavController,
     snackState: SnackbarHostState,
-    state: () -> HomeScreenState,
+    state: () -> HomeState,
 ) {
     @Suppress("NAME_SHADOWING") val state = viewModel { state() }
     val scope = rememberCoroutineScope()
@@ -64,7 +61,7 @@ fun HomeScreen(
             IconButton(onClick = { state.sendEvent(Event.RefreshBookmarks) }) {
                 RefreshIcon(isRefreshing = state.isRefreshing)
             }
-            IconButton(onClick = { nav.navigate(PreferencesScreen) }) {
+            IconButton(onClick = { nav.navigate(PreferencesDestination) }) {
                 Icon(
                     imageVector = Icons.Default.Settings,
                     tint = colorScheme.primary
@@ -74,7 +71,7 @@ fun HomeScreen(
         }
     }, fab = {
         FloatingActionButton(modifier = Modifier.padding(padding.standard),
-            onClick = { nav.navigate(SaveBookmarkScreen) },
+            onClick = { nav.navigate(SaveBookmarkDestination) },
             content = { Icon(imageVector = Icons.Default.AddLink) })
     }, snackState = snackState) {
         LazyColumn(
@@ -83,7 +80,7 @@ fun HomeScreen(
         ) {
             if (bookmarks.isEmpty()) {
                 item {
-                    Text(text = "No bookmarks... try entering your credentials into the settings")
+                    Text(text = "No bookmarks... try entering your credentials into the settings.")
                 }
             } else {
                 item {

@@ -7,39 +7,46 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.ui.screens.HomeScreen
-import org.yrovas.linklater.ui.screens.NavEntryScreen
-import org.yrovas.linklater.ui.screens.PreferencesScreen
-import org.yrovas.linklater.ui.screens.SaveBookmarkActivityScreen
-import org.yrovas.linklater.ui.screens.SaveBookmarkScreen
-import org.yrovas.linklater.ui.state.HomeScreenState
-import org.yrovas.linklater.ui.state.PreferencesScreenState
-import org.yrovas.linklater.ui.state.SaveBookmarkScreenState
+import org.yrovas.linklater.ui.screens.EntryDestination
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkActivityScreen
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkActivityDestination
+import org.yrovas.linklater.ui.screens.home.HomeDestination
+import org.yrovas.linklater.ui.screens.home.HomeScreen
+import org.yrovas.linklater.ui.screens.home.HomeState
+import org.yrovas.linklater.ui.screens.preferences.PreferencesDestination
+import org.yrovas.linklater.ui.screens.preferences.PreferencesScreen
+import org.yrovas.linklater.ui.screens.preferences.PreferencesState
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkDestination
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkScreen
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState
 
-typealias AppHost = @Composable (NavEntryScreen, SnackbarHostState) -> Unit
+typealias AppHost = @Composable (EntryDestination, SnackbarHostState) -> Unit
 
 @Inject
 @Composable
 fun AppHost(
-    homeScreenState: () -> HomeScreenState,
-    preferencesScreenState: () -> PreferencesScreenState,
-    saveBookmarkScreenState: () -> SaveBookmarkScreenState,
-    @Assisted entryScreen: NavEntryScreen,
+    homeState: () -> HomeState,
+    preferencesState: () -> PreferencesState,
+    saveBookmarkState: () -> SaveBookmarkState,
+    @Assisted entryDestination: EntryDestination,
     @Assisted snackState: SnackbarHostState,
 ) {
     val nav = rememberNavController()
-    NavHost(nav, startDestination = entryScreen) {
-        composable<HomeScreen> {
-            HomeScreen(nav, snackState, homeScreenState)
+    NavHost(nav, startDestination = entryDestination) {
+        composable<HomeDestination> {
+            HomeScreen(nav, snackState, homeState)
         }
-        composable<SaveBookmarkActivityScreen> {
-            SaveBookmarkActivityScreen(nav, snackState, saveBookmarkScreenState)
+        if (entryDestination == SaveBookmarkActivityDestination) {
+            composable<SaveBookmarkActivityDestination> {
+                SaveBookmarkActivityScreen(nav, snackState, saveBookmarkState)
+            }
+        } else {
+            composable<SaveBookmarkDestination> {
+                SaveBookmarkScreen(nav, snackState, saveBookmarkState)
+            }
         }
-        composable<SaveBookmarkScreen> {
-            SaveBookmarkScreen(nav, snackState, saveBookmarkScreenState)
-        }
-        composable<PreferencesScreen> {
-            PreferencesScreen(nav, snackState, preferencesScreenState)
+        composable<PreferencesDestination> {
+            PreferencesScreen(nav, snackState, preferencesState)
         }
     }
 }

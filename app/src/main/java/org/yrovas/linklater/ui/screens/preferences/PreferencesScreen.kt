@@ -1,6 +1,5 @@
-package org.yrovas.linklater.ui.screens
+package org.yrovas.linklater.ui.screens.preferences
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import kotlinx.serialization.Serializable
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.getAppVersion
@@ -49,18 +47,14 @@ import org.yrovas.linklater.openUri
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.TextPreference
-import org.yrovas.linklater.ui.state.PreferencesScreenState
-import org.yrovas.linklater.ui.state.PreferencesScreenState.Event
+import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Event
 import org.yrovas.linklater.ui.theme.padding
-
-@Serializable
-object PreferencesScreen
 
 @Composable
 fun PreferencesScreen(
     nav: NavController,
     snackState: SnackbarHostState,
-    state: () -> PreferencesScreenState,
+    state: () -> PreferencesState,
 ) {
     val context = LocalContext.current
     @Suppress("NAME_SHADOWING") val state = viewModel { state() }
@@ -251,7 +245,7 @@ private fun StyledCheckPreference(
 //    AppTheme {
 //        PreferencesScreen(EmptyDestinationsNavigator,
 //            SnackbarHostState(),
-//            { PreferencesScreenState(EmptyBookmarkAPI(),
+//            { PreferencesState(EmptyBookmarkAPI(),
 //                EmptyPrefStore()
 //            ) })
 //    }

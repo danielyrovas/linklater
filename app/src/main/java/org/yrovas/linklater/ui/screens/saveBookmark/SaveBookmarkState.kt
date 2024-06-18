@@ -1,4 +1,4 @@
-package org.yrovas.linklater.ui.state
+package org.yrovas.linklater.ui.screens.saveBookmark
 
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -18,11 +18,14 @@ import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.Res
 import org.yrovas.linklater.domain.TagDataSource
 import org.yrovas.linklater.intoTags
-import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Effect
-import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Event
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Effect
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Event
+import org.yrovas.linklater.ui.screens.ScreenEffect
+import org.yrovas.linklater.ui.screens.ScreenEvent
+import org.yrovas.linklater.ui.screens.ScreenState
 
 @Inject
-class SaveBookmarkScreenState(
+class SaveBookmarkState(
     private val bookmarkAPI: BookmarkAPI,
     private val prefStore: PrefDataStore,
     private val tagSource: TagDataSource,

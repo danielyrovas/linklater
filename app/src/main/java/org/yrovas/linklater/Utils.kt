@@ -49,7 +49,7 @@ fun timeAgo(timestamp: Instant, now: Instant): String {
 
 fun Context.openUri(uri: Uri) {
     val browserIntent = Intent(Intent.ACTION_VIEW, uri)
-    startActivity(browserIntent);
+    startActivity(browserIntent)
 }
 
 fun Context.readClipboard(): String {

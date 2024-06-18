@@ -1,10 +1,9 @@
-package org.yrovas.linklater.ui.state
+package org.yrovas.linklater.ui.screens.preferences
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -17,11 +16,15 @@ import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.Res
 import org.yrovas.linklater.intoTags
-import org.yrovas.linklater.ui.state.PreferencesScreenState.Effect
-import org.yrovas.linklater.ui.state.PreferencesScreenState.Event
+import org.yrovas.linklater.ui.screens.home.TAG
+import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Effect
+import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Event
+import org.yrovas.linklater.ui.screens.ScreenEffect
+import org.yrovas.linklater.ui.screens.ScreenEvent
+import org.yrovas.linklater.ui.screens.ScreenState
 
 @Inject
-class PreferencesScreenState(
+class PreferencesState(
     private val bookmarkAPI: BookmarkAPI,
     private val prefStore: PrefDataStore,
     private val appScope: ApplicationScope,
@@ -40,7 +43,7 @@ class PreferencesScreenState(
         ) : Event
     }
 
-    sealed interface Effect : ScreenEffect {}
+    sealed interface Effect : ScreenEffect
 
     private val _bookmarkEndpoint = MutableStateFlow("")
     var bookmarkEndpoint = _bookmarkEndpoint.asStateFlow()

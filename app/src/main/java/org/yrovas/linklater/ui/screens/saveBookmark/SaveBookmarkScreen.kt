@@ -1,4 +1,4 @@
-package org.yrovas.linklater.ui.screens
+package org.yrovas.linklater.ui.screens.saveBookmark
 
 import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
@@ -75,7 +75,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import kotlinx.serialization.Serializable
 import org.yrovas.linklater.readClipboard
 import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.activity.launch
@@ -83,21 +82,17 @@ import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.KeyboardRow
-import org.yrovas.linklater.ui.state.SaveBookmarkScreenState
-import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Effect
-import org.yrovas.linklater.ui.state.SaveBookmarkScreenState.Event
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Effect
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Event
 import org.yrovas.linklater.ui.theme.padding
 import kotlin.math.max
 import kotlin.math.round
-
-@Serializable
-object SaveBookmarkScreen
 
 @Composable
 fun SaveBookmarkScreen(
     nav: NavController,
     snackState: SnackbarHostState,
-    state: () -> SaveBookmarkScreenState,
+    state: () -> SaveBookmarkState,
     context: Context = LocalContext.current,
     back: () -> Unit = { nav.popBackStack() },
     onSubmitSuccess: suspend () -> Unit = {
@@ -161,7 +156,7 @@ fun SaveBookmarkScreen(
 
 @Composable
 private fun SaveBookmarkFields(
-    state: SaveBookmarkScreenState,
+    state: SaveBookmarkState,
     onTagFocus: (Boolean) -> Unit,
     context: Context = LocalContext.current,
 ) {
@@ -284,7 +279,7 @@ fun SelectedTag(tag: String, onClick: (() -> Unit)) {
 
 @Composable
 private fun StyledTagRow(
-    state: SaveBookmarkScreenState,
+    state: SaveBookmarkState,
     onFocus: (Boolean) -> Unit,
 ) {
     val tagNames by state.tagNames.collectAsState()
@@ -310,7 +305,7 @@ private fun StyledTagRow(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TagSelectRow(
-    state: SaveBookmarkScreenState,
+    state: SaveBookmarkState,
 ) {
     var collapseTags by remember { mutableStateOf(true) }
     val tags by state.tags.collectAsState()
@@ -349,7 +344,7 @@ fun TagSelectRow(
                     }
                 }
             } else {
-                FlowRow() {
+                FlowRow {
                     unselectedTags.value.forEach {
                         Tag(it) {
                             state.sendEvent(Event.ToggleSelectTag(it))
@@ -373,7 +368,7 @@ fun TagSelectRow(
 }
 
 @Composable
-private fun TagPredictRow(state: SaveBookmarkScreenState) {
+private fun TagPredictRow(state: SaveBookmarkState) {
     val tagPredictions by state.predictedTags.collectAsState()
     if (tagPredictions.isEmpty()) return
     Column {

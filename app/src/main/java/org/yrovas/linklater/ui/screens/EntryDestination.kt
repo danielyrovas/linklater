@@ -1,3 +1,3 @@
 package org.yrovas.linklater.ui.screens
 
-interface NavEntryScreen
+interface EntryDestination

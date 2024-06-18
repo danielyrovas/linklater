@@ -1,11 +1,11 @@
-package org.yrovas.linklater.ui.state
+package org.yrovas.linklater.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
@@ -21,8 +21,7 @@ interface ScreenEvent
 
 interface ScreenEffect
 
-abstract class ScreenState<Event : ScreenEvent, Effect : ScreenEffect> :
-    ViewModel() {
+abstract class ScreenState<Event : ScreenEvent, Effect : ScreenEffect> : ViewModel() {
     private val _event: MutableSharedFlow<Event> = MutableSharedFlow()
     private val event = _event.asSharedFlow()
     private val _effect: Channel<Effect> = Channel()
@@ -36,12 +35,12 @@ abstract class ScreenState<Event : ScreenEvent, Effect : ScreenEffect> :
         }
     }
 
-    fun sendEvent(builder: () -> Event) = sendEvent(builder())
+    //    fun sendEvent(builder: () -> Event) = sendEvent(builder())
     fun sendEvent(event: Event) {
         viewModelScope.launch { _event.emit(event) }
     }
 
-    protected fun sendEffect(builder: () -> Effect) = sendEffect(builder())
+    //    protected fun sendEffect(builder: () -> Effect) = sendEffect(builder())
     protected fun sendEffect(effect: Effect) {
         viewModelScope.launch { _effect.send(effect) }
     }
