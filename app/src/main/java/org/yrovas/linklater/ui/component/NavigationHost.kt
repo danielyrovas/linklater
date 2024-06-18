@@ -20,11 +20,11 @@ import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkDestination
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkScreen
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState
 
-typealias AppHost = @Composable (EntryDestination, SnackbarHostState) -> Unit
+typealias NavigationHost = @Composable (EntryDestination, SnackbarHostState) -> Unit
 
 @Inject
 @Composable
-fun AppHost(
+fun NavigationHost(
     homeState: () -> HomeState,
     preferencesState: () -> PreferencesState,
     saveBookmarkState: () -> SaveBookmarkState,

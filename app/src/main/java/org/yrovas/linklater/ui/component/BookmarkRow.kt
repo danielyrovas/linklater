@@ -14,8 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Surface
@@ -38,7 +36,6 @@ import org.yrovas.linklater.data.showDescriptionOrElse
 import org.yrovas.linklater.data.showTitleOrElse
 import org.yrovas.linklater.openUri
 import org.yrovas.linklater.timeAgo
-import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
 

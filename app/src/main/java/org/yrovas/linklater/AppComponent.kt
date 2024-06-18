@@ -35,7 +35,7 @@ import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.TagDataSource
 import org.yrovas.linklater.ui.activity.AppActivity
-import org.yrovas.linklater.ui.component.AppHost
+import org.yrovas.linklater.ui.component.NavigationHost
 
 const val TAG = "DEBUG/create"
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "preferences")
@@ -66,7 +66,7 @@ class ApplicationScope(private val context: Context) {
 abstract class AppComponent(
     @get:Provides val context: Context,
 ) {
-    abstract val appHost: AppHost
+    abstract val navigationHost: NavigationHost
     abstract val prefStore: PrefDataStore
     abstract val appScope: ApplicationScope
 

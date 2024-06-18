@@ -57,7 +57,7 @@ abstract class AppActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
 //        enableEdgeToEdge()
 
-        val appHost = component.appHost
+        val navHost = component.navigationHost
         launch {
             // setup code that runs on first boot
             component.bookmarkAPI.authenticate(
@@ -67,7 +67,7 @@ abstract class AppActivity : ComponentActivity() {
         }
         setContent {
             AppTheme {
-                appHost(HomeDestination, snackState)
+                navHost(HomeDestination, snackState)
             }
         }
     }
