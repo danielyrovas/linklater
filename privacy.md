@@ -1,4 +1,5 @@
 # Privacy Policy
-Linklater collects no user data and contains no telemetry.
 
-Linklater uses the Android network permission to connect to the bookmark server specified by the user.
+Unlike Google products, Linklater collects no user data.
+Unlike Google products, Linklater contains no telemetry.
+Linklater uses the Android network permission to connect *only* to the bookmark server specified by the user.
