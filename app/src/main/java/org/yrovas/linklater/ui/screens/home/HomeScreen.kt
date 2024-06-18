@@ -25,7 +25,7 @@ import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.RefreshIcon
-import org.yrovas.linklater.ui.component.BookmarkRow
+import org.yrovas.linklater.ui.screens.home.components.BookmarkRow
 import org.yrovas.linklater.ui.screens.preferences.PreferencesDestination
 import org.yrovas.linklater.ui.screens.home.HomeState.Effect
 import org.yrovas.linklater.ui.screens.home.HomeState.Event

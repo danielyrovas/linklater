@@ -44,16 +44,19 @@ android {
         }
         debug { applicationIdSuffix = ".debug" }
     }
+
     compileOptions {
         val javaVersion = JavaVersion.valueOf(libs.versions.app.javaVersion.get())
         sourceCompatibility = javaVersion
         targetCompatibility = javaVersion
     }
-    kotlinOptions { jvmTarget = libs.versions.android.kotlinJVMTarget.get() }
+
+    kotlinOptions {
+        jvmTarget = libs.versions.android.kotlinJVMTarget.get()
+    }
+
     buildFeatures { compose = true }
-//    composeOptions {
-//        kotlinCompilerExtensionVersion = libs.versions.app.composeCompiler.get()
-//    }
+
     packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
 
     applicationVariants.all { variant ->
@@ -62,6 +65,13 @@ android {
                 "app-${variant.productFlavors[0].name}-${variant.buildType.name}-${variant.versionName}.apk"
         }
         true
+    }
+}
+
+// TODO: remove when stable
+kotlin {
+    sourceSets.all {
+        languageSettings.enableLanguageFeature("ExplicitBackingFields")
     }
 }
 

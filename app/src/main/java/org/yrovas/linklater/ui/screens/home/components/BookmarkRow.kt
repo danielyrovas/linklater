@@ -1,4 +1,4 @@
-package org.yrovas.linklater.ui.component
+package org.yrovas.linklater.ui.screens.home.components
 
 import android.content.Context
 import androidx.compose.animation.animateContentSize

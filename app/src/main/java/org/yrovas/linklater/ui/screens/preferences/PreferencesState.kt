@@ -112,10 +112,7 @@ class PreferencesState(
         val tags = this.tag_names.value.intoTags()
         _defaultBookmark.update {
             it.withUpdates(
-                is_archived = is_archived,
-                unread = unread,
-                shared = shared,
-                tags = tags
+                is_archived = is_archived, unread = unread, shared = shared, tags = tags
             )
         }
     }
@@ -128,8 +125,7 @@ class PreferencesState(
             while (true) when (res) {
                 is Res.Err -> {
                     Log.d(
-                        TAG,
-                        "fetchAllRemoteBookmarks: stopping due to ${res.error}"
+                        TAG, "fetchAllRemoteBookmarks: stopping due to ${res.error}"
                     )
                     break
                 }
@@ -137,14 +133,12 @@ class PreferencesState(
                 is Res.Ok -> {
                     if (res.data.isEmpty()) {
                         Log.d(
-                            TAG,
-                            "fetchAllRemoteBookmarks: stopping due to empty result set"
+                            TAG, "fetchAllRemoteBookmarks: stopping due to empty result set"
                         )
                         break
                     }
                     Log.d(
-                        TAG,
-                        "fetchAllRemoteBookmarks: FETCHED ${res.data} from page $page"
+                        TAG, "fetchAllRemoteBookmarks: FETCHED ${res.data} from page $page"
                     )
                     bookmarkSource.insertBookmarks(res.data)
                     res = api.getBookmarks(page++)
