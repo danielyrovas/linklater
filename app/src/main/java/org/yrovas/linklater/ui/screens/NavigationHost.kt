@@ -1,4 +1,4 @@
-package org.yrovas.linklater.ui.component
+package org.yrovas.linklater.ui.screens
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -7,7 +7,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.ui.screens.EntryDestination
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkActivityScreen
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkActivityDestination
 import org.yrovas.linklater.ui.screens.home.HomeDestination
