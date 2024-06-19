@@ -79,6 +79,12 @@ SELECT COUNT(*) FROM bookmarkEntity
 deleteBookmarkByID:
 DELETE FROM bookmarkEntity WHERE id = :id;
 
+deleteBookmarksCreatedWithinRangeExcluding:
+DELETE FROM bookmarkEntity
+WHERE date_added BETWEEN :start_date AND :end_date
+AND id NOT IN :keep
+;
+
 getTagByID:
 SELECT (name) FROM tagEntity WHERE id = :id;
 

@@ -10,4 +10,5 @@ interface BookmarkDataSource {
     suspend fun insertBookmark(bookmark: Bookmark)
     suspend fun insertBookmarks(bookmarks: List<Bookmark>)
     suspend fun deleteBookmark(id: Long)
+    suspend fun upsertOrDeleteWithinRange(bookmarks: List<Bookmark>)
 }

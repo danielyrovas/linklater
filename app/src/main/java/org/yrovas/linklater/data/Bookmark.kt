@@ -16,6 +16,7 @@ data class Bookmark(
     val notes: String? = null,
     val website_title: String? = null,
     val website_description: String? = null,
+//    val web_archive_snapshot_url: String? = null,
     val is_archived: Boolean = false,
     val unread: Boolean = false,
     val shared: Boolean = false,

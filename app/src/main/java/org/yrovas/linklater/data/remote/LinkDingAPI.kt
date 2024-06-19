@@ -8,9 +8,13 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
 import me.tatarka.inject.annotations.Inject
@@ -25,6 +29,15 @@ import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.Err
 import org.yrovas.linklater.domain.Ok
 import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.domain.getOrThrow
+import org.yrovas.linklater.domain.ifOk
+import org.yrovas.linklater.domain.isOk
+import org.yrovas.linklater.domain.mapData
+import org.yrovas.linklater.domain.ok
+import org.yrovas.linklater.domain.then
+
+const val TAG = "DEBUG/net"
+const val MAX_PAGE_COUNT = 10000
 
 @AppScope
 @Inject
@@ -32,12 +45,8 @@ class LinkDingAPI(
     private val client: HttpClient,
     private var endpoint: String? = null,
     private var token: String? = null,
-    private val pageSize: Int = 20,
+    private val pageSize: Int = 100,
 ) : BookmarkAPI {
-    init {
-        Log.d("DEBUG/create", "LinkDingAPI: CREATE")
-    }
-
     private val _authProvided = MutableStateFlow(false)
     override val authProvided: StateFlow<Boolean> = _authProvided.asStateFlow()
 
@@ -45,7 +54,7 @@ class LinkDingAPI(
         endpoint: String?,
         token: String?,
     ): Res<Unit, APIError> {
-        Log.d("DEBUG", "authenticate: with endpoint: $endpoint")
+        Log.d(TAG, "authenticate: with endpoint: $endpoint")
         if (!endpoint.isNullOrBlank()) {
             if (!checkURL(endpoint)) return Err(APIError.INCORRECT_ENDPOINT)
             this.endpoint = endpoint
@@ -69,30 +78,60 @@ class LinkDingAPI(
         }
     }
 
-    override suspend fun getBookmarks(
+    private suspend fun fetchBookmarks(
         page: Int,
-        query: String?,
-    ): Res<List<Bookmark>, APIError> {
-//        delay(3200)
+        archived: Boolean = false,
+        sortByAddedAsc: Boolean = false,
+    ): Res<BookmarkResponse, APIError> {
         if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
         return try {
-            Log.d("DEBUG/net", "getBookmarks: starting request")
-            val response = client.get("${endpoint!!}/bookmarks/") {
-                header("Authorization", "Token ${token!!}")
-                if (page > 0) {
-//                    parameter("offset", pageSize * page)
-                    url.parameters.append(
-                        "offset", (pageSize * page).toString()
-                    )
+            val response =
+                client.get("${endpoint!!}/bookmarks/${if (archived) "archived/" else ""}") {
+                    header("Authorization", "Token ${token!!}")
+                    if (sortByAddedAsc) {
+                        parameter("sort", "added_asc")
+                    }
+                    if (page > 0) {
+                        parameter("offset", (pageSize * page).toString())
+                    }
                 }
-                if (!query.isNullOrBlank()) {
-                    url.parameters.append("q", query)
+            Ok(response.body<BookmarkResponse>())
+        } catch (e: Exception) {
+            Log.i(TAG, "getBookmarks: ${e.message}")
+            Err(APIError.NO_CONNECTION)
+        }
+    }
+
+    override suspend fun getBookmarks(page: Int): Res<List<Bookmark>, APIError> {
+        return fetchBookmarks(page).mapData { it.results }
+    }
+
+    override suspend fun getAllBookmarks(): Flow<Res<List<Bookmark>, APIError>> {
+        return flow {
+            Log.d(TAG, "getAllBookmarks: Flow Created")
+            var page = 0
+            var archived = false
+
+            // NOTE: we might not crawl archived pages if there are more than 1000 x 10000 bookmarks
+            while (page < MAX_PAGE_COUNT) {
+                Log.d(TAG, "getAllBookmarks: Fetching page $page")
+                val res = fetchBookmarks(page, archived, sortByAddedAsc = true)
+                page++
+                if (res.isOk) {
+                    emit(res.mapData { it.results })
+
+                    // exit when finished archived
+                    if (res.getOrThrow().next.isNullOrBlank() && archived) break
+
+                    // crawl archived after completing unarchived.
+                    if (res.getOrThrow().next.isNullOrBlank() && !archived) {
+                        archived = true
+                        page = 0
+                    }
+                } else {
+                    break
                 }
             }
-            Ok(response.body<BookmarkResponse>().results)
-        } catch (e: Exception) {
-            Log.i("DEBUG/net", "getBookmarks: ${e.message}")
-            Err(APIError.NO_CONNECTION)
         }
     }
 
@@ -115,11 +154,11 @@ class LinkDingAPI(
     override suspend fun getTags(page: Int): Res<List<String>, APIError> {
         if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
         return try {
-            Log.d("DEBUG/net", "getTags: starting request")
+            Log.d(TAG, "getTags: starting request")
             val response = client.get("${endpoint!!}/tags/") {
                 header("Authorization", "Token ${token!!}")
                 if (page > 0) {
-                    url.parameters.append("offset", (pageSize * page).toString())
+                    parameter("offset", (pageSize * page).toString())
                 }
             }
             Ok(response.body<TagResponse>().results)
@@ -133,12 +172,11 @@ class LinkDingAPI(
         if (url.isBlank()) return null to null
 
         return try {
-            Log.d("DEBUG/net", "checkExists")
-            val response =
-                client.get("${endpoint!!}/bookmarks/check/") {
-                    header("Authorization", "Token ${token!!}")
-                    parameter("url", url)
-                }
+            Log.d(TAG, "checkExists")
+            val response = client.get("${endpoint!!}/bookmarks/check/") {
+                header("Authorization", "Token ${token!!}")
+                parameter("url", url)
+            }
             val r = response.body<BookmarkExistsResponse>()
             r.bookmark to r.metadata
         } catch (e: Exception) {

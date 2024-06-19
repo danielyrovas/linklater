@@ -1,8 +1,10 @@
 package org.yrovas.linklater.data.remote
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.BookmarkMetadata
 import org.yrovas.linklater.data.LocalBookmark
@@ -29,11 +31,14 @@ class EmptyBookmarkAPI : BookmarkAPI {
 
     override suspend fun getBookmarks(
         page: Int,
-        query: String?,
     ): Res<List<Bookmark>, APIError> {
         delay(4300)
         return Ok(emptyList())
 //        return Err(APIError.AUTH)
+    }
+
+    override suspend fun getAllBookmarks(): Flow<Res<List<Bookmark>, APIError>> {
+        return flowOf()
     }
 
     override suspend fun saveBookmark(bookmark: LocalBookmark): Res<Bookmark, APIError> {

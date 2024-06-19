@@ -2,7 +2,9 @@ package org.yrovas.linklater.ui.screens.preferences
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -15,6 +17,10 @@ import org.yrovas.linklater.data.local.Prefs
 import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.domain.errorOrThrow
+import org.yrovas.linklater.domain.getOrThrow
+import org.yrovas.linklater.domain.isErr
+import org.yrovas.linklater.domain.isOk
 import org.yrovas.linklater.intoTags
 import org.yrovas.linklater.ui.screens.home.TAG
 import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Effect
@@ -118,34 +124,25 @@ class PreferencesState(
     }
 
     private fun fetchAllRemoteBookmarks() {
-        // guard against going back to home by launching from application scope
-        appScope.launch(Dispatchers.IO) {
-            var res = api.getBookmarks(0)
-            var page = 0
-            while (true) when (res) {
-                is Res.Err -> {
+        viewModelScope.launch {
+            api.getAllBookmarks().collect {
+                if (it.isErr) {
+                    Log.d(TAG, "fetchAllRemoteBookmarks: ${it.errorOrThrow()}")
+                    cancel()
+                } else {
                     Log.d(
-                        TAG, "fetchAllRemoteBookmarks: stopping due to ${res.error}"
+                        TAG, "fetchAllRemoteBookmarks: collected bookmarks ${it.getOrThrow().size}"
                     )
-                    break
-                }
-
-                is Res.Ok -> {
-                    if (res.data.isEmpty()) {
-                        Log.d(
-                            TAG, "fetchAllRemoteBookmarks: stopping due to empty result set"
-                        )
-                        break
-                    }
-                    Log.d(
-                        TAG, "fetchAllRemoteBookmarks: FETCHED ${res.data} from page $page"
-                    )
-                    bookmarkSource.insertBookmarks(res.data)
-                    res = api.getBookmarks(page++)
+                    // delete from db where date_added older than newest on page,
+                    // but younger than oldest on page - ie is in date range of page AND
+                    // id not in the set of bookmarks returned from API.
+                    bookmarkSource.upsertOrDeleteWithinRange(it.getOrThrow())
                 }
             }
-            appScope.showSnackbar("Refresh Complete")
         }
+        // guard against going back to home by launching from application scope
+//        appScope.launch(Dispatchers.IO) {
+//            appScope.showSnackbar("Refresh Complete")
     }
 
 

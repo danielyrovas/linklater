@@ -3,7 +3,6 @@ package org.yrovas.linklater.data.local
 import android.util.Log
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
-import app.cash.sqldelight.coroutines.mapToOne
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -12,7 +11,6 @@ import org.yrovas.linklater.Database
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.toBookmark
 import org.yrovas.linklater.domain.BookmarkDataSource
-import kotlin.math.log
 
 const val TAG = "DEBUG"
 
@@ -20,6 +18,7 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     init {
         Log.d("DEBUG/create", "BookmarkDataSourceImpl: CREATE")
     }
+
     private val q = db.bookmarkTagsQueries
 
     override suspend fun getBookmark(id: Long): Bookmark? {
@@ -29,9 +28,8 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     }
 
     override fun getBookmarks(): Flow<List<Bookmark>> {
-        return q.getBookmarksWithTags().asFlow().mapToList(Dispatchers.IO)
-            .map { list ->
-                list.map { it.toBookmark() }
+        return q.getBookmarksWithTags().asFlow().mapToList(Dispatchers.IO).map { list ->
+            list.map { it.toBookmark() }
         }
     }
 
@@ -104,6 +102,17 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     override suspend fun deleteBookmark(id: Long) {
         withContext(Dispatchers.IO) {
             q.deleteBookmarkByID(id)
+        }
+    }
+
+    override suspend fun upsertOrDeleteWithinRange(bookmarks: List<Bookmark>) {
+        withContext(Dispatchers.IO) {
+            val keepIds = bookmarks.map { it.id }
+            q.deleteBookmarksCreatedWithinRangeExcluding(
+                start_date = bookmarks.first().date_added,
+                end_date = bookmarks.last().date_added,
+                keep = keepIds
+            )
         }
     }
 }
