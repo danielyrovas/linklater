@@ -16,9 +16,7 @@ import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.errorOrThrow
 import org.yrovas.linklater.domain.getOrThrow
-import org.yrovas.linklater.domain.ifOk
 import org.yrovas.linklater.domain.isErr
-import org.yrovas.linklater.domain.isOk
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
 import org.yrovas.linklater.ui.screens.ScreenState
