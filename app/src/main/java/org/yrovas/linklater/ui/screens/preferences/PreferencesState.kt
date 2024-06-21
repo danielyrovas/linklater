@@ -9,14 +9,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.ApplicationScope
+import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
 import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.BookmarkDataSource
 import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.domain.err
 import org.yrovas.linklater.domain.errorOrThrow
 import org.yrovas.linklater.domain.getOrThrow
 import org.yrovas.linklater.domain.isErr
@@ -28,6 +31,7 @@ import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Event
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
 import org.yrovas.linklater.ui.screens.ScreenState
+import kotlin.system.exitProcess
 
 @Inject
 class PreferencesState(
@@ -39,7 +43,6 @@ class PreferencesState(
 ) : ScreenState<Event, Effect>() {
 
     sealed interface Event : ScreenEvent {
-        data object FetchAllBookmarks : Event
         data class SaveEndpoint(val url: String) : Event
         data class SaveToken(val token: String) : Event
         data class SaveDefaults(
@@ -123,29 +126,6 @@ class PreferencesState(
         }
     }
 
-    private fun fetchAllRemoteBookmarks() {
-        viewModelScope.launch {
-            api.getAllBookmarks().collect {
-                if (it.isErr) {
-                    Log.d(TAG, "fetchAllRemoteBookmarks: ${it.errorOrThrow()}")
-                    cancel()
-                } else {
-                    Log.d(
-                        TAG, "fetchAllRemoteBookmarks: collected bookmarks ${it.getOrThrow().size}"
-                    )
-                    // delete from db where date_added older than newest on page,
-                    // but younger than oldest on page - ie is in date range of page AND
-                    // id not in the set of bookmarks returned from API.
-                    bookmarkSource.upsertOrDeleteWithinRange(it.getOrThrow())
-                }
-            }
-        }
-        // guard against going back to home by launching from application scope
-//        appScope.launch(Dispatchers.IO) {
-//            appScope.showSnackbar("Refresh Complete")
-    }
-
-
     init {
         viewModelScope.launch {
             _bookmarkAPIToken.update {
@@ -169,7 +149,6 @@ class PreferencesState(
 
     override fun handleEvent(event: Event) {
         when (event) {
-            is Event.FetchAllBookmarks -> fetchAllRemoteBookmarks()
             is Event.SaveDefaults -> saveDefaultBookmark(
                 tag_names = event.tag_names,
                 unread = event.unread,

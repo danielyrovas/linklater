@@ -45,7 +45,7 @@ class LinkDingAPI(
     private val client: HttpClient,
     private var endpoint: String? = null,
     private var token: String? = null,
-    private val pageSize: Int = 100,
+    private val pageSize: Int = 1000,
 ) : BookmarkAPI {
     private val _authProvided = MutableStateFlow(false)
     override val authProvided: StateFlow<Boolean> = _authProvided.asStateFlow()

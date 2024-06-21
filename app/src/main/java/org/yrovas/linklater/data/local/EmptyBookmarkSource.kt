@@ -22,4 +22,16 @@ class EmptyBookmarkSource : BookmarkDataSource {
     override suspend fun insertBookmark(bookmark: Bookmark) {}
     override suspend fun insertBookmarks(bookmarks: List<Bookmark>) {}
     override suspend fun deleteBookmark(id: Long) {}
+    override suspend fun upsertOrDeleteWithinRange(
+        bookmarks: List<Bookmark>, startDate: String, endDate: String
+    ) {
+    }
+
+    override suspend fun deleteWithinRange(
+        startDate: String,
+        endDate: String,
+        exclude: List<Bookmark>?
+    ) {
+    }
+
 }

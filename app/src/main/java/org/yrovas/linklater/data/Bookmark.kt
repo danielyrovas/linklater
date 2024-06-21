@@ -2,6 +2,7 @@ package org.yrovas.linklater.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import linklater.BookmarkEntity
 import linklater.GetBookmarkByIDwithTags
 import linklater.GetBookmarkByURLwithTags
 import linklater.GetBookmarksWithTags
@@ -44,6 +45,21 @@ fun Bookmark.showDescriptionOrElse(value: String): String {
         value
     }
 }
+
+fun BookmarkEntity.toBookmark() = Bookmark(
+    id = id,
+    url = url,
+    title = title,
+    description = description,
+    notes = notes,
+    website_title = website_title,
+    website_description = website_description,
+    is_archived = is_archived ?: false,
+    unread = unread ?: false,
+    shared = shared ?: false,
+    date_added = date_added,
+    date_modified = date_modified,
+)
 
 fun GetBookmarksWithTags.toBookmark() = Bookmark(
     id = id,
@@ -93,8 +109,6 @@ fun GetBookmarkByURLwithTags.toBookmark() = Bookmark(
     tags = tagNames.tryIntoTagList()
 )
 
-private fun String?.tryIntoTagList(): List<String> =
-    this?.intoTagList() ?: emptyList()
+private fun String?.tryIntoTagList(): List<String> = this?.intoTagList() ?: emptyList()
 
-private fun String.intoTagList(): List<String> =
-    this.split(":: ::").filter { it.isNotBlank() }
+private fun String.intoTagList(): List<String> = this.split(":: ::").filter { it.isNotBlank() }

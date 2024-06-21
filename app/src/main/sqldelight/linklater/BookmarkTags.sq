@@ -31,6 +31,17 @@ CREATE TABLE bookmarkTags (
 getBookmarks:
 SELECT * FROM bookmarkEntity;
 
+selectBookmarksCreatedWithinRange:
+SELECT * FROM bookmarkEntity
+WHERE date_added BETWEEN :start_date AND :end_date
+;
+
+selectBookmarksCreatedWithinRangeExcluding:
+SELECT * FROM bookmarkEntity
+WHERE date_added BETWEEN :start_date AND :end_date
+AND id NOT IN :exclude
+;
+
 getBookmarkByID:
 SELECT b.*
 FROM bookmarkEntity AS b
@@ -79,10 +90,15 @@ SELECT COUNT(*) FROM bookmarkEntity
 deleteBookmarkByID:
 DELETE FROM bookmarkEntity WHERE id = :id;
 
+deleteBookmarksCreatedWithinRange:
+DELETE FROM bookmarkEntity
+WHERE date_added BETWEEN :start_date AND :end_date
+;
+
 deleteBookmarksCreatedWithinRangeExcluding:
 DELETE FROM bookmarkEntity
 WHERE date_added BETWEEN :start_date AND :end_date
-AND id NOT IN :keep
+AND id NOT IN :exclude
 ;
 
 getTagByID:

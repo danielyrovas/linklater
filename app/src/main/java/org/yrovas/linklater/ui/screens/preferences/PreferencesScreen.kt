@@ -15,8 +15,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Api
+import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.Visibility
@@ -76,7 +79,7 @@ fun PreferencesScreen(
             TextPreference(
                 name = "LinkDing API Endpoint",
                 placeholder = "URL/IP incl. port and https://",
-                icon = Icons.Default.Create,
+                icon = Icons.Default.Bookmark,
                 infoPreview = "include /api",
                 infoTitle = "Enter the LinkDing API URL",
                 info = {
@@ -135,7 +138,7 @@ fun PreferencesScreen(
             TextPreference(
                 name = "LinkDing API Token",
                 placeholder = "Enter your REST API Token",
-                icon = Icons.Default.Build,
+                icon = Icons.Default.Key,
                 infoPreview = "Settings > Integrations",
                 infoTitle = "Go to your Instance Settings",
                 info = {
@@ -178,10 +181,6 @@ fun PreferencesScreen(
                 })
 
             Spacer(modifier = Modifier.weight(1F))
-            Button(modifier = Modifier.align(Alignment.CenterHorizontally),
-                onClick = { state.sendEvent(Event.FetchAllBookmarks) }) {
-                Text(text = "Fetch All Bookmarks")
-            }
             Spacer(modifier = Modifier.height(padding.double))
             Text(
                 modifier = Modifier
@@ -202,7 +201,7 @@ private fun StyledTitle(title: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(padding.large),
+            .padding(vertical = padding.double, horizontal = padding.large),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(text = title, style = typography.titleMedium, color = colorScheme.primary)
