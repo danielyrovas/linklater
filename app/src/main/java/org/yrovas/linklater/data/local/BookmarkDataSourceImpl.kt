@@ -50,8 +50,8 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     //       transactionWithResult as the transaction block context
     context(TransactionWithoutReturn, CoroutineScope)
     private fun upsertBookmark(bookmark: Bookmark) {
-        Log.d(TAG, "upsertBOOKMARK: ${bookmark.title} ${bookmark.website_title}")
-        Log.d(TAG, "upsertTAGS: ${bookmark.tags}")
+//        Log.d(TAG, "upsertBOOKMARK: ${bookmark.title} ${bookmark.website_title}")
+//        Log.d(TAG, "upsertTAGS: ${bookmark.tags}")
         val id = q.insertBookmark(
             id = bookmark.id,
             url = bookmark.url,
@@ -69,7 +69,7 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
         bookmark.tags.forEach {
             q.insertTag(name = it)
             val tagID = q.getTagByName(it).executeAsOneOrNull()!!
-            Log.d(TAG, "inserted TAG: $it,$tagID")
+//            Log.d(TAG, "inserted TAG: $it,$tagID")
             q.insertTagForBookmark(bookmarkID = id, tagID = tagID)
         }
     }

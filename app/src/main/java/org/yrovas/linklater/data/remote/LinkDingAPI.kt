@@ -8,13 +8,11 @@ import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
 import me.tatarka.inject.annotations.Inject
@@ -29,12 +27,10 @@ import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.Err
 import org.yrovas.linklater.domain.Ok
 import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.domain.errorOrThrow
 import org.yrovas.linklater.domain.getOrThrow
-import org.yrovas.linklater.domain.ifOk
 import org.yrovas.linklater.domain.isOk
 import org.yrovas.linklater.domain.mapData
-import org.yrovas.linklater.domain.ok
-import org.yrovas.linklater.domain.then
 
 const val TAG = "DEBUG/net"
 const val MAX_PAGE_COUNT = 10000
@@ -88,6 +84,7 @@ class LinkDingAPI(
             val response =
                 client.get("${endpoint!!}/bookmarks/${if (archived) "archived/" else ""}") {
                     header("Authorization", "Token ${token!!}")
+                    parameter("limit", pageSize.toString())
                     if (sortByAddedAsc) {
                         parameter("sort", "added_asc")
                     }
@@ -110,25 +107,23 @@ class LinkDingAPI(
         return flow {
             Log.d(TAG, "getAllBookmarks: Flow Created")
             var page = 0
-            var archived = false
 
             // NOTE: we might not crawl archived pages if there are more than 1000 x 10000 bookmarks
             while (page < MAX_PAGE_COUNT) {
                 Log.d(TAG, "getAllBookmarks: Fetching page $page")
-                val res = fetchBookmarks(page, archived, sortByAddedAsc = true)
+                val res = fetchBookmarks(page, sortByAddedAsc = true)
                 page++
                 if (res.isOk) {
                     emit(res.mapData { it.results })
 
                     // exit when finished archived
-                    if (res.getOrThrow().next.isNullOrBlank() && archived) break
-
-                    // crawl archived after completing unarchived.
-                    if (res.getOrThrow().next.isNullOrBlank() && !archived) {
-                        archived = true
-                        page = 0
+                    if (res.getOrThrow().next.isNullOrBlank()) {
+                        Log.d(TAG, "getAllBookmarks: No More Pages")
+                        break
                     }
+
                 } else {
+                    Log.d(TAG, "getAllBookmarks: stopping due to error: ${res.errorOrThrow()}")
                     break
                 }
             }

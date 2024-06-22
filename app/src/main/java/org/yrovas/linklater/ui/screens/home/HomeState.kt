@@ -11,6 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.data.Bookmark
+import org.yrovas.linklater.data.showTitleOrElse
 import org.yrovas.linklater.domain.APIError
 import org.yrovas.linklater.domain.BookmarkAPI
 import org.yrovas.linklater.domain.BookmarkDataSource
@@ -69,62 +70,71 @@ class HomeState(
     private fun refreshAllBookmarks() {
         _isRefreshing.update { true }
         viewModelScope.launch {
-            var firstPage = true
             var last: Bookmark? = null
-            api.getAllBookmarks().collect {
-                if (it.isErr) {
-                    Log.d(TAG, "fetchAllRemoteBookmarks: ERROR: ${it.errorOrThrow()}")
-                    sendEffect(Effect.RefreshError(it.errorOrThrow()))
+            var page = 0
+            api.getAllBookmarks().collect { res ->
+                if (res.isErr) {
+                    Log.d(TAG, "refreshAllBookmarks: ERROR on PAGE $page: ${res.errorOrThrow()}")
+                    sendEffect(Effect.RefreshError(res.errorOrThrow()))
+                    page += 1
                     return@collect
-                } else {
-                    val bookmarks = it.getOrThrow()
-                    Log.d(TAG, "fetchAllRemoteBookmarks: collected ${bookmarks.size} bookmarks")
+                }
+                val bookmarks = res.getOrThrow()
+                Log.d(
+                    TAG,
+                    "refreshAllBookmarks: collected ${bookmarks.size} bookmarks from page $page."
+                )
+                if (bookmarks.isNotEmpty()) Log.d(
+                    TAG, "refreshAllBookmarks: With the following added Dates:"
+                )
+                bookmarks.forEach {
+                    Log.d(TAG, "${it.date_added} ::: ${it.showTitleOrElse("${it.id}.ID")}")
+                }
 
-                    if (bookmarks.isEmpty()) {
-                        if (firstPage) {
-                            val now = Clock.System.now().toString()
-                            Log.d(TAG, "fetchAllRemoteBookmarks: DELETING ALL bookmarks")
-                            bookmarkSource.deleteWithinRange(
-                                startDate = FIRST_POSSIBLE_DATE, endDate = now
-                            )
-                        }
-                        return@collect
-                    }
-
-                    if (bookmarks.first().date_added.isNullOrBlank()) {
-                        Log.d(TAG, "fetchAllRemoteBookmarks: FIRST ADDED IS BLANK")
-                        return@collect
-                    }
-
-                    if (bookmarks.last().date_added.isNullOrBlank()) {
-                        Log.d(TAG, "fetchAllRemoteBookmarks: LAST ADDED IS BLANK")
-                        return@collect
-                    }
-
-                    if (firstPage) {
-                        firstPage = false
+                if (bookmarks.isEmpty()) {
+                    if (page == 0) {
+                        val now = Clock.System.now().toString()
+                        Log.d(TAG, "refreshAllBookmarks: DELETING ALL bookmarks")
                         bookmarkSource.deleteWithinRange(
-                            startDate = FIRST_POSSIBLE_DATE,
-                            endDate = bookmarks.first().date_added!!,
-                            exclude = listOf(bookmarks.first()) // exclude the first bookmark
+                            startDate = FIRST_POSSIBLE_DATE, endDate = now
                         )
                     }
+                    return@collect
+                }
 
-                    last = bookmarks.last()
-                    // delete from db where date_added older than newest on page,
-                    // but younger than oldest on page - ie is in date range of page AND
-                    // id not in the set of bookmarks returned from API.
-                    bookmarkSource.upsertOrDeleteWithinRange(
-                        bookmarks,
-                        bookmarks.first().date_added!!,
-                        last!!.date_added!!,
+                if (bookmarks.first().date_added.isNullOrBlank()) {
+                    Log.d(TAG, "refreshAllBookmarks: FIRST ADDED IS BLANK")
+                    return@collect
+                }
+
+                if (bookmarks.last().date_added.isNullOrBlank()) {
+                    Log.d(TAG, "refreshAllBookmarks: LAST ADDED IS BLANK")
+                    return@collect
+                }
+
+                if (page == 0) {
+                    bookmarkSource.deleteWithinRange(
+                        startDate = FIRST_POSSIBLE_DATE,
+                        endDate = bookmarks.first().date_added!!,
+                        exclude = listOf(bookmarks.first()) // exclude the first bookmark
                     )
                 }
+
+                page += 1
+                last = bookmarks.last()
+                // delete from db where date_added older than newest on page,
+                // but younger than oldest on page - ie is in date range of page AND
+                // id not in the set of bookmarks returned from API.
+                bookmarkSource.upsertOrDeleteWithinRange(
+                    bookmarks,
+                    bookmarks.first().date_added!!,
+                    last!!.date_added!!,
+                )
             }
 
             last?.let {
                 val now = Clock.System.now().toString()
-                Log.d(TAG, "fetchAllRemoteBookmarks: deleting bookarks newer than $now")
+                Log.d(TAG, "refreshAllBookmarks: deleting bookarks newer than ${it.date_added}")
                 bookmarkSource.deleteWithinRange(
                     startDate = it.date_added!!, endDate = now, exclude = listOf(it)
                 )
