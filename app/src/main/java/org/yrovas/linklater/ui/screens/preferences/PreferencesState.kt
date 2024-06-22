@@ -1,45 +1,27 @@
 package org.yrovas.linklater.ui.screens.preferences
 
-import android.util.Log
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.ApplicationScope
-import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
 import org.yrovas.linklater.domain.BookmarkAPI
-import org.yrovas.linklater.domain.BookmarkDataSource
-import org.yrovas.linklater.domain.Res
-import org.yrovas.linklater.domain.err
-import org.yrovas.linklater.domain.errorOrThrow
-import org.yrovas.linklater.domain.getOrThrow
-import org.yrovas.linklater.domain.isErr
-import org.yrovas.linklater.domain.isOk
 import org.yrovas.linklater.intoTags
-import org.yrovas.linklater.ui.screens.home.TAG
-import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Effect
-import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Event
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
 import org.yrovas.linklater.ui.screens.ScreenState
-import kotlin.system.exitProcess
+import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Effect
+import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Event
 
 @Inject
 class PreferencesState(
     private val bookmarkAPI: BookmarkAPI,
     private val prefStore: PrefDataStore,
-    private val appScope: ApplicationScope,
-    private val bookmarkSource: BookmarkDataSource,
-    private val api: BookmarkAPI,
 ) : ScreenState<Event, Effect>() {
 
     sealed interface Event : ScreenEvent {
