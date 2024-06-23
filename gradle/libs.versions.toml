@@ -1,7 +1,7 @@
 [versions]
 app-version-id = "org.yrovas.linklater"
-app-version-code = "14"
-app-version-name = "1.13"
+app-version-code = "15"
+app-version-name = "1.14"
 app-javaVersion = "VERSION_21"
 
 android-kotlinJVMTarget = "21"

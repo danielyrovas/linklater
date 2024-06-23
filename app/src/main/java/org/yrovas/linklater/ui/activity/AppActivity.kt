@@ -67,7 +67,7 @@ abstract class AppActivity : ComponentActivity() {
         }
         setContent {
             AppTheme {
-                navHost(HomeDestination, snackState)
+                navHost(entryScreen, snackState)
             }
         }
     }
