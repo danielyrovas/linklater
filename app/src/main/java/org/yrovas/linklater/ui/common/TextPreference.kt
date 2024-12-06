@@ -95,14 +95,7 @@ private fun TextPreference(
             dismissOnClickOutside = true,
         ), onDismissRequest = { showDialog = false }) {
             TextEditDialog(
-                name,
-                placeholder,
-                infoPreview,
-                infoTitle,
-                info,
-                state,
-                onSave,
-                onCheck
+                name, placeholder, infoPreview, infoTitle, info, state, onSave, onCheck
             ) {
                 showDialog = false
             }
@@ -112,10 +105,9 @@ private fun TextPreference(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(padding.standard)
+            .padding(padding.md)
             .clip(RoundedCornerShape(8.dp))
-            .clickable { showDialog = true }
-        ,
+            .clickable { showDialog = true },
     ) {
         Column {
             Row(
@@ -124,14 +116,14 @@ private fun TextPreference(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 icon()
-                Spacer(modifier = Modifier.width(padding.standard))
-                Column(modifier = Modifier.padding(padding.half)) {
+                Spacer(modifier = Modifier.width(padding.md))
+                Column(modifier = Modifier.padding(padding.sm)) {
                     Text(
                         text = name,
                         style = typography.bodyMedium,
                         textAlign = TextAlign.Start,
                     )
-                    Spacer(modifier = Modifier.height(padding.half))
+                    Spacer(modifier = Modifier.height(padding.sm))
                     Text(
                         text = state.value,
                         style = typography.bodySmall,
@@ -143,7 +135,6 @@ private fun TextPreference(
         }
     }
 }
-
 
 
 @Composable
@@ -164,23 +155,20 @@ private fun TextEditDialog(
     var showInfo by remember { mutableStateOf(false) }
 
     Surface(
-        color = colorScheme.surfaceContainer,
-        modifier = Modifier.clip(RoundedCornerShape(12.dp))
+        color = colorScheme.surfaceContainer, modifier = Modifier.clip(RoundedCornerShape(12.dp))
     ) {
         Column(
             modifier = Modifier
                 .wrapContentHeight()
                 .padding(
-                    vertical = padding.standard, horizontal = padding.standard
+                    vertical = padding.md, horizontal = padding.md
                 )
                 .fillMaxWidth()
         ) {
             Text(
-                name,
-                color = colorScheme.onSurface,
-                style = typography.titleLarge
+                name, color = colorScheme.onSurface, style = typography.titleLarge
             )
-            Spacer(modifier = Modifier.height(padding.standard))
+            Spacer(modifier = Modifier.height(padding.md))
             OutlinedTextField(currentInput,
                 placeholder = { Text(placeholder) },
                 modifier = Modifier
@@ -191,7 +179,7 @@ private fun TextEditDialog(
                     isValid = onCheck(it.text)
                     currentInput = it
                 })
-            Spacer(modifier = Modifier.height(padding.standard))
+            Spacer(modifier = Modifier.height(padding.md))
 
             if (info != null) {
                 Column(
@@ -199,14 +187,12 @@ private fun TextEditDialog(
                         .clip(RoundedCornerShape(5.dp))
                         .background(colorScheme.secondaryContainer)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { showInfo = !showInfo }
-                            .padding(padding.standard)
-                    ) {
+                            .padding(padding.md)) {
                         Crossfade(
                             label = "Info Title", targetState = showInfo
                         ) {
@@ -220,15 +206,15 @@ private fun TextEditDialog(
                     }
                     AnimatedVisibility(
                         modifier = Modifier.padding(
-                            start = padding.standard,
-                            end = padding.standard,
-                            bottom = padding.standard,
+                            start = padding.md,
+                            end = padding.md,
+                            bottom = padding.md,
                         ), visible = showInfo
                     ) {
                         info()
                     }
                 }
-                Spacer(modifier = Modifier.height(padding.standard))
+                Spacer(modifier = Modifier.height(padding.md))
             }
 
             Row {
@@ -245,7 +231,7 @@ private fun TextEditDialog(
                 ) {
                     Icon(imageVector = Icons.Default.ContentPasteGo)
                 }
-                Spacer(modifier = Modifier.width(padding.standard))
+                Spacer(modifier = Modifier.width(padding.md))
                 Button(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = colorScheme.primaryContainer,
@@ -271,7 +257,7 @@ private fun TextPreferenceURLPreview() {
             Row(
                 modifier = Modifier
                     .background(colorScheme.background)
-                    .padding(padding.standard)
+                    .padding(padding.md)
             ) {
                 TextPreference(icon = Icons.Default.Build,
                     name = "LinkDing API URL",
@@ -292,7 +278,7 @@ private fun TextPreferencePreview() {
             Row(
                 modifier = Modifier
                     .background(colorScheme.background)
-                    .padding(padding.standard)
+                    .padding(padding.md)
             ) {
                 TextPreference(icon = Icons.Default.Build,
                     name = "LinkDing API Token",
@@ -313,7 +299,7 @@ private fun TextEditDialogPreview() {
             Row(
                 modifier = Modifier
                     .background(colorScheme.background)
-                    .padding(padding.double)
+                    .padding(padding.lg)
             ) {
                 TextEditDialog(name = "LinkDing API URL",
                     placeholder = "Enter your LinkDing instance URL...",
@@ -321,18 +307,26 @@ private fun TextEditDialogPreview() {
                     infoTitle = "Enter the LinkDing API URL",
                     info = {
                         Column {
-                            Text("Include the protocol (https://).", color = colorScheme.onSecondaryContainer)
+                            Text(
+                                "Include the protocol (https://).",
+                                color = colorScheme.onSecondaryContainer
+                            )
                             Text("Include the /api path.", color = colorScheme.onSecondaryContainer)
-                            Text("Include the port if necessary.", color = colorScheme.onSecondaryContainer)
+                            Text(
+                                "Include the port if necessary.",
+                                color = colorScheme.onSecondaryContainer
+                            )
                             Text("For example", color = colorScheme.onSecondaryContainer)
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(colorScheme.surfaceContainer)
-                                    .padding(padding.half)
+                                    .padding(padding.sm)
                             ) {
-                                Text("https://demo.linkding.link/api", color = colorScheme.onSurface)
+                                Text(
+                                    "https://demo.linkding.link/api", color = colorScheme.onSurface
+                                )
                             }
                             Text("or", color = colorScheme.onSecondaryContainer)
                             Row(
@@ -340,7 +334,7 @@ private fun TextEditDialogPreview() {
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(6.dp))
                                     .background(colorScheme.surfaceContainer)
-                                    .padding(padding.half)
+                                    .padding(padding.sm)
                             ) {
                                 Text("http://192.168.0.47:8000/api", color = colorScheme.onSurface)
                             }

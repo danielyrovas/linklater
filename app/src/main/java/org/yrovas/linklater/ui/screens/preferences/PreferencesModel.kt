@@ -7,22 +7,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.data.LocalBookmark
-import org.yrovas.linklater.data.local.PrefDataStore
-import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.domain.BookmarkAPI
+import org.yrovas.linklater.data.models.LocalBookmark
+import org.yrovas.linklater.data.local.PrefStore
+import org.yrovas.linklater.data.models.Prefs
+import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.intoTags
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
-import org.yrovas.linklater.ui.screens.ScreenState
-import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Effect
-import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Event
+import org.yrovas.linklater.ui.screens.ScreenModel
+import org.yrovas.linklater.ui.screens.preferences.PreferencesModel.Effect
+import org.yrovas.linklater.ui.screens.preferences.PreferencesModel.Event
 
 @Inject
-class PreferencesState(
+class PreferencesModel(
     private val bookmarkAPI: BookmarkAPI,
-    private val prefStore: PrefDataStore,
-) : ScreenState<Event, Effect>() {
+    private val prefStore: PrefStore,
+) : ScreenModel<Event, Effect>() {
 
     sealed interface Event : ScreenEvent {
         data class SaveEndpoint(val url: String) : Event
@@ -36,11 +36,12 @@ class PreferencesState(
 
     sealed interface Effect : ScreenEffect
 
+    // TODO: backing fields
+    //
+    //    val bookmarkEndpoint: StateFlow<String>
+    //        field = MutableStateFlow("")
     private val _bookmarkEndpoint = MutableStateFlow("")
     var bookmarkEndpoint = _bookmarkEndpoint.asStateFlow()
-    // TODO backing fields
-//    val bookmarkEndpoint: StateFlow<String>
-//        field = MutableStateFlow("")
 
     private val _bookmarkAPIToken = MutableStateFlow("")
     var bookmarkAPIToken = _bookmarkAPIToken.asStateFlow()
@@ -50,6 +51,24 @@ class PreferencesState(
 
     private val _defaultBookmark = MutableStateFlow(LocalBookmark(""))
     var defaultBookmark = _defaultBookmark.asStateFlow()
+
+    // TODO: logging options
+    // enable/disable in-app logging:
+    //      - verbose network tracing
+    //      - verbose event tracing
+    //      - verbose logic tracing
+    //      - verbose initialisation tracing
+    // automatically send crash reports
+    // automatically send performance reports
+    //
+    // logs can be displayed in preferences > view app logs (note these logs are stored on your device only)
+    // bugs can be reported directly within the app:
+    // submit bug report (preferences > report a bug)
+    //      - opens popup with field to write a summary of the bug (what you were doing/what went wrong)
+    //      - optionally choose to include each level of captured logs
+    // submit crash report via popup after crash occurs
+    //      - optionally include each level of captured logs
+    //      - optionally write a summary of what you were doing/what went wrong
 
     private fun saveBookmarkConf(url: String? = null, token: String? = null) {
         if (url != null) _bookmarkEndpoint.update { url }

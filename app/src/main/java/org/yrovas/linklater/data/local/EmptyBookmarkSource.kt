@@ -2,9 +2,7 @@ package org.yrovas.linklater.data.local
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.flow
-import org.yrovas.linklater.data.Bookmark
-import org.yrovas.linklater.domain.BookmarkDataSource
+import org.yrovas.linklater.data.models.Bookmark
 
 class EmptyBookmarkSource : BookmarkDataSource {
     override suspend fun getBookmark(id: Long): Bookmark? {

@@ -1,6 +1,6 @@
-package org.yrovas.linklater.domain
+package org.yrovas.linklater.data.models
 
-enum class APIError : Error {
+enum class APIError: Error {
     NO_CONNECTION,
     INCORRECT_ENDPOINT,
     INCORRECT_AUTH,

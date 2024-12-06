@@ -1,77 +1,94 @@
 package org.yrovas.linklater.ui.common
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
-import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AppBarRow
+import androidx.compose.material3.AppBarRowScope
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun Frame(
-    page: String,
-    back: (() -> Unit),
+    title: String,
+    back: (() -> Unit)? = null,
+    actions: (AppBarRowScope.() -> Unit) = { },
     fab: (@Composable () -> Unit)? = null,
-    snackState: SnackbarHostState,
     globalContent: @Composable () -> Unit = {},
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     Frame(
-        appBar = { AppBar(page, back) },
+        topBar = {
+            TopAppBar(
+                title = { Text(title) },
+                navigationIcon = {
+                    if (back != null) {
+                        IconButton(onClick = back) {
+                            Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack)
+                        }
+                    }
+                },
+                actions = {
+                    AppBarRow(
+                        maxItemCount = 3,
+                        overflowIndicator = {
+                            IconButton(onClick = { it.show() }) {
+                                Icon(imageVector = Icons.Filled.MoreVert)
+                            }
+                        },
+                        content = actions
+                    )
+                }
+            )
+        },
         fab = fab,
-        snackState = snackState,
         globalContent = globalContent,
-    ) {
-        content()
-    }
+        content = content
+    )
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun Frame(
-    appBar: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    topBar: @Composable () -> Unit,
     fab: (@Composable () -> Unit)? = null,
-    snackState: SnackbarHostState,
     globalContent: @Composable () -> Unit = {},
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = colorScheme.background,
-        contentColor = colorScheme.onBackground
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                // we set WindowCompat.setDecorFitsSystemWindows(window, false)
-                // so we now must include the window padding values
-                .padding(WindowInsets.systemBars.asPaddingValues())
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                globalContent()
-                Column {
-                    appBar()
-                    content()
+    Box(modifier = Modifier.fillMaxSize()) {
+        globalContent()
+        Scaffold(
+            modifier = modifier,
+            floatingActionButton = {
+                fab?.let {
+                    fab()
                 }
-                Column(modifier = Modifier.align(Alignment.BottomStart)) {
-                    fab?.let {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.End
-                        ) { fab() }
-                    }
-                    SnackbarHost(hostState = snackState)
-                }
+            },
+            topBar = topBar,
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                content()
             }
         }
     }

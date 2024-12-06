@@ -1,4 +1,4 @@
-package org.yrovas.linklater.data
+package org.yrovas.linklater.data.models
 
 import kotlinx.serialization.Serializable
 

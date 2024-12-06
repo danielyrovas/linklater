@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -27,11 +28,12 @@ fun KeyboardRow(content: @Composable () -> Unit) {
     val isImeVisible = WindowInsets.isImeVisible
     val density = LocalDensity.current
 
-    val offsetY = WindowInsets.ime.getBottom(density) -
+    val offsetY = WindowInsets.ime.getBottom(density)
             // take into account padding from system bars (navigation pill/buttons)
-            WindowInsets.systemBars.getBottom(density)
+            // No longer need to as global box is inside padding
+            // - WindowInsets.systemBars.getBottom(density)
 
-    var previousOffset by remember { mutableStateOf(0) }
+    var previousOffset by remember { mutableIntStateOf(0) }
 
     val isKeyboardGoingDown by remember(offsetY) {
         derivedStateOf {
