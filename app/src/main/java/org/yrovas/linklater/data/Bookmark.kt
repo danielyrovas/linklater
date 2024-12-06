@@ -1,5 +1,6 @@
 package org.yrovas.linklater.data
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import linklater.BookmarkEntity
@@ -25,6 +26,14 @@ data class Bookmark(
     val date_modified: String? = null,
     @SerialName("tag_names") val tags: List<String> = emptyList(),
 )
+
+fun Bookmark.instantAdded() = Instant.parse(this.date_added!!)
+
+fun Bookmark.instantModified() = this.date_modified?.let { Instant.parse(it) }
+
+fun List<Bookmark>.sortByInstantAdded() : List<Bookmark> {
+    return this.sortedBy { it.instantAdded() }
+}
 
 fun Bookmark.showTitleOrElse(value: String): String {
     return if (!title.isNullOrBlank()) {

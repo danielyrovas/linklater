@@ -80,7 +80,7 @@ fun PreferencesScreen(
                 name = "LinkDing API Endpoint",
                 placeholder = "URL/IP incl. port and https://",
                 icon = Icons.Default.Bookmark,
-                infoPreview = "include /api",
+                infoPreview = "Include /api",
                 infoTitle = "Enter the LinkDing API URL",
                 info = {
                     Column {

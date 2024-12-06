@@ -59,7 +59,7 @@ class HomeState(
     }
 
     private fun fetchRemoteBookmarks() = viewModelScope.launch(Dispatchers.IO) {
-        // when authenticated refresh
+        // wait for authentication, then refresh
         api.authProvided.transformWhile { emit(it); !it }.collect {
             if (it) {
                 refreshAllBookmarks()
@@ -67,6 +67,8 @@ class HomeState(
         }
     }
 
+    // TODO: prompt to delete all when API returns empty result set, handle offline case
+    // and provide function to save bookmarks when offline & sync once online.
     private fun refreshAllBookmarks() {
         _isRefreshing.update { true }
         viewModelScope.launch {
