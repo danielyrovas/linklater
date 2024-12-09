@@ -70,10 +70,9 @@ fun Context.onBackPressed() {
 
 fun Context.getAppVersion(): String {
     return try {
-        val packageInfo = packageManager.getPackageInfo(packageName, 0)
-        packageInfo.versionName
+        packageManager.getPackageInfo(packageName, 0).versionName!!
     } catch (e: Exception) {
-        "Not Found"
+        "version not specified..."
     }
 }
 
