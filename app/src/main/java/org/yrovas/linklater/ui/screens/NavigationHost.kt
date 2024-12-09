@@ -1,11 +1,7 @@
 package org.yrovas.linklater.ui.screens
 
 import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
@@ -26,8 +22,9 @@ import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkScreen
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState
 
 typealias NavigationHost = @Composable (EntryDestination, SnackbarHostState) -> Unit
-private const val INITIAL_OFFSET_FACTOR = 0.10f
 
+// TODO: remove state injection here, and add @assisted to compose screens. Add typealias for
+// screen and then inject directly into the compose function
 @Inject
 @Composable
 fun NavigationHost(
@@ -38,32 +35,23 @@ fun NavigationHost(
     @Assisted snackState: SnackbarHostState,
 ) {
     val nav = rememberNavController()
-    NavHost(nav, startDestination = entryDestination,
-        enterTransition = {
-            slideIntoContainer(
-                AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(500)
-            )
-        },
-        exitTransition = {
-            slideOutOfContainer(
-                AnimatedContentTransitionScope.SlideDirection.Left,
-                animationSpec = tween(500)
-            )
-        },
-        popEnterTransition = {
-            slideIntoContainer(
-                AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(500)
-            )
-        },
-        popExitTransition = {
-            slideOutOfContainer(
-                AnimatedContentTransitionScope.SlideDirection.Right,
-                animationSpec = tween(500)
-            )
-        }
-        ){
+    NavHost(nav, startDestination = entryDestination, enterTransition = {
+        slideIntoContainer(
+            AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(500)
+        )
+    }, exitTransition = {
+        slideOutOfContainer(
+            AnimatedContentTransitionScope.SlideDirection.Left, animationSpec = tween(500)
+        )
+    }, popEnterTransition = {
+        slideIntoContainer(
+            AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(500)
+        )
+    }, popExitTransition = {
+        slideOutOfContainer(
+            AnimatedContentTransitionScope.SlideDirection.Right, animationSpec = tween(500)
+        )
+    }) {
         composable<HomeDestination> {
             HomeScreen(nav, snackState, homeState)
         }
