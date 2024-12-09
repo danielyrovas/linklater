@@ -15,15 +15,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Api
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Tag
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme.colorScheme
@@ -65,9 +61,7 @@ fun PreferencesScreen(
     val defaultBookmark by state.defaultBookmark.collectAsState()
 
     Frame(
-        page = "Preferences",
-        back = { nav.navigateUp() },
-        snackState = snackState
+        page = "Preferences", back = { nav.navigateUp() }, snackState = snackState
     ) {
         Column(
             modifier = Modifier
@@ -89,16 +83,14 @@ fun PreferencesScreen(
                             color = colorScheme.onSecondaryContainer
                         )
                         Text(
-                            "Include the /api path.",
-                            color = colorScheme.onSecondaryContainer
+                            "Include the /api path.", color = colorScheme.onSecondaryContainer
                         )
                         Text(
                             "Include the port if necessary.",
                             color = colorScheme.onSecondaryContainer
                         )
                         Text(
-                            "For example",
-                            color = colorScheme.onSecondaryContainer
+                            "For example", color = colorScheme.onSecondaryContainer
                         )
                         Row(
                             modifier = Modifier
@@ -108,8 +100,7 @@ fun PreferencesScreen(
                                 .padding(padding.half)
                         ) {
                             Text(
-                                "https://demo.linkding.link/api",
-                                color = colorScheme.onSurface
+                                "https://demo.linkding.link/api", color = colorScheme.onSurface
                             )
                         }
                         Text(
@@ -123,8 +114,7 @@ fun PreferencesScreen(
                                 .padding(padding.half)
                         ) {
                             Text(
-                                "http://192.168.0.47:8000/api",
-                                color = colorScheme.onSurface
+                                "http://192.168.0.47:8000/api", color = colorScheme.onSurface
                             )
                         }
                     }
@@ -144,8 +134,7 @@ fun PreferencesScreen(
                 info = {
                     Column {
                         Text(
-                            "Select Integrations",
-                            color = colorScheme.onSecondaryContainer
+                            "Select Integrations", color = colorScheme.onSecondaryContainer
                         )
                         Text(
                             "Copy the token under REST API.",
@@ -206,7 +195,7 @@ private fun StyledTitle(title: String) {
     ) {
         Text(text = title, style = typography.titleMedium, color = colorScheme.primary)
         Spacer(modifier = Modifier.height(padding.half))
-            HorizontalDivider(color = colorScheme.primary)
+        HorizontalDivider(color = colorScheme.primary)
     }
 }
 
@@ -237,15 +226,3 @@ private fun StyledCheckPreference(
         Spacer(modifier = Modifier.width(padding.half))
     }
 }
-
-//@ThemePreview
-//@Composable
-//fun PreferencesScreenPreview() {
-//    AppTheme {
-//        PreferencesScreen(EmptyDestinationsNavigator,
-//            SnackbarHostState(),
-//            { PreferencesState(EmptyBookmarkAPI(),
-//                EmptyPrefStore()
-//            ) })
-//    }
-//}

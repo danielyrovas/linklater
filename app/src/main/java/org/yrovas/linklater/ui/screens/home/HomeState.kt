@@ -1,6 +1,7 @@
 package org.yrovas.linklater.ui.screens.home
 
 import android.util.Log
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,15 +34,34 @@ class HomeState(
 
     sealed interface Event : ScreenEvent {
         data object RefreshBookmarks : Event
+        data object SearchBarClose : Event
+        data object UpdateQuery: Event
     }
 
     sealed interface Effect : ScreenEffect {
         data class RefreshError(val error: APIError) : Effect
         data object RefreshOk : Effect
+        data object FilterChanged : Effect
+    }
+
+    init {
+        fetchLocalBookmarks()
+        fetchRemoteBookmarks()
+    }
+
+    override fun handleEvent(event: Event) {
+        when (event) {
+            Event.RefreshBookmarks -> refreshAllBookmarks()
+            Event.SearchBarClose -> clearSearch()
+            is Event.UpdateQuery -> updateQuery()
+        }
     }
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
+
+    private val _allBookmarks = MutableStateFlow(listOf<Bookmark>())
+    private val allBookmarks = _allBookmarks.asStateFlow()
 
     private val _displayedBookmarks = MutableStateFlow(listOf<Bookmark>())
     val displayedBookmarks = _displayedBookmarks.asStateFlow()
@@ -49,11 +69,114 @@ class HomeState(
     private val _bookmarkCount = MutableStateFlow(0)
     val bookmarkCount = _bookmarkCount.asStateFlow()
 
+    private val _filteredBookmarkCount = MutableStateFlow(0)
+    val filteredBookmarkCount = _filteredBookmarkCount.asStateFlow()
+
+    val bookmarkQueryState = TextFieldState()
+    private val _bookmarkQuery = MutableStateFlow(BookmarkQuery())
+    val bookmarkQuery = _bookmarkQuery.asStateFlow()
+
+    private val _searchBarActive = MutableStateFlow(false)
+    val searchBarActive = _searchBarActive.asStateFlow()
+
+    private fun updateDisplayedBookmarks() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _displayedBookmarks.update {
+                allBookmarks.value.filter { bookmarkMatchesQuery(it) }
+            }
+            _filteredBookmarkCount.update { displayedBookmarks.value.size }
+            sendEffect(Effect.FilterChanged)
+        }
+    }
+
+    private fun bookmarkMatchesQuery(bookmark: Bookmark): Boolean {
+        return if (bookmarkQuery.value.stringWithoutTags.isBlank()) {
+            queryMatchesTags(bookmark, bookmarkQuery.value.tags, bookmarkQuery.value.partialTag)
+        } else {
+            queryMatchesTags(
+                bookmark,
+                bookmarkQuery.value.tags,
+                bookmarkQuery.value.partialTag
+            ) && (queryMatchesString(bookmark, bookmarkQueryState.text.toString()) || queryMatchesString(
+                bookmark,
+                bookmarkQuery.value.stringWithoutTags
+            ) || queryMatchesString(bookmark, bookmarkQuery.value.stringWithoutTagSymbols))
+        }
+    }
+
+    private fun queryMatchesString(bookmark: Bookmark, string: String): Boolean {
+        return bookmark.url.contains(string, ignoreCase = true) ||
+            bookmark.title?.contains(string, ignoreCase = true) == true ||
+            bookmark.website_title?.contains(string, ignoreCase = true) == true ||
+            bookmark.description?.contains(string, ignoreCase = true) == true ||
+            bookmark.website_description?.contains(string, ignoreCase = true) == true ||
+            bookmark.notes?.contains(string, ignoreCase = true) == true
+    }
+
+    private fun queryMatchesTags(
+        bookmark: Bookmark,
+        tags: List<String>,
+        partialTag: String
+    ): Boolean {
+        return tags.all { queryTag ->
+            bookmark.tags.any {
+                it.equals(queryTag, ignoreCase = true) || (queryTag == partialTag && it.startsWith(
+                    partialTag,
+                    ignoreCase = true
+                ))
+            }
+        }
+    }
+
+    private fun updateQuery() {
+        val query = bookmarkQueryState.text.toString()
+        _bookmarkQuery.value = BookmarkQuery(
+            stringWithoutTags(query),
+            stringWithoutTagSymbols(query),
+            partialTagFromQuery(query),
+            tagsFromQuery(query)
+        )
+        Log.d(TAG, "QUERY: ${bookmarkQuery.value}")
+        updateDisplayedBookmarks()
+    }
+
+    private fun tagsFromQuery(query: String): List<String> {
+        return query.trim().split("\\s+".toRegex()).filter { it.startsWith('#') }
+            .map { it.split('#').last() }.filter { it.isNotBlank() }
+    }
+
+    private fun partialTagFromQuery(query: String): String {
+        val lastString = query.split("\\s+".toRegex()).last()
+        return if (lastString.startsWith('#')) lastString.split('#').last()
+        else ""
+    }
+
+    private fun stringWithoutTags(query: String): String {
+        return query.trim().split("\\s+".toRegex()).filter { !it.startsWith('#') }.joinToString(" ")
+    }
+
+    private fun stringWithoutTagSymbols(query: String): String {
+        return query.trim().split("\\s+".toRegex()).joinToString(" ") {
+            if (it.startsWith('#')) {
+                it.split('#').last()
+            } else {
+                it
+            }
+        }
+    }
+
+    private fun clearSearch() {
+        _searchBarActive.update { false }
+        _bookmarkQuery.value = BookmarkQuery()
+        updateDisplayedBookmarks()
+    }
+
     private fun fetchLocalBookmarks() = viewModelScope.launch(Dispatchers.IO) {
         bookmarkSource.getBookmarks().collect { bookmarks ->
-            _displayedBookmarks.update {
+            _allBookmarks.update {
                 bookmarks.distinct().sortedByDescending { it.date_modified }
             }
+            updateDisplayedBookmarks()
             _bookmarkCount.emit(bookmarkSource.getBookmarkCount())
         }
     }
@@ -145,15 +268,13 @@ class HomeState(
             sendEffect(Effect.RefreshOk)
         }
     }
+}
 
-    override fun handleEvent(event: Event) {
-        when (event) {
-            Event.RefreshBookmarks -> refreshAllBookmarks()
-        }
-    }
-
-    init {
-        fetchLocalBookmarks()
-        fetchRemoteBookmarks()
-    }
+data class BookmarkQuery(
+    val stringWithoutTags: String,
+    val stringWithoutTagSymbols: String,
+    val partialTag: String,
+    val tags: List<String>,
+) {
+    constructor() : this("", "", "" , emptyList())
 }

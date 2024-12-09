@@ -1,5 +1,6 @@
 package org.yrovas.linklater.ui.common
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -15,8 +16,10 @@ import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.yrovas.linklater.ThemePreview
 import org.yrovas.linklater.ui.theme.AppTheme
@@ -32,17 +35,14 @@ fun AppBar(
         if (back != null) {
             IconButton(onClick = { back() }) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    tint = colorScheme.primary
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack, tint = colorScheme.primary
                 )
             }
         } else {
             Spacer(modifier = Modifier.width(padding.standard))
         }
         Text(
-            text = page,
-            style = typography.titleLarge,
-            color = colorScheme.primary
+            text = page, style = typography.titleLarge, color = colorScheme.primary
         )
     }, right = {
         content()
@@ -69,17 +69,12 @@ fun AppBar(
             left()
         }
         Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.End
         ) {
             right()
         }
     }
 }
-//
-//@Composable
-//fun LargeHomeBar() {
-//}
 
 @ThemePreview
 @Composable
@@ -93,7 +88,7 @@ fun HomeAppBarPreview() {
 
 @ThemePreview
 @Composable
-fun AppBarPreview () {
+fun AppBarPreview() {
     AppTheme {
         Surface {
             AppBar(page = "Settings", back = {})

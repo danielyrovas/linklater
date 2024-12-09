@@ -112,7 +112,7 @@ fun PreviewBookmarkRow() {
         Surface {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(padding.standard)
             ) {
                 BookmarkRow(

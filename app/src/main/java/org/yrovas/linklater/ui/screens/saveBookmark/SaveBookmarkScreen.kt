@@ -9,8 +9,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,7 +53,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -82,6 +79,7 @@ import org.yrovas.linklater.ui.common.AppBar
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.KeyboardRow
+import org.yrovas.linklater.ui.common.StyledOutlinedTextField
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Effect
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Event
 import org.yrovas.linklater.ui.theme.padding
@@ -183,7 +181,7 @@ private fun SaveBookmarkFields(
 
         StyledTagRow(state, onTagFocus)
 
-        StyledTextField(
+        StyledOutlinedTextField(
             name = "Title",
             value = bookmark.title ?: "",
             icon = Icons.Default.Title,
@@ -192,7 +190,7 @@ private fun SaveBookmarkFields(
             state.sendEvent(Event.UpdateBookmark(title = it.ifBlank { null }))
         }
 
-        StyledTextField(
+        StyledOutlinedTextField(
             name = "Description",
             value = bookmark.description ?: "",
             icon = Icons.AutoMirrored.Filled.ShortText,
@@ -214,7 +212,7 @@ private fun SaveBookmarkFields(
 
         Spacer(modifier = Modifier.height(padding.standard))
 
-        StyledTextField(
+        StyledOutlinedTextField(
             name = "Notes",
             value = bookmark.notes ?: "",
             icon = Icons.AutoMirrored.Filled.Notes,
@@ -285,7 +283,7 @@ private fun StyledTagRow(
     val tagNames by state.tagNames.collectAsState()
     val selectedTags by state.selectedTags.collectAsState()
 
-    StyledTextField(
+    StyledOutlinedTextField(
         name = "Tags",
         placeholder = "Enter tags...",
         value = tagNames, icon = Icons.Default.Tag, onFocusChanged = onFocus
@@ -450,41 +448,6 @@ private fun StyledURLRow(
 }
 
 @Composable
-fun StyledTextField(
-    name: String,
-    value: String,
-    icon: ImageVector,
-    placeholder: String? = null,
-    onFocusChanged: ((Boolean) -> Unit)? = null,
-    onChange: (String) -> Unit,
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isFocused by interactionSource.collectIsFocusedAsState()
-    if (onFocusChanged != null) {
-        LaunchedEffect(isFocused) {
-            onFocusChanged(isFocused)
-        }
-    }
-
-    Column(
-        modifier = Modifier.animateContentSize(
-            animationSpec = tween(durationMillis = 50)
-        )
-    ) {
-        Text(text = name, style = typography.titleMedium)
-        Spacer(modifier = Modifier.height(padding.half))
-        OutlinedTextField(value,
-            placeholder = { if (!placeholder.isNullOrBlank()) Text(placeholder) },
-            leadingIcon = { Icon(icon) },
-            modifier = Modifier.fillMaxWidth(),
-            onValueChange = { onChange(it) },
-            interactionSource = interactionSource
-        )
-        Spacer(modifier = Modifier.height(padding.double))
-    }
-}
-
-@Composable
 private fun StyledCheckBox(
     name: String,
     checked: Boolean,
@@ -557,49 +520,3 @@ private fun StyledBoxIcon(
         }
     }
 }
-
-//@ThemePreview
-//@Composable
-//fun SaveBookmarkScreenPreview() {
-//    AppTheme {
-//        val state = SaveBookmarkScreenState(
-//            EmptyBookmarkAPI(),
-//            EmptyPrefStore(),
-//            EmptyTagSource(),
-//            EmptyBookmarkSource()
-//        )
-//        state.setTags(
-//            listOf(
-//                "cool",
-//                "selfhost",
-//                "tag",
-//                "name",
-//                "\$hit",
-//                "is",
-//                "cool",
-//                "jetpack-compose",
-//                "android",
-//                "development",
-//                "selfhost",
-//                "server",
-//                "gaming",
-//                "amazon",
-//                "prime",
-//                "garbage",
-//                "man",
-//                "why-though",
-//                "chadland",
-//                "chetland",
-//            )
-//        )
-//        state.updateBookmark("https://alpinelinux.org/arbitrary/URL/that-is-far-to-long-andhassomelongerwordsthatareannoying-especially-for-a-text-field.html")
-//        state.toggleSelectTag("cool")
-//        state.toggleSelectTag("selfhost")
-//        state.setSubmitResult(Err(APIError.AUTH))
-//        SaveBookmarkScreen(
-//            nav = EmptyDestinationsNavigator,
-//            snackState = SnackbarHostState(),
-//            state = { state }
-//        )
-//    }
-//}
