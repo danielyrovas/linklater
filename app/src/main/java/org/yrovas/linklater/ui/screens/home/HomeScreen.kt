@@ -44,7 +44,7 @@ fun HomeScreen(
 //    val LocalState = staticCompositionLocalOf { viewModel { state() } }
 //    val state = LocalState.current
     val scope = rememberCoroutineScope()
-    val bookmarks by state.displayedBookmarks.collectAsState()
+    val bookmarks by state.filteredBookmarks.collectAsState()
     val bookmarkCount by state.bookmarkCount.collectAsState()
     val filteredCount by state.filteredBookmarkCount.collectAsState()
     val listState = rememberLazyListState()
@@ -76,7 +76,6 @@ fun HomeScreen(
         isRefreshing = state.isRefreshing,
         onRefreshClick = { state.sendEvent(Event.RefreshBookmarks) },
         searchState = state.bookmarkQueryState,
-        onSearchChange = { state.sendEvent(Event.UpdateQuery) },
         onClearSearch = { state.sendEvent(Event.SearchBarClose) },
     )}, fab = {
         FloatingActionButton(modifier = Modifier.padding(padding.standard),

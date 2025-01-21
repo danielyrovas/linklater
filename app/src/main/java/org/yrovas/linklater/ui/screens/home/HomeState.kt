@@ -2,10 +2,16 @@ package org.yrovas.linklater.ui.screens.home
 
 import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -35,7 +41,7 @@ class HomeState(
     sealed interface Event : ScreenEvent {
         data object RefreshBookmarks : Event
         data object SearchBarClose : Event
-        data object UpdateQuery: Event
+//        data object UpdateQuery: Event
     }
 
     sealed interface Effect : ScreenEffect {
@@ -53,7 +59,7 @@ class HomeState(
         when (event) {
             Event.RefreshBookmarks -> refreshAllBookmarks()
             Event.SearchBarClose -> clearSearch()
-            is Event.UpdateQuery -> updateQuery()
+//            is Event.UpdateQuery -> updateQuery()
         }
     }
 
@@ -63,45 +69,47 @@ class HomeState(
     private val _allBookmarks = MutableStateFlow(listOf<Bookmark>())
     private val allBookmarks = _allBookmarks.asStateFlow()
 
-    private val _displayedBookmarks = MutableStateFlow(listOf<Bookmark>())
-    val displayedBookmarks = _displayedBookmarks.asStateFlow()
-
     private val _bookmarkCount = MutableStateFlow(0)
     val bookmarkCount = _bookmarkCount.asStateFlow()
 
-    private val _filteredBookmarkCount = MutableStateFlow(0)
-    val filteredBookmarkCount = _filteredBookmarkCount.asStateFlow()
-
     val bookmarkQueryState = TextFieldState()
-    private val _bookmarkQuery = MutableStateFlow(BookmarkQuery())
-    val bookmarkQuery = _bookmarkQuery.asStateFlow()
+
+//    private val _displayedBookmarks = MutableStateFlow(listOf<Bookmark>())
+//    val displayedBookmarks = _displayedBookmarks.asStateFlow()
+
+    val filteredBookmarks: StateFlow<List<Bookmark>> = snapshotFlow { bookmarkQueryState.text }
+        .debounce(500)
+        .mapLatest { query ->
+            val b = allBookmarks.value.filter { bookmarkMatchesQuery(it, query.toString()) }
+            sendEffect(Effect.FilterChanged)
+            b
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(),
+            initialValue = allBookmarks.value
+        )
+
+    val filteredBookmarkCount: StateFlow<Int> = snapshotFlow { filteredBookmarks.value }.mapLatest {
+        it.size
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(),
+        initialValue = allBookmarks.value.size)
 
     private val _searchBarActive = MutableStateFlow(false)
     val searchBarActive = _searchBarActive.asStateFlow()
 
-    private fun updateDisplayedBookmarks() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _displayedBookmarks.update {
-                allBookmarks.value.filter { bookmarkMatchesQuery(it) }
-            }
-            _filteredBookmarkCount.update { displayedBookmarks.value.size }
-            sendEffect(Effect.FilterChanged)
-        }
-    }
-
-    private fun bookmarkMatchesQuery(bookmark: Bookmark): Boolean {
-        return if (bookmarkQuery.value.stringWithoutTags.isBlank()) {
-            queryMatchesTags(bookmark, bookmarkQuery.value.tags, bookmarkQuery.value.partialTag)
-        } else {
-            queryMatchesTags(
-                bookmark,
-                bookmarkQuery.value.tags,
-                bookmarkQuery.value.partialTag
-            ) && (queryMatchesString(bookmark, bookmarkQueryState.text.toString()) || queryMatchesString(
-                bookmark,
-                bookmarkQuery.value.stringWithoutTags
-            ) || queryMatchesString(bookmark, bookmarkQuery.value.stringWithoutTagSymbols))
-        }
+    private fun bookmarkMatchesQuery(bookmark: Bookmark, query: String): Boolean {
+        val stringWithoutTags = stringWithoutTags(query)
+        val stringWithoutTagSymbols = stringWithoutTagSymbols(query)
+        val partialTag = partialTagFromQuery(query)
+        val tags = tagsFromQuery(query)
+        return if (stringWithoutTags.isBlank())
+            queryMatchesTags(bookmark, tags, partialTag)
+        else
+            queryMatchesTags(bookmark, tags, partialTag) && (
+                queryMatchesString(bookmark, query) ||
+                queryMatchesString(bookmark, stringWithoutTags) ||
+                queryMatchesString(bookmark, stringWithoutTagSymbols)
+            )
     }
 
     private fun queryMatchesString(bookmark: Bookmark, string: String): Boolean {
@@ -126,18 +134,6 @@ class HomeState(
                 ))
             }
         }
-    }
-
-    private fun updateQuery() {
-        val query = bookmarkQueryState.text.toString()
-        _bookmarkQuery.value = BookmarkQuery(
-            stringWithoutTags(query),
-            stringWithoutTagSymbols(query),
-            partialTagFromQuery(query),
-            tagsFromQuery(query)
-        )
-        Log.d(TAG, "QUERY: ${bookmarkQuery.value}")
-        updateDisplayedBookmarks()
     }
 
     private fun tagsFromQuery(query: String): List<String> {
@@ -167,8 +163,6 @@ class HomeState(
 
     private fun clearSearch() {
         _searchBarActive.update { false }
-        _bookmarkQuery.value = BookmarkQuery()
-        updateDisplayedBookmarks()
     }
 
     private fun fetchLocalBookmarks() = viewModelScope.launch(Dispatchers.IO) {
@@ -176,7 +170,6 @@ class HomeState(
             _allBookmarks.update {
                 bookmarks.distinct().sortedByDescending { it.date_modified }
             }
-            updateDisplayedBookmarks()
             _bookmarkCount.emit(bookmarkSource.getBookmarkCount())
         }
     }
@@ -268,13 +261,4 @@ class HomeState(
             sendEffect(Effect.RefreshOk)
         }
     }
-}
-
-data class BookmarkQuery(
-    val stringWithoutTags: String,
-    val stringWithoutTagSymbols: String,
-    val partialTag: String,
-    val tags: List<String>,
-) {
-    constructor() : this("", "", "" , emptyList())
 }
