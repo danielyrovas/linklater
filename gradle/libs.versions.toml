@@ -9,16 +9,17 @@ android-compileSdk = "35"
 android-targetSdk = "35"
 android-minSdk = "24"
 
-agp = "8.7.3"
+agp = "8.8.0"
 androidx-core-ktx = "1.15.0"
-androidx-material3 = "1.4.0-alpha04"
-androidx-material = "1.7.5"
-kotlin = "2.0.0"
-kotlin-inject-compiler-ksp = "0.7.2"
-ksp = "2.0.0-1.0.22"
-activity-compose = "1.9.3"
-navigation-compose = "2.8.4"
-compose-bom = "2024.11.00"
+androidx-material3 = "1.4.0-alpha07"
+androidx-material = "1.7.7"
+kotlin = "2.1.10"
+kotlin-inject = "0.7.2"
+kotlin-inject-anvil = "0.1.2"
+ksp = "2.1.10-1.0.29"
+activity-compose = "1.10.0"
+navigation-compose = "2.8.6"
+compose-bom = "2025.01.01"
 ktor = "3.0.2"
 kotlinx-serialization-json = "1.7.3"
 kotlinx-datetime = "0.6.1"
@@ -26,7 +27,7 @@ junit = "4.13.2"
 androidx-test-ext-junit = "1.2.1"
 espresso-core = "3.6.1"
 lifecycle-runtime-ktx = "2.8.7"
-datastore = "1.1.1"
+datastore = "1.1.2"
 sqldelight = "2.0.2"
 
 [libraries]
@@ -36,8 +37,11 @@ androidx-material-icons-extended = { module = "androidx.compose.material:materia
 androidx-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "androidx-material3" }
 lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle-runtime-ktx" }
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle-runtime-ktx" }
-kotlin-inject-compiler-ksp = { module = "me.tatarka.inject:kotlin-inject-compiler-ksp", version.ref = "kotlin-inject-compiler-ksp" }
-kotlin-inject-runtime = { module = "me.tatarka.inject:kotlin-inject-runtime", version.ref = "kotlin-inject-compiler-ksp" }
+kotlin-inject-compiler-ksp = { module = "me.tatarka.inject:kotlin-inject-compiler-ksp", version.ref = "kotlin-inject" }
+kotlin-inject-runtime = { module = "me.tatarka.inject:kotlin-inject-runtime", version.ref = "kotlin-inject" }
+kotlin-inject-anvil-compiler-ksp = { group = "software.amazon.lastmile.kotlin.inject.anvil", name = "compiler", version.ref = "kotlin-inject-anvil" }
+kotlin-inject-anvil-runtime = { group = "software.amazon.lastmile.kotlin.inject.anvil", name = "runtime", version.ref = "kotlin-inject-anvil" }
+kotlin-inject-anvil-runtime-optional = { group = "software.amazon.lastmile.kotlin.inject.anvil", name = "runtime-optional", version.ref = "kotlin-inject-anvil" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigation-compose"}
 
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }

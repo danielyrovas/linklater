@@ -95,8 +95,11 @@ dependencies {
 
     ksp(libs.kotlin.inject.compiler.ksp)
     implementation(libs.kotlin.inject.runtime)
-    implementation(libs.kotlinx.datetime)
+    ksp(libs.kotlin.inject.anvil.compiler.ksp)
+    implementation(libs.kotlin.inject.anvil.runtime)
+    implementation(libs.kotlin.inject.anvil.runtime.optional)
 
+    implementation(libs.kotlinx.datetime)
     implementation(libs.ktor.client.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.ktor.client.serialization)
