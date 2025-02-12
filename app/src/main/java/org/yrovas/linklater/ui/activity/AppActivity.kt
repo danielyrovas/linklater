@@ -28,7 +28,7 @@ abstract class AppActivity : ComponentActivity() {
 
     abstract val entryScreen: EntryDestination
 
-    private val component by lazy(LazyThreadSafetyMode.NONE) {
+    private val appComponent by lazy(LazyThreadSafetyMode.NONE) {
         AppComponent::class.create(this)
     }
 
@@ -47,12 +47,12 @@ abstract class AppActivity : ComponentActivity() {
         intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         enableEdgeToEdge()
 
-        val navHost = component.navigationHost
+        val navHost = appComponent.navigationHost
         launch {
             // setup code that runs on first boot
-            component.bookmarkAPI.authenticate(
-                endpoint = component.prefStore.getPref(Prefs.LINKDING_URL, ""),
-                token = component.prefStore.getPref(Prefs.LINKDING_TOKEN, ""),
+            appComponent.bookmarkAPI.authenticate(
+                endpoint = appComponent.prefStore.getPref(Prefs.LINKDING_URL, ""),
+                token = appComponent.prefStore.getPref(Prefs.LINKDING_TOKEN, ""),
             )
         }
         setContent {

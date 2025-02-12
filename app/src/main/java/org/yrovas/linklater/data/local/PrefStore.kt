@@ -6,14 +6,15 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import io.ktor.utils.io.errors.IOException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import kotlinx.io.IOException
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.AppScope
+import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
 object Prefs {
     val LINKDING_URL = stringPreferencesKey("linkding_url")
@@ -24,8 +25,9 @@ object Prefs {
     val BOOKMARK_DEFAULT_ARCHIVED = booleanPreferencesKey("bookmark_default_archived")
 }
 
-@AppScope
 @Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class PrefStore(private val store: DataStore<Preferences>) : PrefDataStore {
     override suspend fun <T> getPrefs(
         key: Preferences.Key<T>,
@@ -48,18 +50,4 @@ class PrefStore(private val store: DataStore<Preferences>) : PrefDataStore {
     override suspend fun <T> clearPrefs() {
         store.edit { pref -> pref.clear() }
     }
-}
-
-class EmptyPrefStore : PrefDataStore {
-    override suspend fun <T> getPrefs(
-        key: Preferences.Key<T>,
-        default: T,
-    ): Flow<T> = flow {}
-
-    override suspend fun <T> getPref(key: Preferences.Key<T>, default: T): T =
-        default
-
-    override suspend fun <T> setPref(key: Preferences.Key<T>, value: T) {}
-    override suspend fun <T> removePref(key: Preferences.Key<T>) {}
-    override suspend fun <T> clearPrefs() {}
 }

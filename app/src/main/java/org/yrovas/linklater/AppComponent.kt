@@ -19,68 +19,37 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
-import me.tatarka.inject.annotations.Component
 import me.tatarka.inject.annotations.Inject
 import me.tatarka.inject.annotations.Provides
-import me.tatarka.inject.annotations.Scope
-import org.yrovas.linklater.data.local.BookmarkDataSourceImpl
 import org.yrovas.linklater.data.local.PrefDataStore
-import org.yrovas.linklater.data.local.PrefStore
-import org.yrovas.linklater.data.local.TagDataSourceImpl
-import org.yrovas.linklater.data.remote.LinkDingAPI
 import org.yrovas.linklater.domain.BookmarkAPI
-import org.yrovas.linklater.domain.BookmarkDataSource
-import org.yrovas.linklater.domain.TagDataSource
-import org.yrovas.linklater.ui.activity.AppActivity
 import org.yrovas.linklater.ui.screens.NavigationHost
+import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
+import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
+import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
 const val TAG = "DEBUG/create"
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "preferences")
 
-@Scope
-@Target(
-    AnnotationTarget.CLASS,
-    AnnotationTarget.FUNCTION,
-    AnnotationTarget.PROPERTY_GETTER
-)
-annotation class AppScope
-
-@Inject
-class ApplicationScope(private val context: Context) {
-    fun launch(
-        dispatcher: CoroutineDispatcher = Dispatchers.Main,
-        job: suspend () -> Unit,
-    ) {
-        (context as AppActivity).launch(dispatcher, job)
-    }
-    fun showSnackbar( message: String ) {
-        (context as AppActivity).showSnackbar(message)
-    }
-}
-
-@Component
-@AppScope
+@MergeComponent(AppScope::class)
+@SingleIn(AppScope::class)
 abstract class AppComponent(
     @get:Provides val context: Context,
 ) {
+    val store: DataStore<Preferences>
+        @Provides get() = context.dataStore
     abstract val navigationHost: NavigationHost
     abstract val prefStore: PrefDataStore
-    abstract val appScope: ApplicationScope
+    abstract val bookmarkAPI: BookmarkAPI
+}
 
-    val store: DataStore<Preferences>
-        @AppScope @Provides get() = context.dataStore
+@Inject
+@ContributesTo(AppScope::class)
+interface AppModule {
 
-    @AppScope
-    @Provides
-    fun providePrefStore(store: DataStore<Preferences>): PrefDataStore {
-        Log.d(TAG, "providePrefStore: CREATE")
-        return PrefStore(store)
-    }
-
-    @AppScope
+    @SingleIn(AppScope::class)
     @Provides
     fun provideHttpClient(): HttpClient = HttpClient(Android) {
         Log.d(TAG, "provideHttpClient: CREATE")
@@ -104,28 +73,11 @@ abstract class AppComponent(
         }
     }
 
-    abstract val linkDingAPI: LinkDingAPI
-    val bookmarkAPI: BookmarkAPI
-        @AppScope
-        @Provides get() = linkDingAPI
-
-    abstract val bookmarkDataSource: BookmarkDataSource
-
-    @AppScope
-    @Provides
-    fun provideBookmarkDataSource(db: Database): BookmarkDataSource =
-        BookmarkDataSourceImpl(db)
-
-    @AppScope
-    @Provides
-    fun provideTagDataSource(db: Database): TagDataSource = TagDataSourceImpl(db)
-
-    @AppScope
+    @SingleIn(AppScope::class)
     @Provides
     fun provideSQLDriver(context: Context): SqlDriver {
         Log.d(TAG, "provideSQLDriver: CREATE")
-        return AndroidSqliteDriver(
-            schema = Database.Schema,
+        return AndroidSqliteDriver(schema = Database.Schema,
             context = context,
             name = "linklater.db",
             callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
@@ -135,7 +87,7 @@ abstract class AppComponent(
             })
     }
 
-    @AppScope
+    @SingleIn(AppScope::class)
     @Provides
     fun provideDB(driver: SqlDriver): Database {
         Log.d(TAG, "provideDB: CREATE")

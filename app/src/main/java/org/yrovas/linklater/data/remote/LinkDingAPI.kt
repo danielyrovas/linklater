@@ -16,7 +16,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.Bookmark
@@ -31,12 +30,16 @@ import org.yrovas.linklater.domain.errorOrThrow
 import org.yrovas.linklater.domain.getOrThrow
 import org.yrovas.linklater.domain.isOk
 import org.yrovas.linklater.domain.mapData
+import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
 const val TAG = "DEBUG/net"
 const val MAX_PAGE_COUNT = 10000
 
-@AppScope
 @Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class LinkDingAPI(
     private val client: HttpClient,
     private var endpoint: String? = null,
@@ -79,6 +82,7 @@ class LinkDingAPI(
         archived: Boolean = false,
         sortByAddedAsc: Boolean = false,
     ): Res<BookmarkResponse, APIError> {
+//        Log.d(TAG, "fetchBookmarks: with AUTH: ")
         if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
         return try {
             val response =

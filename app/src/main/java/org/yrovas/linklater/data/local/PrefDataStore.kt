@@ -2,9 +2,10 @@ package org.yrovas.linklater.data.local
 
 import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.flow.Flow
-import org.yrovas.linklater.AppScope
+import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 
-@AppScope
+//@ContributesTo(AppScope::class)
 interface PrefDataStore {
     suspend fun <T> getPrefs(key: Preferences.Key<T>, default: T): Flow<T>
     suspend fun <T> getPref(key: Preferences.Key<T>, default: T): T

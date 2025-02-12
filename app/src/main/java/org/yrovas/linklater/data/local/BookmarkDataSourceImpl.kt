@@ -13,14 +13,21 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.Database
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.showTitleOrElse
 import org.yrovas.linklater.data.toBookmark
 import org.yrovas.linklater.domain.BookmarkDataSource
+import software.amazon.lastmile.kotlin.inject.anvil.AppScope
+import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
+import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
 const val TAG = "DEBUG"
 
+@Inject
+@SingleIn(AppScope::class)
+@ContributesBinding(AppScope::class)
 class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     init {
         Log.d("DEBUG/create", "BookmarkDataSourceImpl: CREATE")
