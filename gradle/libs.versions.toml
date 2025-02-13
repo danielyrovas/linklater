@@ -11,15 +11,15 @@ android-minSdk = "24"
 
 agp = "8.8.0"
 androidx-core-ktx = "1.15.0"
-androidx-material3 = "1.4.0-alpha07"
-androidx-material = "1.7.7"
+androidx-material3 = "1.4.0-alpha08"
+androidx-material = "1.7.8"
 kotlin = "2.1.10"
 kotlin-inject = "0.7.2"
 kotlin-inject-anvil = "0.1.2"
 ksp = "2.1.10-1.0.29"
 activity-compose = "1.10.0"
-navigation-compose = "2.8.6"
-compose-bom = "2025.01.01"
+navigation-compose = "2.8.7"
+compose-bom = "2025.02.00"
 ktor = "3.0.2"
 kotlinx-serialization-json = "1.7.3"
 kotlinx-datetime = "0.6.1"
@@ -29,6 +29,7 @@ espresso-core = "3.6.1"
 lifecycle-runtime-ktx = "2.8.7"
 datastore = "1.1.2"
 sqldelight = "2.0.2"
+kotlin-result = "2.0.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
@@ -51,6 +52,8 @@ ktor-client-logging-jvm = { module = "io.ktor:ktor-client-logging-jvm", version.
 ktor-client-serialization = { module = "io.ktor:ktor-client-serialization", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+kotlin-result = { group = "com.michael-bull.kotlin-result", name = "kotlin-result", version.ref = "kotlin-result" }
+kotlin-result-coroutines = { group = "com.michael-bull.kotlin-result", name = "kotlin-result-coroutines", version.ref = "kotlin-result" }
 
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-test-ext-junit" }

@@ -8,11 +8,9 @@ import kotlinx.coroutines.flow.flowOf
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.BookmarkMetadata
 import org.yrovas.linklater.data.LocalBookmark
-import org.yrovas.linklater.domain.APIError
-import org.yrovas.linklater.domain.BookmarkAPI
-import org.yrovas.linklater.domain.Err
-import org.yrovas.linklater.domain.Ok
-import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.Err
+import org.yrovas.linklater.Ok
+import org.yrovas.linklater.Res
 
 class EmptyBookmarkAPI : BookmarkAPI {
     override fun authenticate(

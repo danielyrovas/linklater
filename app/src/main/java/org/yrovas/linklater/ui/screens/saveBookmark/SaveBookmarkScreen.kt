@@ -72,6 +72,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHost
+import androidx.navigation.NavHostController
+import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.readClipboard
 import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.activity.launch
@@ -80,19 +83,21 @@ import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.KeyboardRow
 import org.yrovas.linklater.ui.common.StyledOutlinedTextField
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Effect
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Event
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Effect
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Event
 import org.yrovas.linklater.ui.theme.padding
 import kotlin.math.max
 import kotlin.math.round
 
+typealias SaveBookmarkScreen = @Composable () -> Unit
+@Inject
 @Composable
 fun SaveBookmarkScreen(
-    nav: NavController,
-    snackState: SnackbarHostState,
-    state: () -> SaveBookmarkState,
+    nav: NavHostController,
+    saveBookmarkModel: () -> SaveBookmarkModel,
     context: Context = LocalContext.current,
     back: () -> Unit = { nav.popBackStack() },
+    snackState: SnackbarHostState = remember { SnackbarHostState() },
     onSubmitSuccess: suspend () -> Unit = {
         context.launch {
             snackState.showSnackbar("Saved Bookmark")
@@ -100,7 +105,7 @@ fun SaveBookmarkScreen(
         back()
     },
 ) {
-    @Suppress("NAME_SHADOWING") val state = viewModel { state() }
+    val state = viewModel { saveBookmarkModel() }
     val isSubmitting by state.isSubmitting.collectAsState()
     val bookmarkExists by state.bookmarkExists.collectAsState()
     val scope = rememberCoroutineScope()
@@ -154,7 +159,7 @@ fun SaveBookmarkScreen(
 
 @Composable
 private fun SaveBookmarkFields(
-    state: SaveBookmarkState,
+    state: SaveBookmarkModel,
     onTagFocus: (Boolean) -> Unit,
     context: Context = LocalContext.current,
 ) {
@@ -277,7 +282,7 @@ fun SelectedTag(tag: String, onClick: (() -> Unit)) {
 
 @Composable
 private fun StyledTagRow(
-    state: SaveBookmarkState,
+    state: SaveBookmarkModel,
     onFocus: (Boolean) -> Unit,
 ) {
     val tagNames by state.tagNames.collectAsState()
@@ -303,7 +308,7 @@ private fun StyledTagRow(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TagSelectRow(
-    state: SaveBookmarkState,
+    state: SaveBookmarkModel,
 ) {
     var collapseTags by remember { mutableStateOf(true) }
     val tags by state.tags.collectAsState()
@@ -366,7 +371,7 @@ fun TagSelectRow(
 }
 
 @Composable
-private fun TagPredictRow(state: SaveBookmarkState) {
+private fun TagPredictRow(state: SaveBookmarkModel) {
     val tagPredictions by state.predictedTags.collectAsState()
     if (tagPredictions.isEmpty()) return
     Column {

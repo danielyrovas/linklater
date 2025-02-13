@@ -19,30 +19,32 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.flow.filter
+import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
-import org.yrovas.linklater.ui.screens.home.HomeState.Effect
-import org.yrovas.linklater.ui.screens.home.HomeState.Event
+import org.yrovas.linklater.ui.screens.Destination
+import org.yrovas.linklater.ui.screens.home.HomeModel.Effect
+import org.yrovas.linklater.ui.screens.home.HomeModel.Event
 import org.yrovas.linklater.ui.screens.home.components.BookmarkRow
 import org.yrovas.linklater.ui.screens.home.components.HomeAppBar
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkDestination
 import org.yrovas.linklater.ui.theme.padding
 
+typealias HomeScreen = @Composable () -> Unit
+
+@Inject
 @Composable
 fun HomeScreen(
-    nav: NavController,
-    snackState: SnackbarHostState,
-    state: () -> HomeState,
+    nav: NavHostController,
+    homeModel: () -> HomeModel,
 ) {
-    @Suppress("NAME_SHADOWING") val state = viewModel { state() }
-//    val LocalState = staticCompositionLocalOf { viewModel { state() } }
-//    val state = LocalState.current
+    val state = viewModel { homeModel() }
+    val snackState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val bookmarks by state.filteredBookmarks.collectAsState()
     val bookmarkCount by state.bookmarkCount.collectAsState()
@@ -79,7 +81,7 @@ fun HomeScreen(
         onClearSearch = { state.sendEvent(Event.SearchBarClose) },
     )}, fab = {
         FloatingActionButton(modifier = Modifier.padding(padding.standard),
-            onClick = { nav.navigate(SaveBookmarkDestination) },
+            onClick = { nav.navigate(Destination.SaveBookmark) },
             content = { Icon(imageVector = Icons.Default.AddLink) })
     }, snackState = snackState) {
         LazyColumn(

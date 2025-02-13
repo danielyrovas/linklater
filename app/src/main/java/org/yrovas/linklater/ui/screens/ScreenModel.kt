@@ -21,11 +21,15 @@ interface ScreenEvent
 
 interface ScreenEffect
 
-abstract class ScreenState<Event : ScreenEvent, Effect : ScreenEffect> : ViewModel() {
+abstract class ScreenModel<Event : ScreenEvent, Effect : ScreenEffect> : ViewModel() {
     private val _event: MutableSharedFlow<Event> = MutableSharedFlow()
     private val event = _event.asSharedFlow()
     private val _effect: Channel<Effect> = Channel()
     private val effect = _effect.receiveAsFlow() // consumeAsFlow?
+
+    init {
+        subscribeEvents()
+    }
 
     private fun subscribeEvents() {
         viewModelScope.launch {
@@ -35,21 +39,17 @@ abstract class ScreenState<Event : ScreenEvent, Effect : ScreenEffect> : ViewMod
         }
     }
 
-    //    fun sendEvent(builder: () -> Event) = sendEvent(builder())
+    // fun sendEvent(builder: () -> Event) = sendEvent(builder())
     fun sendEvent(event: Event) {
         viewModelScope.launch { _event.emit(event) }
     }
 
-    //    protected fun sendEffect(builder: () -> Effect) = sendEffect(builder())
+    // protected fun sendEffect(builder: () -> Effect) = sendEffect(builder())
     protected fun sendEffect(effect: Effect) {
         viewModelScope.launch { _effect.send(effect) }
     }
 
     abstract fun handleEvent(event: Event)
-
-    init {
-        subscribeEvents()
-    }
 
     @SuppressLint("ComposableNaming")
     @Composable

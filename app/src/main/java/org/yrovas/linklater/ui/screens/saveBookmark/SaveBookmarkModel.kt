@@ -12,25 +12,25 @@ import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.domain.APIError
-import org.yrovas.linklater.domain.BookmarkAPI
-import org.yrovas.linklater.domain.BookmarkDataSource
-import org.yrovas.linklater.domain.Res
-import org.yrovas.linklater.domain.TagDataSource
+import org.yrovas.linklater.data.remote.APIError
+import org.yrovas.linklater.data.remote.BookmarkAPI
+import org.yrovas.linklater.data.local.BookmarkDataSource
+import org.yrovas.linklater.Res
+import org.yrovas.linklater.data.local.TagDataSource
 import org.yrovas.linklater.intoTags
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Effect
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Event
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Effect
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Event
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
-import org.yrovas.linklater.ui.screens.ScreenState
+import org.yrovas.linklater.ui.screens.ScreenModel
 
 @Inject
-class SaveBookmarkState(
+class SaveBookmarkModel(
     private val bookmarkAPI: BookmarkAPI,
     private val prefStore: PrefDataStore,
     private val tagSource: TagDataSource,
     private val bookmarkSource: BookmarkDataSource,
-) : ScreenState<Event, Effect>() {
+) : ScreenModel<Event, Effect>() {
 
     sealed interface Event : ScreenEvent {
         data object SubmitBookmark : Event

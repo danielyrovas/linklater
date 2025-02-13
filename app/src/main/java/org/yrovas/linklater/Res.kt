@@ -1,4 +1,4 @@
-package org.yrovas.linklater.domain
+package org.yrovas.linklater
 
 sealed interface Res<out D, out E : Error> {
     data class Ok<out D, out E : Error>(val data: D) : Res<D, E>
@@ -8,7 +8,7 @@ sealed interface Res<out D, out E : Error> {
 typealias Ok<D, E> = Res.Ok<D, E>
 typealias Err<D, E> = Res.Err<D, E>
 
-sealed interface Error
+interface Error
 
 val <D, E : Error> Res<D, E>.isOk: Boolean
     get() = when (this) {

@@ -2,10 +2,10 @@ package org.yrovas.linklater.ui.activity
 
 import android.content.Intent
 import android.util.Log
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkActivityDestination
+import org.yrovas.linklater.ui.screens.Destination
 
 class SaveBookmarkActivity : AppActivity() {
-    override val entryScreen = SaveBookmarkActivityDestination
+    override val entryScreen = Destination.SaveBookmarkActivity
 
     fun extractURL(): String {
         var s = intent.data.toString()

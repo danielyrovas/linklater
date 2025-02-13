@@ -1,12 +1,11 @@
-package org.yrovas.linklater.domain
+package org.yrovas.linklater.data.remote
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.BookmarkMetadata
 import org.yrovas.linklater.data.LocalBookmark
-import org.yrovas.linklater.domain.APIError
-import org.yrovas.linklater.domain.Res
+import org.yrovas.linklater.Res
 
 interface BookmarkAPI {
     val authProvided: StateFlow<Boolean>

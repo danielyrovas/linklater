@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.navigation.NavHostController
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
@@ -23,8 +24,12 @@ import kotlinx.serialization.json.Json
 import me.tatarka.inject.annotations.Inject
 import me.tatarka.inject.annotations.Provides
 import org.yrovas.linklater.data.local.PrefDataStore
-import org.yrovas.linklater.domain.BookmarkAPI
+import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.ui.screens.NavigationHost
+import org.yrovas.linklater.ui.screens.home.HomeScreen
+import org.yrovas.linklater.ui.screens.preferences.PreferencesScreen
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkActivityScreen
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkScreen
 import software.amazon.lastmile.kotlin.inject.anvil.AppScope
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
@@ -43,12 +48,22 @@ abstract class AppComponent(
     abstract val navigationHost: NavigationHost
     abstract val prefStore: PrefDataStore
     abstract val bookmarkAPI: BookmarkAPI
+    abstract val homeScreen: HomeScreen
+    abstract val preferencesScreen: PreferencesScreen
+    abstract val saveBookmarkScreen: SaveBookmarkScreen
+    abstract val saveBookmarkActivityScreen: SaveBookmarkActivityScreen
+
+    @SingleIn(AppScope::class)
+    @Provides
+    fun provideNav(): NavHostController {
+        Log.d(TAG, "provideNav: CREATE")
+        return NavHostController(context)
+    }
 }
 
 @Inject
 @ContributesTo(AppScope::class)
 interface AppModule {
-
     @SingleIn(AppScope::class)
     @Provides
     fun provideHttpClient(): HttpClient = HttpClient(Android) {

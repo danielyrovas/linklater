@@ -7,14 +7,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.Composable
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.yrovas.linklater.AppComponent
 import org.yrovas.linklater.create
 import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.ui.screens.EntryDestination
+import org.yrovas.linklater.ui.screens.Destination
 import org.yrovas.linklater.ui.theme.AppTheme
 
 fun Context.launch(
@@ -26,20 +30,14 @@ fun Context.launch(
 
 abstract class AppActivity : ComponentActivity() {
 
-    abstract val entryScreen: EntryDestination
+    abstract val entryScreen: Destination
 
     private val appComponent by lazy(LazyThreadSafetyMode.NONE) {
         AppComponent::class.create(this)
     }
 
-    private val snackState: SnackbarHostState by lazy { SnackbarHostState() }
-
     fun launch(dispatcher: CoroutineDispatcher = Dispatchers.Main, job: suspend () -> Unit) {
         lifecycleScope.launch(dispatcher) { job() }
-    }
-
-    fun showSnackbar(message: String) {
-        launch { snackState.showSnackbar(message) }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -57,7 +55,7 @@ abstract class AppActivity : ComponentActivity() {
         }
         setContent {
             AppTheme {
-                navHost(entryScreen, snackState)
+                navHost(entryScreen)
             }
         }
     }

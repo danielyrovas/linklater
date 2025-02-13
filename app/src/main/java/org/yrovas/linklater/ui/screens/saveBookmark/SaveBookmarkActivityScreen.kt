@@ -6,22 +6,28 @@ import android.widget.Toast
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHost
+import androidx.navigation.NavHostController
+import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.onBackPressed
 import org.yrovas.linklater.ui.activity.AppActivity
 import org.yrovas.linklater.ui.activity.SaveBookmarkActivity
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkState.Event
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Event
 
+typealias SaveBookmarkActivityScreen = @Composable () -> Unit
+@Inject
 @Composable
 fun SaveBookmarkActivityScreen(
-    nav: NavController,
-    snackState: SnackbarHostState,
-    saveBookmarkState: () -> SaveBookmarkState,
+    nav: NavHostController,
+    saveBookmarkModel: () -> SaveBookmarkModel,
 ) {
     val context: Context = LocalContext.current
-    val state = viewModel { saveBookmarkState() }
+    val state = viewModel { saveBookmarkModel() }
+    val snackState = remember { SnackbarHostState() }
     LaunchedEffect(true) {
         val url = (context as SaveBookmarkActivity).extractURL()
         Log.d("DEBUG/nav", "Extracting Intent URL: $url")
@@ -30,7 +36,7 @@ fun SaveBookmarkActivityScreen(
 
     SaveBookmarkScreen(nav = nav,
         snackState = snackState,
-        state = saveBookmarkState,
+        saveBookmarkModel = saveBookmarkModel,
         back = { context.onBackPressed() },
         onSubmitSuccess = suspend {
             Toast.makeText(context, "Saved Bookmark", Toast.LENGTH_SHORT).show()

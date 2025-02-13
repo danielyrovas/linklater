@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.getAppVersion
@@ -46,17 +49,20 @@ import org.yrovas.linklater.openUri
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.TextPreference
-import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Event
+import org.yrovas.linklater.ui.screens.preferences.PreferencesModel.Event
 import org.yrovas.linklater.ui.theme.padding
 
+typealias PreferencesScreen = @Composable () -> Unit
+
+@Inject
 @Composable
 fun PreferencesScreen(
-    nav: NavController,
-    snackState: SnackbarHostState,
-    state: () -> PreferencesState,
+    nav: NavHostController,
+    preferencesModel: () -> PreferencesModel,
 ) {
     val context = LocalContext.current
-    @Suppress("NAME_SHADOWING") val state = viewModel { state() }
+    val state = viewModel { preferencesModel() }
+    val snackState = remember { SnackbarHostState() }
 
     val defaultBookmark by state.defaultBookmark.collectAsState()
 

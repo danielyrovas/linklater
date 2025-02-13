@@ -10,19 +10,19 @@ import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.domain.BookmarkAPI
+import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.intoTags
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
-import org.yrovas.linklater.ui.screens.ScreenState
-import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Effect
-import org.yrovas.linklater.ui.screens.preferences.PreferencesState.Event
+import org.yrovas.linklater.ui.screens.ScreenModel
+import org.yrovas.linklater.ui.screens.preferences.PreferencesModel.Effect
+import org.yrovas.linklater.ui.screens.preferences.PreferencesModel.Event
 
 @Inject
-class PreferencesState(
+class PreferencesModel(
     private val bookmarkAPI: BookmarkAPI,
     private val prefStore: PrefDataStore,
-) : ScreenState<Event, Effect>() {
+) : ScreenModel<Event, Effect>() {
 
     sealed interface Event : ScreenEvent {
         data class SaveEndpoint(val url: String) : Event

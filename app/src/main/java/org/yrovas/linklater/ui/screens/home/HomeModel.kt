@@ -19,24 +19,24 @@ import kotlinx.datetime.Clock
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.showTitleOrElse
-import org.yrovas.linklater.domain.APIError
-import org.yrovas.linklater.domain.BookmarkAPI
-import org.yrovas.linklater.domain.BookmarkDataSource
-import org.yrovas.linklater.domain.errorOrThrow
-import org.yrovas.linklater.domain.getOrThrow
-import org.yrovas.linklater.domain.isErr
+import org.yrovas.linklater.data.remote.APIError
+import org.yrovas.linklater.data.remote.BookmarkAPI
+import org.yrovas.linklater.data.local.BookmarkDataSource
+import org.yrovas.linklater.errorOrThrow
+import org.yrovas.linklater.getOrThrow
+import org.yrovas.linklater.isErr
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
-import org.yrovas.linklater.ui.screens.ScreenState
+import org.yrovas.linklater.ui.screens.ScreenModel
 
 const val TAG = "DEBUG/state"
 const val FIRST_POSSIBLE_DATE = "0000-01-01T00:00:00Z"
 
 @Inject
-class HomeState(
+class HomeModel(
     private val api: BookmarkAPI,
     private val bookmarkSource: BookmarkDataSource,
-) : ScreenState<HomeState.Event, HomeState.Effect>() {
+) : ScreenModel<HomeModel.Event, HomeModel.Effect>() {
 
     sealed interface Event : ScreenEvent {
         data object RefreshBookmarks : Event
