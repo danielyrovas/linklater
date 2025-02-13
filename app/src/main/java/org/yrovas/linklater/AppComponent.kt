@@ -26,10 +26,6 @@ import me.tatarka.inject.annotations.Provides
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.ui.screens.NavigationHost
-import org.yrovas.linklater.ui.screens.home.HomeScreen
-import org.yrovas.linklater.ui.screens.preferences.PreferencesScreen
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkActivityScreen
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkScreen
 import software.amazon.lastmile.kotlin.inject.anvil.AppScope
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
@@ -48,10 +44,6 @@ abstract class AppComponent(
     abstract val navigationHost: NavigationHost
     abstract val prefStore: PrefDataStore
     abstract val bookmarkAPI: BookmarkAPI
-    abstract val homeScreen: HomeScreen
-    abstract val preferencesScreen: PreferencesScreen
-    abstract val saveBookmarkScreen: SaveBookmarkScreen
-    abstract val saveBookmarkActivityScreen: SaveBookmarkActivityScreen
 
     @SingleIn(AppScope::class)
     @Provides

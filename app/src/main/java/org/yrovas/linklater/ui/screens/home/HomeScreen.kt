@@ -29,6 +29,8 @@ import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.screens.Destination
+import org.yrovas.linklater.ui.screens.NavModel
+import org.yrovas.linklater.ui.screens.ObserveNavEffects
 import org.yrovas.linklater.ui.screens.home.HomeModel.Effect
 import org.yrovas.linklater.ui.screens.home.HomeModel.Event
 import org.yrovas.linklater.ui.screens.home.components.BookmarkRow
@@ -39,10 +41,7 @@ typealias HomeScreen = @Composable () -> Unit
 
 @Inject
 @Composable
-fun HomeScreen(
-    nav: NavHostController,
-    homeModel: () -> HomeModel,
-) {
+fun HomeScreen(homeModel: () -> HomeModel) {
     val state = viewModel { homeModel() }
     val snackState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -52,6 +51,8 @@ fun HomeScreen(
     val listState = rememberLazyListState()
     val searchBarActive by state.searchBarActive.collectAsState()
     var expandAppBar by remember { mutableStateOf(listState.firstVisibleItemIndex == 0) }
+
+    ObserveNavEffects()
 
     state.subscribeEffects(scope) { effect ->
         when (effect) {
@@ -70,7 +71,6 @@ fun HomeScreen(
     }
 
     Frame(appBar = { HomeAppBar(
-        nav = nav,
         bookmarkCount = bookmarkCount,
         filteredCount = filteredCount,
         isExpanded = expandAppBar,
@@ -81,7 +81,7 @@ fun HomeScreen(
         onClearSearch = { state.sendEvent(Event.SearchBarClose) },
     )}, fab = {
         FloatingActionButton(modifier = Modifier.padding(padding.standard),
-            onClick = { nav.navigate(Destination.SaveBookmark) },
+            onClick = { NavModel.navigate(Destination.SaveBookmark) },
             content = { Icon(imageVector = Icons.Default.AddLink) })
     }, snackState = snackState) {
         LazyColumn(

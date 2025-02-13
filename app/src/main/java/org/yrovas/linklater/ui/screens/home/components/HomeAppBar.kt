@@ -1,7 +1,6 @@
 package org.yrovas.linklater.ui.screens.home.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -32,9 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.yrovas.linklater.ThemePreview
@@ -42,13 +39,13 @@ import org.yrovas.linklater.ui.common.AnimateExpandBox
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.RefreshIcon
 import org.yrovas.linklater.ui.common.StyledTextField
-import org.yrovas.linklater.ui.screens.preferences.PreferencesDestination
+import org.yrovas.linklater.ui.screens.Destination
+import org.yrovas.linklater.ui.screens.NavModel
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
 
 @Composable
 fun HomeAppBar(
-    nav: NavController,
     bookmarkCount: Int,
     filteredCount: Int,
     isExpanded: Boolean,
@@ -74,14 +71,13 @@ fun HomeAppBar(
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .padding(vertical = padding.standard)
-            ,
+                .padding(vertical = padding.standard),
 //            contentAlignment = if (isExpanded) Alignment.TopStart else Alignment.TopStart
         ) {
             if (searchBarActive) {
                 SearchRow(searchState = searchState, onClearSearch = onClearSearch)
             } else {
-                DefaultActions(nav, isExpanded, onRefreshClick, isRefreshing)
+                DefaultActions(isExpanded, onRefreshClick, isRefreshing)
             }
         }
     }
@@ -114,12 +110,10 @@ fun AppHeader(
 
 @Composable
 fun DefaultActions(
-    nav: NavController,
-    isExpanded: Boolean,
-    onRefreshClick: () -> Unit, isRefreshing: StateFlow<Boolean>
+    isExpanded: Boolean, onRefreshClick: () -> Unit, isRefreshing: StateFlow<Boolean>
 ) {
-    Row(modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.End
+    Row(
+        modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End
     ) {
         IconButton(onClick = {}) {
             Icon(
@@ -131,11 +125,11 @@ fun DefaultActions(
 //            val x by animateFloatAsState(targetValue = if (isExpanded) 1f else 0f)
 //            Spacer(modifier = Modifier.weight(x))
         }
-        Row() {
+        Row {
             IconButton(onClick = onRefreshClick) {
                 RefreshIcon(isRefreshing = isRefreshing)
             }
-            IconButton(onClick = { nav.navigate(PreferencesDestination) }) {
+            IconButton(onClick = { NavModel.navigate(Destination.Preferences) }) {
                 Icon(
                     imageVector = Icons.Default.Settings, tint = colorScheme.primary
                 )
@@ -172,8 +166,7 @@ private fun HomeAppBarExpandedSearchPreview() {
     var searchBarActive by remember { mutableStateOf(true) }
 
     AppTheme {
-        HomeAppBar(nav = NavController(LocalContext.current),
-            isExpanded = isExpanded,
+        HomeAppBar(isExpanded = isExpanded,
             searchBarActive = searchBarActive,
             isRefreshing = MutableStateFlow(false),
             bookmarkCount = 403,
@@ -191,8 +184,7 @@ private fun HomeAppBarCollapsedSearchPreview() {
     var searchBarActive by remember { mutableStateOf(true) }
 
     AppTheme {
-        HomeAppBar(nav = NavController(LocalContext.current),
-            isExpanded = isExpanded,
+        HomeAppBar(isExpanded = isExpanded,
             searchBarActive = searchBarActive,
             isRefreshing = MutableStateFlow(false),
             bookmarkCount = 403,
@@ -210,8 +202,7 @@ private fun HomeAppBarExpandedPreview() {
     var searchBarActive by remember { mutableStateOf(false) }
 
     AppTheme {
-        HomeAppBar(nav = NavController(LocalContext.current),
-            isExpanded = isExpanded,
+        HomeAppBar(isExpanded = isExpanded,
             searchBarActive = searchBarActive,
             isRefreshing = MutableStateFlow(false),
             bookmarkCount = 403,
@@ -229,8 +220,7 @@ private fun HomeAppBarCollapsedPreview() {
     var searchBarActive by remember { mutableStateOf(false) }
 
     AppTheme {
-        HomeAppBar(nav = NavController(LocalContext.current),
-            isExpanded = isExpanded,
+        HomeAppBar(isExpanded = isExpanded,
             searchBarActive = searchBarActive,
             isRefreshing = MutableStateFlow(false),
             bookmarkCount = 403,

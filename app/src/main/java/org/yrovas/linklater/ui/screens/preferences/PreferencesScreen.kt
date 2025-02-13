@@ -1,5 +1,6 @@
 package org.yrovas.linklater.ui.screens.preferences
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -49,6 +50,9 @@ import org.yrovas.linklater.openUri
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.TextPreference
+import org.yrovas.linklater.ui.screens.NavModel
+import org.yrovas.linklater.ui.screens.ObserveNavEffects
+import org.yrovas.linklater.ui.screens.home.TAG
 import org.yrovas.linklater.ui.screens.preferences.PreferencesModel.Event
 import org.yrovas.linklater.ui.theme.padding
 
@@ -57,17 +61,19 @@ typealias PreferencesScreen = @Composable () -> Unit
 @Inject
 @Composable
 fun PreferencesScreen(
-    nav: NavHostController,
     preferencesModel: () -> PreferencesModel,
 ) {
+    Log.d(TAG, "PreferencesScreen: COMPOSED")
     val context = LocalContext.current
     val state = viewModel { preferencesModel() }
     val snackState = remember { SnackbarHostState() }
 
     val defaultBookmark by state.defaultBookmark.collectAsState()
 
+    ObserveNavEffects()
+
     Frame(
-        page = "Preferences", back = { nav.navigateUp() }, snackState = snackState
+        page = "Preferences", back = { NavModel.navigateUpOrExit() }, snackState = snackState
     ) {
         Column(
             modifier = Modifier

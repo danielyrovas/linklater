@@ -9,22 +9,20 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavHost
-import androidx.navigation.NavHostController
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.onBackPressed
 import org.yrovas.linklater.ui.activity.AppActivity
 import org.yrovas.linklater.ui.activity.SaveBookmarkActivity
+import org.yrovas.linklater.ui.screens.ObserveNavEffects
+import org.yrovas.linklater.ui.screens.home.TAG
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Event
 
 typealias SaveBookmarkActivityScreen = @Composable () -> Unit
+
 @Inject
 @Composable
-fun SaveBookmarkActivityScreen(
-    nav: NavHostController,
-    saveBookmarkModel: () -> SaveBookmarkModel,
-) {
+fun SaveBookmarkActivityScreen(saveBookmarkModel: () -> SaveBookmarkModel) {
+    Log.d(TAG, "SaveBookmarkActivityScreen: COMPOSED")
     val context: Context = LocalContext.current
     val state = viewModel { saveBookmarkModel() }
     val snackState = remember { SnackbarHostState() }
@@ -34,7 +32,9 @@ fun SaveBookmarkActivityScreen(
         state.sendEvent(Event.UpdateBookmark(url = url))
     }
 
-    SaveBookmarkScreen(nav = nav,
+    ObserveNavEffects()
+
+    SaveBookmarkScreen(
         snackState = snackState,
         saveBookmarkModel = saveBookmarkModel,
         back = { context.onBackPressed() },

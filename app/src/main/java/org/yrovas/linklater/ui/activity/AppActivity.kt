@@ -54,9 +54,7 @@ abstract class AppActivity : ComponentActivity() {
             )
         }
         setContent {
-            AppTheme {
-                navHost(entryScreen)
-            }
+            AppTheme { navHost(entryScreen) }
         }
     }
 }
