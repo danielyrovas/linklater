@@ -44,6 +44,10 @@ abstract class ScreenModel<Event : ScreenEvent, Effect : ScreenEffect> : ViewMod
         viewModelScope.launch { _event.emit(event) }
     }
 
+    // suspend fun sendEventSync(event: Event) {
+    //     _event.emit(event)
+    // }
+
     // protected fun sendEffect(builder: () -> Effect) = sendEffect(builder())
     protected fun sendEffect(effect: Effect) {
         viewModelScope.launch { _effect.send(effect) }

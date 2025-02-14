@@ -1,6 +1,7 @@
 package org.yrovas.linklater.ui.screens.saveBookmark
 
 import androidx.lifecycle.viewModelScope
+import com.github.michaelbull.result.mapBoth
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,19 +11,18 @@ import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.LocalBookmark
+import org.yrovas.linklater.data.local.BookmarkDataSource
 import org.yrovas.linklater.data.local.PrefDataStore
 import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.data.remote.APIError
-import org.yrovas.linklater.data.remote.BookmarkAPI
-import org.yrovas.linklater.data.local.BookmarkDataSource
-import org.yrovas.linklater.Res
 import org.yrovas.linklater.data.local.TagDataSource
+import org.yrovas.linklater.data.models.APIError
+import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.intoTags
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Effect
-import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Event
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
 import org.yrovas.linklater.ui.screens.ScreenModel
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Effect
+import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Event
 
 @Inject
 class SaveBookmarkModel(
@@ -73,8 +73,7 @@ class SaveBookmarkModel(
     private val _previewTitle: MutableStateFlow<String?> = MutableStateFlow(null)
     val previewTitle = _previewTitle.asStateFlow()
 
-    private val _previewDescription: MutableStateFlow<String?> =
-        MutableStateFlow(null)
+    private val _previewDescription: MutableStateFlow<String?> = MutableStateFlow(null)
     val previewDescription = _previewDescription.asStateFlow()
 
     private val _bookmarkExists = MutableStateFlow(false)
@@ -116,8 +115,7 @@ class SaveBookmarkModel(
                 if (tagNameString.isBlank()) {
                     emptyList()
                 } else {
-                    val partialTag =
-                        tagNameString.trim().split("\\s+".toRegex()).last()
+                    val partialTag = tagNameString.trim().split("\\s+".toRegex()).last()
                     tags.value.filter { it.startsWith(partialTag, ignoreCase = true) }.take(5)
                 }
             }
@@ -137,8 +135,7 @@ class SaveBookmarkModel(
         }
         _predictionTags.update { emptyList() }
         var tagNameString =
-            tagNames.value.trim().split("\\s+".toRegex()).dropLast(1)
-                .joinToString(" ")
+            tagNames.value.trim().split("\\s+".toRegex()).dropLast(1).joinToString(" ")
         if (tagNameString.isNotBlank()) {
             tagNameString += " "
         }
@@ -153,16 +150,12 @@ class SaveBookmarkModel(
         _isSubmitting.update { true }
         val tags =
             (bookmarkToSave.value.tags + selectedTags.value + tagNames.value.intoTags()).distinct()
-        val bookmark =
-            bookmarkToSave.value.withUpdates(tags = tags.ifEmpty { null })
+        val bookmark = bookmarkToSave.value.withUpdates(tags = tags.ifEmpty { null })
         viewModelScope.launch(Dispatchers.IO) {
-            when (val res = bookmarkAPI.saveBookmark(bookmark)) {
-                is Res.Err -> sendEffect(Effect.SubmitError(res.error))
-                is Res.Ok -> {
-                    bookmarkSource.insertBookmark(res.data)
-                    sendEffect(Effect.SubmitSuccess)
-                }
-            }
+            bookmarkAPI.saveBookmark(bookmark).mapBoth(success = {
+                bookmarkSource.insertBookmark(it)
+                sendEffect(Effect.SubmitSuccess)
+            }, failure = { sendEffect(Effect.SubmitError(it)) })
             _isSubmitting.update { false }
         }
     }
@@ -197,8 +190,7 @@ class SaveBookmarkModel(
     private lateinit var defaultTags: List<String>
     private fun getDefaultTags() {
         viewModelScope.launch(Dispatchers.IO) {
-            defaultTags =
-                prefStore.getPref(Prefs.BOOKMARK_DEFAULT_TAG_NAMES, "").intoTags()
+            defaultTags = prefStore.getPref(Prefs.BOOKMARK_DEFAULT_TAG_NAMES, "").intoTags()
             setTagList((tags.value + defaultTags).distinct())
             _selectedTags.update { defaultTags }
         }
@@ -272,13 +264,13 @@ class SaveBookmarkModel(
                     }
                 }
                 updateBookmark(
-                url = event.url,
-                title = event.title,
-                description = event.description,
-                notes = event.notes,
-                is_archived = event.is_archived,
-                unread = event.unread,
-                shared = event.shared,
+                    url = event.url,
+                    title = event.title,
+                    description = event.description,
+                    notes = event.notes,
+                    is_archived = event.is_archived,
+                    unread = event.unread,
+                    shared = event.shared,
                 )
             }
 

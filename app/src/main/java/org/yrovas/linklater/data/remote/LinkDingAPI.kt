@@ -1,6 +1,13 @@
 package org.yrovas.linklater.data.remote
 
 import android.util.Log
+import com.github.michaelbull.result.Err
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.map
+import com.github.michaelbull.result.mapBoth
+import com.github.michaelbull.result.unwrap
+import com.github.michaelbull.result.unwrapError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
@@ -21,13 +28,7 @@ import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.BookmarkMetadata
 import org.yrovas.linklater.data.LocalBookmark
-import org.yrovas.linklater.Err
-import org.yrovas.linklater.Ok
-import org.yrovas.linklater.Res
-import org.yrovas.linklater.errorOrThrow
-import org.yrovas.linklater.getOrThrow
-import org.yrovas.linklater.isOk
-import org.yrovas.linklater.mapData
+import org.yrovas.linklater.data.models.APIError
 import software.amazon.lastmile.kotlin.inject.anvil.AppScope
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
@@ -50,7 +51,7 @@ class LinkDingAPI(
     override fun authenticate(
         endpoint: String?,
         token: String?,
-    ): Res<Unit, APIError> {
+    ): Result<Unit, APIError> {
         Log.d(TAG, "authenticate: with endpoint: $endpoint")
         if (!endpoint.isNullOrBlank()) {
             if (!checkURL(endpoint)) return Err(APIError.INCORRECT_ENDPOINT)
@@ -66,20 +67,24 @@ class LinkDingAPI(
         return Ok(Unit)
     }
 
-    override suspend fun checkConnection(): Res<Unit, APIError> {
+    override suspend fun checkConnection(): Result<Unit, APIError> {
         if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
 
-        return when (val res = getBookmarks(page = 0)) {
-            is Res.Err -> Err(res.error)
-            is Res.Ok -> Ok(Unit)
-        }
+//        return when (val res = getBookmarks(page = 0)) {
+//            is Result.Err -> Err(res.error)
+//            is Result.Ok -> Ok(Unit)
+//        }
+        return getBookmarks(page = 0).mapBoth(
+            success = { Ok(Unit) },
+            failure = { Err(it) },
+        )
     }
 
     private suspend fun fetchBookmarks(
         page: Int,
         archived: Boolean = false,
         sortByAddedAsc: Boolean = false,
-    ): Res<BookmarkResponse, APIError> {
+    ): Result<BookmarkResponse, APIError> {
 //        Log.d(TAG, "fetchBookmarks: with AUTH: ")
         if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
         return try {
@@ -101,11 +106,11 @@ class LinkDingAPI(
         }
     }
 
-    override suspend fun getBookmarks(page: Int): Res<List<Bookmark>, APIError> {
-        return fetchBookmarks(page).mapData { it.results }
+    override suspend fun getBookmarks(page: Int): Result<List<Bookmark>, APIError> {
+        return fetchBookmarks(page).map { it.results }
     }
 
-    override suspend fun getAllBookmarks(): Flow<Res<List<Bookmark>, APIError>> {
+    override suspend fun getAllBookmarks(): Flow<Result<List<Bookmark>, APIError>> {
         return flow {
             Log.d(TAG, "getAllBookmarks: Flow Created")
             var page = 0
@@ -116,23 +121,23 @@ class LinkDingAPI(
                 val res = fetchBookmarks(page, sortByAddedAsc = true)
                 page++
                 if (res.isOk) {
-                    emit(res.mapData { it.results })
+                    emit(res.map { it.results })
 
                     // exit when finished archived
-                    if (res.getOrThrow().next.isNullOrBlank()) {
+                    if (res.unwrap().next.isNullOrBlank()) {
                         Log.d(TAG, "getAllBookmarks: No More Pages")
                         break
                     }
 
                 } else {
-                    Log.d(TAG, "getAllBookmarks: stopping due to error: ${res.errorOrThrow()}")
+                    Log.d(TAG, "getAllBookmarks: stopping due to error: ${res.unwrapError()}")
                     break
                 }
             }
         }
     }
 
-    override suspend fun saveBookmark(bookmark: LocalBookmark): Res<Bookmark, APIError> {
+    override suspend fun saveBookmark(bookmark: LocalBookmark): Result<Bookmark, APIError> {
         if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
         return try {
             val response = client.post("${endpoint!!}/bookmarks/") {
@@ -148,7 +153,7 @@ class LinkDingAPI(
         }
     }
 
-    override suspend fun getTags(page: Int): Res<List<String>, APIError> {
+    override suspend fun getTags(page: Int): Result<List<String>, APIError> {
         if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
         return try {
             Log.d(TAG, "getTags: starting request")

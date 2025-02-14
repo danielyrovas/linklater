@@ -106,6 +106,8 @@ dependencies {
     implementation(libs.ktor.client.logging.jvm)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+    implementation(libs.kotlin.result)
+    implementation(libs.kotlin.result.coroutines)
 
     implementation(libs.sqldelight.coroutines.extensions)
     implementation(libs.sqldelight.android.driver)

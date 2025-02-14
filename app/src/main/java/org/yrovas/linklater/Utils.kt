@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.datetime.Instant
-import org.yrovas.linklater.data.remote.APIError
+import org.yrovas.linklater.data.models.APIError
 import kotlin.math.abs
 
 fun checkURL(url: String) = url.contains(Regex("^https?://.+[.].+"))

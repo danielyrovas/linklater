@@ -14,7 +14,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.TAG
 import org.yrovas.linklater.ui.screens.home.HomeScreen
 import org.yrovas.linklater.ui.screens.preferences.PreferencesScreen
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkActivityScreen

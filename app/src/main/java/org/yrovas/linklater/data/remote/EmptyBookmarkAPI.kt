@@ -8,19 +8,20 @@ import kotlinx.coroutines.flow.flowOf
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.BookmarkMetadata
 import org.yrovas.linklater.data.LocalBookmark
-import org.yrovas.linklater.Err
-import org.yrovas.linklater.Ok
-import org.yrovas.linklater.Res
+import com.github.michaelbull.result.Result
+import com.github.michaelbull.result.Ok
+import com.github.michaelbull.result.Err
+import org.yrovas.linklater.data.models.APIError
 
 class EmptyBookmarkAPI : BookmarkAPI {
     override fun authenticate(
         endpoint: String?,
         token: String?,
-    ): Res<Unit, APIError> {
+    ): Result<Unit, APIError> {
         return Ok(Unit)
     }
 
-    override suspend fun checkConnection(): Res<Unit, APIError> {
+    override suspend fun checkConnection(): Result<Unit, APIError> {
         return Ok(Unit)
     }
 
@@ -29,21 +30,21 @@ class EmptyBookmarkAPI : BookmarkAPI {
 
     override suspend fun getBookmarks(
         page: Int,
-    ): Res<List<Bookmark>, APIError> {
+    ): Result<List<Bookmark>, APIError> {
         delay(4300)
         return Ok(emptyList())
 //        return Err(APIError.AUTH)
     }
 
-    override suspend fun getAllBookmarks(): Flow<Res<List<Bookmark>, APIError>> {
+    override suspend fun getAllBookmarks(): Flow<Result<List<Bookmark>, APIError>> {
         return flowOf()
     }
 
-    override suspend fun saveBookmark(bookmark: LocalBookmark): Res<Bookmark, APIError> {
+    override suspend fun saveBookmark(bookmark: LocalBookmark): Result<Bookmark, APIError> {
         return Err(APIError.NO_CONNECTION)
     }
 
-    override suspend fun getTags(page: Int): Res<List<String>, APIError> {
+    override suspend fun getTags(page: Int): Result<List<String>, APIError> {
         return Ok(emptyList())
     }
 

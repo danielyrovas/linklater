@@ -21,8 +21,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import kotlinx.coroutines.flow.filter
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.show
@@ -70,16 +68,18 @@ fun HomeScreen(homeModel: () -> HomeModel) {
             }
     }
 
-    Frame(appBar = { HomeAppBar(
-        bookmarkCount = bookmarkCount,
-        filteredCount = filteredCount,
-        isExpanded = expandAppBar,
-        searchBarActive = searchBarActive,
-        isRefreshing = state.isRefreshing,
-        onRefreshClick = { state.sendEvent(Event.RefreshBookmarks) },
-        searchState = state.bookmarkQueryState,
-        onClearSearch = { state.sendEvent(Event.SearchBarClose) },
-    )}, fab = {
+    Frame(appBar = {
+        HomeAppBar(
+            bookmarkCount = bookmarkCount,
+            filteredCount = filteredCount,
+            isExpanded = expandAppBar,
+            searchBarActive = searchBarActive,
+            isRefreshing = state.isRefreshing,
+            onRefreshClick = { state.sendEvent(Event.RefreshBookmarks) },
+            searchState = state.bookmarkQueryState,
+            onClearSearch = { state.sendEvent(Event.SearchBarClose) },
+        )
+    }, fab = {
         FloatingActionButton(modifier = Modifier.padding(padding.standard),
             onClick = { NavModel.navigate(Destination.SaveBookmark) },
             content = { Icon(imageVector = Icons.Default.AddLink) })

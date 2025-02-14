@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.viewModelScope
+import com.github.michaelbull.result.unwrap
+import com.github.michaelbull.result.unwrapError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,12 +21,9 @@ import kotlinx.datetime.Clock
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.showTitleOrElse
-import org.yrovas.linklater.data.remote.APIError
+import org.yrovas.linklater.data.models.APIError
 import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.data.local.BookmarkDataSource
-import org.yrovas.linklater.errorOrThrow
-import org.yrovas.linklater.getOrThrow
-import org.yrovas.linklater.isErr
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
 import org.yrovas.linklater.ui.screens.ScreenModel
@@ -192,12 +191,12 @@ class HomeModel(
             var page = 0
             api.getAllBookmarks().collect { res ->
                 if (res.isErr) {
-                    Log.d(TAG, "refreshAllBookmarks: ERROR on PAGE $page: ${res.errorOrThrow()}")
-                    sendEffect(Effect.RefreshError(res.errorOrThrow()))
+                    Log.d(TAG, "refreshAllBookmarks: ERROR on PAGE $page: ${res.unwrapError()}")
+                    sendEffect(Effect.RefreshError(res.unwrapError()))
                     page += 1
                     return@collect
                 }
-                val bookmarks = res.getOrThrow()
+                val bookmarks = res.unwrap()
                 Log.d(
                     TAG,
                     "refreshAllBookmarks: collected ${bookmarks.size} bookmarks from page $page."
