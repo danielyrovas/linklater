@@ -1,14 +1,13 @@
 package org.yrovas.linklater
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.navigation.NavHostController
 import androidx.sqlite.db.SupportSQLiteDatabase
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.android.AndroidSqliteDriver
+import co.touchlab.kermit.Severity
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.DefaultRequest
@@ -20,10 +19,14 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import me.tatarka.inject.annotations.Inject
 import me.tatarka.inject.annotations.Provides
 import org.yrovas.linklater.data.local.PrefDataStore
+import org.yrovas.linklater.data.local.PrefStore
+import org.yrovas.linklater.data.local.Prefs
+import org.yrovas.linklater.data.local.asSeverity
 import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.ui.screens.NavigationHost
 import software.amazon.lastmile.kotlin.inject.anvil.AppScope
@@ -31,7 +34,6 @@ import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
 import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
 import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-const val TAG = "DEBUG/create"
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "preferences")
 
 @MergeComponent(AppScope::class)
@@ -44,13 +46,6 @@ abstract class AppComponent(
     abstract val navigationHost: NavigationHost
     abstract val prefStore: PrefDataStore
     abstract val bookmarkAPI: BookmarkAPI
-
-    @SingleIn(AppScope::class)
-    @Provides
-    fun provideNav(): NavHostController {
-        Log.d(TAG, "provideNav: CREATE")
-        return NavHostController(context)
-    }
 }
 
 @Inject
@@ -58,15 +53,31 @@ abstract class AppComponent(
 interface AppModule {
     @SingleIn(AppScope::class)
     @Provides
-    fun provideHttpClient(): HttpClient = HttpClient(Android) {
-        Log.d(TAG, "provideHttpClient: CREATE")
+    fun provideHttpClient(severityPreferences: SeverityPreferences): HttpClient = HttpClient(Android) {
+        InitLog.d { "Creating Ktor HTTP Client with logging severity: ${severityPreferences.net.name}" }
         install(Logging) {
-            logger = object : Logger {
-                override fun log(message: String) {
-                    Log.i("Ktor =>", message)
+            logger = when (severityPreferences.net) {
+                Severity.Verbose -> object : Logger {
+                    override fun log(message: String) {
+                        NetLog.v { message }
+                    }
+                }
+                Severity.Debug -> object : Logger {
+                    override fun log(message: String) {
+                        NetLog.d { message }
+                    }
+                }
+                else -> object : Logger {
+                    override fun log(message: String) {
+                        NetLog.w { message }
+                    }
                 }
             }
-            level = LogLevel.ALL
+            level = when (severityPreferences.net) {
+                Severity.Verbose -> LogLevel.ALL
+                Severity.Debug -> LogLevel.INFO
+                else -> LogLevel.NONE
+            }
         }
         install(ContentNegotiation) {
             json(Json {
@@ -83,7 +94,7 @@ interface AppModule {
     @SingleIn(AppScope::class)
     @Provides
     fun provideSQLDriver(context: Context): SqlDriver {
-        Log.d(TAG, "provideSQLDriver: CREATE")
+        InitLog.v { "Creating SQL Driver" }
         return AndroidSqliteDriver(schema = Database.Schema,
             context = context,
             name = "linklater.db",
@@ -97,7 +108,7 @@ interface AppModule {
     @SingleIn(AppScope::class)
     @Provides
     fun provideDB(driver: SqlDriver): Database {
-        Log.d(TAG, "provideDB: CREATE")
+        InitLog.v { "Creating SQL Database" }
         return Database(driver)
     }
 }

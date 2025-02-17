@@ -1,6 +1,5 @@
 package org.yrovas.linklater.ui.screens.home
 
-import android.util.Log
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.viewModelScope
@@ -19,16 +18,16 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.Log
 import org.yrovas.linklater.data.Bookmark
-import org.yrovas.linklater.data.showTitleOrElse
+import org.yrovas.linklater.data.local.BookmarkDataSource
 import org.yrovas.linklater.data.models.APIError
 import org.yrovas.linklater.data.remote.BookmarkAPI
-import org.yrovas.linklater.data.local.BookmarkDataSource
+import org.yrovas.linklater.data.showTitleOrElse
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
 import org.yrovas.linklater.ui.screens.ScreenModel
 
-const val TAG = "DEBUG/state"
 const val FIRST_POSSIBLE_DATE = "0000-01-01T00:00:00Z"
 
 @Inject
@@ -76,22 +75,20 @@ class HomeModel(
 //    private val _displayedBookmarks = MutableStateFlow(listOf<Bookmark>())
 //    val displayedBookmarks = _displayedBookmarks.asStateFlow()
 
-    val filteredBookmarks: StateFlow<List<Bookmark>> = snapshotFlow { bookmarkQueryState.text }
-        .debounce(500)
-        .mapLatest { query ->
+    val filteredBookmarks: StateFlow<List<Bookmark>> =
+        snapshotFlow { bookmarkQueryState.text }.debounce(500).mapLatest { query ->
             val b = allBookmarks.value.filter { bookmarkMatchesQuery(it, query.toString()) }
             sendEffect(Effect.FilterChanged)
             b
         }.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(),
-            initialValue = allBookmarks.value
+            viewModelScope, SharingStarted.WhileSubscribed(), initialValue = allBookmarks.value
         )
 
     val filteredBookmarkCount: StateFlow<Int> = snapshotFlow { filteredBookmarks.value }.mapLatest {
         it.size
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(),
-        initialValue = allBookmarks.value.size)
+    }.stateIn(
+        viewModelScope, SharingStarted.WhileSubscribed(), initialValue = allBookmarks.value.size
+    )
 
     private val _searchBarActive = MutableStateFlow(false)
     val searchBarActive = _searchBarActive.asStateFlow()
@@ -101,35 +98,33 @@ class HomeModel(
         val stringWithoutTagSymbols = stringWithoutTagSymbols(query)
         val partialTag = partialTagFromQuery(query)
         val tags = tagsFromQuery(query)
-        return if (stringWithoutTags.isBlank())
-            queryMatchesTags(bookmark, tags, partialTag)
-        else
-            queryMatchesTags(bookmark, tags, partialTag) && (
-                queryMatchesString(bookmark, query) ||
-                queryMatchesString(bookmark, stringWithoutTags) ||
-                queryMatchesString(bookmark, stringWithoutTagSymbols)
-            )
+        return if (stringWithoutTags.isBlank()) queryMatchesTags(bookmark, tags, partialTag)
+        else queryMatchesTags(bookmark, tags, partialTag) && (queryMatchesString(
+            bookmark, query
+        ) || queryMatchesString(bookmark, stringWithoutTags) || queryMatchesString(
+            bookmark, stringWithoutTagSymbols
+        ))
     }
 
     private fun queryMatchesString(bookmark: Bookmark, string: String): Boolean {
-        return bookmark.url.contains(string, ignoreCase = true) ||
-            bookmark.title?.contains(string, ignoreCase = true) == true ||
-            bookmark.website_title?.contains(string, ignoreCase = true) == true ||
-            bookmark.description?.contains(string, ignoreCase = true) == true ||
-            bookmark.website_description?.contains(string, ignoreCase = true) == true ||
-            bookmark.notes?.contains(string, ignoreCase = true) == true
+        return bookmark.url.contains(string, ignoreCase = true) || bookmark.title?.contains(
+            string, ignoreCase = true
+        ) == true || bookmark.website_title?.contains(
+            string, ignoreCase = true
+        ) == true || bookmark.description?.contains(
+            string, ignoreCase = true
+        ) == true || bookmark.website_description?.contains(
+            string, ignoreCase = true
+        ) == true || bookmark.notes?.contains(string, ignoreCase = true) == true
     }
 
     private fun queryMatchesTags(
-        bookmark: Bookmark,
-        tags: List<String>,
-        partialTag: String
+        bookmark: Bookmark, tags: List<String>, partialTag: String
     ): Boolean {
         return tags.all { queryTag ->
             bookmark.tags.any {
                 it.equals(queryTag, ignoreCase = true) || (queryTag == partialTag && it.startsWith(
-                    partialTag,
-                    ignoreCase = true
+                    partialTag, ignoreCase = true
                 ))
             }
         }
@@ -191,27 +186,17 @@ class HomeModel(
             var page = 0
             api.getAllBookmarks().collect { res ->
                 if (res.isErr) {
-                    Log.d(TAG, "refreshAllBookmarks: ERROR on PAGE $page: ${res.unwrapError()}")
+                    Log.w { "Error refreshing bookmarks on page $page: ${res.unwrapError()}" }
                     sendEffect(Effect.RefreshError(res.unwrapError()))
                     page += 1
                     return@collect
                 }
                 val bookmarks = res.unwrap()
-                Log.d(
-                    TAG,
-                    "refreshAllBookmarks: collected ${bookmarks.size} bookmarks from page $page."
-                )
-                if (bookmarks.isNotEmpty()) Log.d(
-                    TAG, "refreshAllBookmarks: With the following added Dates:"
-                )
-                bookmarks.forEach {
-                    Log.d(TAG, "${it.date_added} ::: ${it.showTitleOrElse("${it.id}.ID")}")
-                }
 
                 if (bookmarks.isEmpty()) {
                     if (page == 0) {
                         val now = Clock.System.now().toString()
-                        Log.d(TAG, "refreshAllBookmarks: DELETING ALL bookmarks")
+                        Log.d { "LinkDing server did not send any bookmarks. Deleting all local bookmarks." }
                         bookmarkSource.deleteWithinRange(
                             startDate = FIRST_POSSIBLE_DATE, endDate = now
                         )
@@ -219,26 +204,36 @@ class HomeModel(
                     return@collect
                 }
 
-                if (bookmarks.first().date_added.isNullOrBlank()) {
-                    Log.d(TAG, "refreshAllBookmarks: FIRST ADDED IS BLANK")
+                val firstBookmark = bookmarks.first()
+
+                if (firstBookmark.date_added.isNullOrBlank()) {
+                    Log.w {
+                        "First bookmark's added date is blank, you should delete and recreate this bookmark:\n" +
+                            "${firstBookmark.id} :: ${firstBookmark.showTitleOrElse(firstBookmark.url)}"
+                    }
                     return@collect
                 }
 
-                if (bookmarks.last().date_added.isNullOrBlank()) {
-                    Log.d(TAG, "refreshAllBookmarks: LAST ADDED IS BLANK")
+                val lastBookmark = bookmarks.last()
+                if (lastBookmark.date_added.isNullOrBlank()) {
+                    Log.w {
+                        "Final bookmark's added date is blank, you should delete and recreate this bookmark:\n" +
+                            "${lastBookmark.id} :: ${lastBookmark.showTitleOrElse(lastBookmark.url)}"
+                    }
                     return@collect
                 }
 
                 if (page == 0) {
+                    // TODO: Is this logic borked? INVESTIGATE
                     bookmarkSource.deleteWithinRange(
                         startDate = FIRST_POSSIBLE_DATE,
-                        endDate = bookmarks.first().date_added!!,
-                        exclude = listOf(bookmarks.first()) // exclude the first bookmark
+                        endDate = firstBookmark.date_added,
+                        exclude = listOf(firstBookmark) // exclude the first bookmark
                     )
                 }
 
                 page += 1
-                last = bookmarks.last()
+                last = lastBookmark
                 // delete from db where date_added older than newest on page,
                 // but younger than oldest on page - ie is in date range of page AND
                 // id not in the set of bookmarks returned from API.
@@ -251,7 +246,9 @@ class HomeModel(
 
             last?.let {
                 val now = Clock.System.now().toString()
-                Log.d(TAG, "refreshAllBookmarks: deleting bookarks newer than ${it.date_added}")
+                Log.d {
+                    "Deleting bookmarks newer than ${it.date_added}, the most recent bookmark returned by LinkDing: ${it.showTitleOrElse(it.url)}"
+                }
                 bookmarkSource.deleteWithinRange(
                     startDate = it.date_added!!, endDate = now, exclude = listOf(it)
                 )

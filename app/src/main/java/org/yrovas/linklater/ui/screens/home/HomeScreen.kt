@@ -1,6 +1,5 @@
 package org.yrovas.linklater.ui.screens.home
 
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -61,11 +60,9 @@ fun HomeScreen(homeModel: () -> HomeModel) {
     }
 
     LaunchedEffect(listState) {
+        // TODO: perhaps a different way of handling this
         snapshotFlow { listState.firstVisibleItemIndex }.filter { it in 0..1 } // only care about change from being at the `top`
-            .collect {
-                Log.d(TAG, "HomeScreen: First item visible $it")
-                expandAppBar = it == 0
-            }
+            .collect { expandAppBar = it == 0 }
     }
 
     Frame(appBar = {

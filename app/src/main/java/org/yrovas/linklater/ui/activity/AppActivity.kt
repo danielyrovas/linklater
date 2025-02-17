@@ -6,12 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.runtime.Composable
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,6 +15,7 @@ import org.yrovas.linklater.create
 import org.yrovas.linklater.data.local.Prefs
 import org.yrovas.linklater.ui.screens.Destination
 import org.yrovas.linklater.ui.theme.AppTheme
+import org.yrovas.linklater.Log
 
 fun Context.launch(
     dispatcher: CoroutineDispatcher = Dispatchers.Main,
@@ -47,12 +43,12 @@ abstract class AppActivity : ComponentActivity() {
 
         val navHost = appComponent.navigationHost
         launch {
-            // setup code that runs on first boot
             appComponent.bookmarkAPI.authenticate(
                 endpoint = appComponent.prefStore.getPref(Prefs.LINKDING_URL, ""),
                 token = appComponent.prefStore.getPref(Prefs.LINKDING_TOKEN, ""),
             )
         }
+        Log.v { "Initialised Android App" }
         setContent {
             AppTheme { navHost(entryScreen) }
         }

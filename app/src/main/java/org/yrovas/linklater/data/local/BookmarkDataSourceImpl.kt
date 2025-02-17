@@ -1,6 +1,5 @@
 package org.yrovas.linklater.data.local
 
-import android.util.Log
 import app.cash.sqldelight.TransactionWithoutReturn
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
@@ -11,20 +10,21 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.Database
+import org.yrovas.linklater.InitLog
+import org.yrovas.linklater.Log
 import org.yrovas.linklater.data.Bookmark
+import org.yrovas.linklater.data.showTitleOrElse
 import org.yrovas.linklater.data.toBookmark
 import software.amazon.lastmile.kotlin.inject.anvil.AppScope
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
-
-const val TAG = "DEBUG"
 
 @Inject
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     init {
-        Log.d("DEBUG/create", "BookmarkDataSourceImpl: CREATE")
+        InitLog.v { "Creating Bookmark DataSource" }
     }
 
     private val q = db.bookmarkTagsQueries
@@ -43,7 +43,7 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
 
     override fun getBookmarkCount(): Int {
         return q.countBookmarks().executeAsOneOrNull()?.toInt() ?: -1
-//            .map { Log.d(TAG, "getBookmarkCount: EMIT $it"); it.toInt() }
+//            .map { it.toInt() }
     }
 
     // call from IO context AND within transaction
@@ -51,8 +51,7 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     //       transactionWithResult as the transaction block context
     context(TransactionWithoutReturn, CoroutineScope)
     private fun upsertBookmark(bookmark: Bookmark) {
-//        Log.d(TAG, "upsertBOOKMARK: ${bookmark.title} ${bookmark.website_title}")
-//        Log.d(TAG, "upsertTAGS: ${bookmark.tags}")
+        Log.v { "Inserting or updating bookmark: ${bookmark.showTitleOrElse(bookmark.url)}" }
         val id = q.insertBookmark(
             id = bookmark.id,
             url = bookmark.url,
@@ -70,7 +69,6 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
         bookmark.tags.forEach {
             q.insertTag(name = it)
             val tagID = q.getTagByName(it).executeAsOneOrNull()!!
-//            Log.d(TAG, "inserted TAG: $it,$tagID")
             q.insertTagForBookmark(bookmarkID = id, tagID = tagID)
         }
     }
@@ -93,6 +91,7 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
 
     override suspend fun deleteBookmark(id: Long) {
         withContext(Dispatchers.IO) {
+            Log.v { "Deleting bookmark: $id" }
             q.deleteBookmarkByID(id)
         }
     }
@@ -101,11 +100,14 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
         startDate: String, endDate: String, exclude: List<Bookmark>?
     ) {
         withContext(Dispatchers.IO) {
+            Log.v { "Deleting bookmarks within range: $startDate to $endDate " +
+                "excluding: ${exclude?.joinToString { it.id.toString() }}"
+            }
             q.transaction {
                 if (exclude == null) q.deleteBookmarksCreatedWithinRange(startDate, endDate)
-                else q.deleteBookmarksCreatedWithinRangeExcluding(
-                    startDate, endDate, exclude.map { it.id }
-                )
+                else q.deleteBookmarksCreatedWithinRangeExcluding(startDate,
+                    endDate,
+                    exclude.map { it.id })
             }
         }
     }
@@ -114,7 +116,6 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
         bookmarks: List<Bookmark>, startDate: String, endDate: String
     ) {
         if (bookmarks.isEmpty()) {
-            Log.d(TAG, "upsertOrDeleteWithinRange: NO BOOKMARKS")
             deleteWithinRange(startDate, endDate)
             return
         }
@@ -122,9 +123,14 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
         withContext(Dispatchers.IO) {
             val keepIds = bookmarks.map { it.id }
             q.transaction {
-                if (bookmarks.size > 1) q.deleteBookmarksCreatedWithinRangeExcluding(
-                    start_date = startDate, end_date = endDate, exclude = keepIds
-                )
+                if (bookmarks.size > 1) {
+                    Log.v { "Deleting bookmarks within range: $startDate to $endDate " +
+                        "excluding: ${keepIds.joinToString { it.toString() }}"
+                    }
+                    q.deleteBookmarksCreatedWithinRangeExcluding(
+                        start_date = startDate, end_date = endDate, exclude = keepIds
+                    )
+                }
                 bookmarks.forEach { upsertBookmark(it) }
             }
         }

@@ -36,11 +36,12 @@ class PreferencesModel(
 
     sealed interface Effect : ScreenEffect
 
+    // TODO: backing fields
+    //
+    //    val bookmarkEndpoint: StateFlow<String>
+    //        field = MutableStateFlow("")
     private val _bookmarkEndpoint = MutableStateFlow("")
     var bookmarkEndpoint = _bookmarkEndpoint.asStateFlow()
-    // TODO backing fields
-//    val bookmarkEndpoint: StateFlow<String>
-//        field = MutableStateFlow("")
 
     private val _bookmarkAPIToken = MutableStateFlow("")
     var bookmarkAPIToken = _bookmarkAPIToken.asStateFlow()
@@ -50,6 +51,24 @@ class PreferencesModel(
 
     private val _defaultBookmark = MutableStateFlow(LocalBookmark(""))
     var defaultBookmark = _defaultBookmark.asStateFlow()
+
+    // TODO: logging options
+    // enable/disable in-app logging:
+    //      - verbose network tracing
+    //      - verbose event tracing
+    //      - verbose logic tracing
+    //      - verbose initialisation tracing
+    // automatically send crash reports
+    // automatically send performance reports
+    //
+    // logs can be displayed in preferences > view app logs (note these logs are stored on your device only)
+    // bugs can be reported directly within the app:
+    // submit bug report (preferences > report a bug)
+    //      - opens popup with field to write a summary of the bug (what you were doing/what went wrong)
+    //      - optionally choose to include each level of captured logs
+    // submit crash report via popup after crash occurs
+    //      - optionally include each level of captured logs
+    //      - optionally write a summary of what you were doing/what went wrong
 
     private fun saveBookmarkConf(url: String? = null, token: String? = null) {
         if (url != null) _bookmarkEndpoint.update { url }

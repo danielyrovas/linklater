@@ -1,6 +1,5 @@
 package org.yrovas.linklater.ui.screens.preferences
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -40,8 +39,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavHostController
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
@@ -52,7 +49,6 @@ import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.TextPreference
 import org.yrovas.linklater.ui.screens.NavModel
 import org.yrovas.linklater.ui.screens.ObserveNavEffects
-import org.yrovas.linklater.ui.screens.home.TAG
 import org.yrovas.linklater.ui.screens.preferences.PreferencesModel.Event
 import org.yrovas.linklater.ui.theme.padding
 
@@ -63,7 +59,6 @@ typealias PreferencesScreen = @Composable () -> Unit
 fun PreferencesScreen(
     preferencesModel: () -> PreferencesModel,
 ) {
-    Log.d(TAG, "PreferencesScreen: COMPOSED")
     val context = LocalContext.current
     val state = viewModel { preferencesModel() }
     val snackState = remember { SnackbarHostState() }
@@ -73,7 +68,7 @@ fun PreferencesScreen(
     ObserveNavEffects()
 
     Frame(
-        page = "Preferences", back = { NavModel.navigateUpOrExit() }, snackState = snackState
+        page = "Preferences", back = { NavModel.navigateBack() }, snackState = snackState
     ) {
         Column(
             modifier = Modifier
@@ -218,6 +213,9 @@ private fun StyledCheckPreference(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
+
+    ObserveNavEffects()
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Start,

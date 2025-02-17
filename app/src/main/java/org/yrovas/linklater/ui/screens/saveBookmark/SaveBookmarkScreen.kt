@@ -1,7 +1,6 @@
 package org.yrovas.linklater.ui.screens.saveBookmark
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
@@ -72,9 +71,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
-import androidx.navigation.NavHost
-import androidx.navigation.NavHostController
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.readClipboard
 import org.yrovas.linklater.show
@@ -86,7 +82,6 @@ import org.yrovas.linklater.ui.common.KeyboardRow
 import org.yrovas.linklater.ui.common.StyledOutlinedTextField
 import org.yrovas.linklater.ui.screens.NavModel
 import org.yrovas.linklater.ui.screens.ObserveNavEffects
-import org.yrovas.linklater.ui.screens.home.TAG
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Effect
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Event
 import org.yrovas.linklater.ui.theme.padding
@@ -99,7 +94,7 @@ typealias SaveBookmarkScreen = @Composable () -> Unit
 fun SaveBookmarkScreen(
     saveBookmarkModel: () -> SaveBookmarkModel,
     context: Context = LocalContext.current,
-    back: () -> Unit = { NavModel.navigateUp() },
+    back: () -> Unit = { NavModel.navigateBack() },
     snackState: SnackbarHostState = remember { SnackbarHostState() },
     onSubmitSuccess: suspend () -> Unit = {
         context.launch {
@@ -108,7 +103,6 @@ fun SaveBookmarkScreen(
         back()
     },
 ) {
-    Log.d(TAG, "SaveBookmarkScreen: COMPOSED")
     val state = viewModel { saveBookmarkModel() }
     val isSubmitting by state.isSubmitting.collectAsState()
     val bookmarkExists by state.bookmarkExists.collectAsState()

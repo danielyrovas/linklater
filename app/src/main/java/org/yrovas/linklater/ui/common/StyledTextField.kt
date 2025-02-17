@@ -54,20 +54,20 @@ fun StyledTextField(
         textStyle = textStyle.copy(color = color),
         cursorBrush = SolidColor(color),
         decorator = { field ->
-                Row(verticalAlignment = Alignment.CenterVertically,
-                    modifier = boxModifier
-                        .border(
-                            width =  if (isFocused) 1.5.dp else 1.dp,
-                            color = if (isFocused) borderFocus else border,
-                            shape = RoundedCornerShape(cornerRadius)
-                        )
-                        .clip(RoundedCornerShape(cornerRadius))
-                        .background(background)
-                ) {
-                    Spacer(Modifier.width(padding.standard))
-                    field()
-                    Spacer(Modifier.width(padding.standard))
-                }
+            Row(
+                verticalAlignment = Alignment.CenterVertically, modifier = boxModifier
+                    .border(
+                        width = if (isFocused) 1.5.dp else 1.dp,
+                        color = if (isFocused) borderFocus else border,
+                        shape = RoundedCornerShape(cornerRadius)
+                    )
+                    .clip(RoundedCornerShape(cornerRadius))
+                    .background(background)
+            ) {
+                Spacer(Modifier.width(padding.standard))
+                field()
+                Spacer(Modifier.width(padding.standard))
+            }
         })
 }
 

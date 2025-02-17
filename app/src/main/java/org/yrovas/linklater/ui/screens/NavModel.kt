@@ -7,8 +7,8 @@ object NavModel : ScreenModel<NavModel.Event, NavModel.Effect>() {
     sealed interface Event : ScreenEvent
     sealed interface Effect : ScreenEffect {
         data class NavigateTo(val destination: Destination) : Effect
-        data object NavigateUpOrExit : Effect
-        data object NavigateUp : Effect
+        data object NavigateBackOrExit : Effect
+        data object NavigateBack : Effect
     }
 
     override fun handleEvent(event: Event) { }
@@ -17,11 +17,11 @@ object NavModel : ScreenModel<NavModel.Event, NavModel.Effect>() {
         sendEffect(Effect.NavigateTo(destination))
     }
 
-    fun navigateUp() {
-        sendEffect(Effect.NavigateUp)
+    fun navigateBack() {
+        sendEffect(Effect.NavigateBack)
     }
-    fun navigateUpOrExit() {
-        sendEffect(Effect.NavigateUpOrExit)
+    fun navigateBackOrExit() {
+        sendEffect(Effect.NavigateBackOrExit)
     }
 }
 
@@ -30,8 +30,8 @@ fun ObserveNavEffects() {
     val nav = LocalNavController.current!!
     NavModel.subscribeEffects { effect ->
         when (effect) {
-            NavModel.Effect.NavigateUp -> nav.popBackStack()
-            NavModel.Effect.NavigateUpOrExit -> nav.navigateUp()
+            NavModel.Effect.NavigateBack -> nav.popBackStack()
+            NavModel.Effect.NavigateBackOrExit -> nav.navigateUp()
             is NavModel.Effect.NavigateTo -> nav.navigate(effect.destination)
         }
     }

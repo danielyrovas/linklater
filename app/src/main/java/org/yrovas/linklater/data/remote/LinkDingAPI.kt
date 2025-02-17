@@ -1,6 +1,5 @@
 package org.yrovas.linklater.data.remote
 
-import android.util.Log
 import com.github.michaelbull.result.Err
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Result
@@ -23,17 +22,19 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.InitLog
+import org.yrovas.linklater.Log
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.Bookmark
 import org.yrovas.linklater.data.BookmarkMetadata
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.models.APIError
+import org.yrovas.linklater.data.showTitleOrElse
 import software.amazon.lastmile.kotlin.inject.anvil.AppScope
 import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
 import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
 
-const val TAG = "DEBUG/net"
 const val MAX_PAGE_COUNT = 10000
 
 @Inject
@@ -48,11 +49,16 @@ class LinkDingAPI(
     private val _authProvided = MutableStateFlow(false)
     override val authProvided: StateFlow<Boolean> = _authProvided.asStateFlow()
 
+    init {
+        InitLog.v { "Creating LinkDing API Client" }
+    }
+
     override fun authenticate(
         endpoint: String?,
         token: String?,
     ): Result<Unit, APIError> {
-        Log.d(TAG, "authenticate: with endpoint: $endpoint")
+        InitLog.v { "Retrieved authentication for $endpoint" }
+
         if (!endpoint.isNullOrBlank()) {
             if (!checkURL(endpoint)) return Err(APIError.INCORRECT_ENDPOINT)
             this.endpoint = endpoint
@@ -75,8 +81,14 @@ class LinkDingAPI(
 //            is Result.Ok -> Ok(Unit)
 //        }
         return getBookmarks(page = 0).mapBoth(
-            success = { Ok(Unit) },
-            failure = { Err(it) },
+            success = {
+                Log.v { "Connected to LinkDing" }
+                Ok(Unit)
+            },
+            failure = {
+                Log.w { "Could not connect to LinkDing" }
+                Err(it)
+            },
         )
     }
 
@@ -85,7 +97,6 @@ class LinkDingAPI(
         archived: Boolean = false,
         sortByAddedAsc: Boolean = false,
     ): Result<BookmarkResponse, APIError> {
-//        Log.d(TAG, "fetchBookmarks: with AUTH: ")
         if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
         return try {
             val response =
@@ -101,23 +112,27 @@ class LinkDingAPI(
                 }
             Ok(response.body<BookmarkResponse>())
         } catch (e: Exception) {
-            Log.i(TAG, "getBookmarks: ${e.message}")
+            Log.w(e) { "Failed to sync bookmarks: ${e.message}" }
             Err(APIError.NO_CONNECTION)
         }
     }
 
     override suspend fun getBookmarks(page: Int): Result<List<Bookmark>, APIError> {
-        return fetchBookmarks(page).map { it.results }
+        return fetchBookmarks(page).map { response ->
+            val bookmarks = response.results
+            Log.d { "Fetched ${bookmarks.size} bookmarks from page $page" }
+            Log.v { bookmarks.joinToString("\n") { "${it.date_added} :: ${it.showTitleOrElse(it.url)}" } }
+            bookmarks
+        }
     }
 
     override suspend fun getAllBookmarks(): Flow<Result<List<Bookmark>, APIError>> {
         return flow {
-            Log.d(TAG, "getAllBookmarks: Flow Created")
+            Log.d { "Syncing all bookmarks from LinkDing" }
             var page = 0
 
             // NOTE: we might not crawl archived pages if there are more than 1000 x 10000 bookmarks
             while (page < MAX_PAGE_COUNT) {
-                Log.d(TAG, "getAllBookmarks: Fetching page $page")
                 val res = fetchBookmarks(page, sortByAddedAsc = true)
                 page++
                 if (res.isOk) {
@@ -125,12 +140,12 @@ class LinkDingAPI(
 
                     // exit when finished archived
                     if (res.unwrap().next.isNullOrBlank()) {
-                        Log.d(TAG, "getAllBookmarks: No More Pages")
+                        Log.d { "No more pages" }
                         break
                     }
 
                 } else {
-                    Log.d(TAG, "getAllBookmarks: stopping due to error: ${res.unwrapError()}")
+                    Log.w { "Stopped fetching bookmarks due to error: ${res.unwrapError()}" }
                     break
                 }
             }
@@ -149,6 +164,7 @@ class LinkDingAPI(
                 else -> Err(APIError.INCORRECT_AUTH)
             }
         } catch (e: Exception) {
+            Log.w(e) { "Failed to save bookmark: ${e.message}" }
             Err(APIError.NO_CONNECTION)
         }
     }
@@ -156,7 +172,7 @@ class LinkDingAPI(
     override suspend fun getTags(page: Int): Result<List<String>, APIError> {
         if (!authProvided.value) return Err(APIError.INCORRECT_AUTH)
         return try {
-            Log.d(TAG, "getTags: starting request")
+            Log.v { "Syncing all tags from LinkDing" }
             val response = client.get("${endpoint!!}/tags/") {
                 header("Authorization", "Token ${token!!}")
                 if (page > 0) {
@@ -165,6 +181,7 @@ class LinkDingAPI(
             }
             Ok(response.body<TagResponse>().results)
         } catch (e: Exception) {
+            Log.w(e) { "Failed to sync tags: ${e.message}" }
             Err(APIError.NO_CONNECTION)
         }
     }
@@ -174,7 +191,7 @@ class LinkDingAPI(
         if (url.isBlank()) return null to null
 
         return try {
-            Log.d(TAG, "checkExists")
+            Log.v { "Checking if bookmark already exists in LinkDing for url: $url" }
             val response = client.get("${endpoint!!}/bookmarks/check/") {
                 header("Authorization", "Token ${token!!}")
                 parameter("url", url)
@@ -182,6 +199,7 @@ class LinkDingAPI(
             val r = response.body<BookmarkExistsResponse>()
             r.bookmark to r.metadata
         } catch (e: Exception) {
+            Log.w(e) { "Failed to check if bookmark exists: ${e.message}" }
             null to null
         }
     }

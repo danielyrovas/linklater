@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.Log
 import org.yrovas.linklater.checkURL
 import org.yrovas.linklater.data.LocalBookmark
 import org.yrovas.linklater.data.local.BookmarkDataSource

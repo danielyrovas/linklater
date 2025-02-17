@@ -95,14 +95,7 @@ private fun TextPreference(
             dismissOnClickOutside = true,
         ), onDismissRequest = { showDialog = false }) {
             TextEditDialog(
-                name,
-                placeholder,
-                infoPreview,
-                infoTitle,
-                info,
-                state,
-                onSave,
-                onCheck
+                name, placeholder, infoPreview, infoTitle, info, state, onSave, onCheck
             ) {
                 showDialog = false
             }
@@ -114,8 +107,7 @@ private fun TextPreference(
             .fillMaxWidth()
             .padding(padding.standard)
             .clip(RoundedCornerShape(8.dp))
-            .clickable { showDialog = true }
-        ,
+            .clickable { showDialog = true },
     ) {
         Column {
             Row(
@@ -145,7 +137,6 @@ private fun TextPreference(
 }
 
 
-
 @Composable
 private fun TextEditDialog(
     name: String,
@@ -164,8 +155,7 @@ private fun TextEditDialog(
     var showInfo by remember { mutableStateOf(false) }
 
     Surface(
-        color = colorScheme.surfaceContainer,
-        modifier = Modifier.clip(RoundedCornerShape(12.dp))
+        color = colorScheme.surfaceContainer, modifier = Modifier.clip(RoundedCornerShape(12.dp))
     ) {
         Column(
             modifier = Modifier
@@ -176,9 +166,7 @@ private fun TextEditDialog(
                 .fillMaxWidth()
         ) {
             Text(
-                name,
-                color = colorScheme.onSurface,
-                style = typography.titleLarge
+                name, color = colorScheme.onSurface, style = typography.titleLarge
             )
             Spacer(modifier = Modifier.height(padding.standard))
             OutlinedTextField(currentInput,
@@ -199,14 +187,12 @@ private fun TextEditDialog(
                         .clip(RoundedCornerShape(5.dp))
                         .background(colorScheme.secondaryContainer)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                    Row(verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start,
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { showInfo = !showInfo }
-                            .padding(padding.standard)
-                    ) {
+                            .padding(padding.standard)) {
                         Crossfade(
                             label = "Info Title", targetState = showInfo
                         ) {
@@ -321,9 +307,15 @@ private fun TextEditDialogPreview() {
                     infoTitle = "Enter the LinkDing API URL",
                     info = {
                         Column {
-                            Text("Include the protocol (https://).", color = colorScheme.onSecondaryContainer)
+                            Text(
+                                "Include the protocol (https://).",
+                                color = colorScheme.onSecondaryContainer
+                            )
                             Text("Include the /api path.", color = colorScheme.onSecondaryContainer)
-                            Text("Include the port if necessary.", color = colorScheme.onSecondaryContainer)
+                            Text(
+                                "Include the port if necessary.",
+                                color = colorScheme.onSecondaryContainer
+                            )
                             Text("For example", color = colorScheme.onSecondaryContainer)
                             Row(
                                 modifier = Modifier
@@ -332,7 +324,9 @@ private fun TextEditDialogPreview() {
                                     .background(colorScheme.surfaceContainer)
                                     .padding(padding.half)
                             ) {
-                                Text("https://demo.linkding.link/api", color = colorScheme.onSurface)
+                                Text(
+                                    "https://demo.linkding.link/api", color = colorScheme.onSurface
+                                )
                             }
                             Text("or", color = colorScheme.onSecondaryContainer)
                             Row(

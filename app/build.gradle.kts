@@ -70,11 +70,11 @@ android {
 }
 
 // TODO: remove when stable
-kotlin {
-    sourceSets.all {
-        languageSettings.enableLanguageFeature("ExplicitBackingFields")
-    }
-}
+//kotlin {
+//    sourceSets.all {
+//        languageSettings.enableLanguageFeature("ExplicitBackingFields")
+//    }
+//}
 
 dependencies {
     implementation(libs.androidx.core.ktx)
@@ -108,6 +108,7 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.kotlin.result)
     implementation(libs.kotlin.result.coroutines)
+    implementation(libs.kermit)
 
     implementation(libs.sqldelight.coroutines.extensions)
     implementation(libs.sqldelight.android.driver)
