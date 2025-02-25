@@ -36,13 +36,17 @@ android {
 
     buildTypes {
         release {
+            resValue("string", "release", "true")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
             )
         }
-        debug { applicationIdSuffix = ".debug" }
+        debug {
+            resValue("string", "release", "false")
+            applicationIdSuffix = ".debug"
+        }
     }
 
     compileOptions {
@@ -109,6 +113,7 @@ dependencies {
     implementation(libs.kotlin.result)
     implementation(libs.kotlin.result.coroutines)
     implementation(libs.kermit)
+    implementation(libs.sentry)
 
     implementation(libs.sqldelight.coroutines.extensions)
     implementation(libs.sqldelight.android.driver)

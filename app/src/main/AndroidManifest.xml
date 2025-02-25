@@ -15,6 +15,7 @@
         android:theme="@style/Theme.Linklater"
         android:launchMode="singleTask"
         tools:targetApi="34">
+        <meta-data android:name="io.sentry.dsn" android:value="" />
         <activity
             android:name=".ui.activity.MainActivity"
             android:exported="true"

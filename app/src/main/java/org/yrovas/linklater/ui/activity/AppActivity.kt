@@ -7,15 +7,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
+import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.yrovas.linklater.AppComponent
+import org.yrovas.linklater.Log
 import org.yrovas.linklater.create
 import org.yrovas.linklater.data.local.Prefs
 import org.yrovas.linklater.ui.screens.Destination
 import org.yrovas.linklater.ui.theme.AppTheme
-import org.yrovas.linklater.Log
+
 
 fun Context.launch(
     dispatcher: CoroutineDispatcher = Dispatchers.Main,
@@ -48,6 +50,15 @@ abstract class AppActivity : ComponentActivity() {
                 token = appComponent.prefStore.getPref(Prefs.LINKDING_TOKEN, ""),
             )
         }
+
+        launch {
+            SentryAndroid.init(this) { options ->
+                options.dsn = "https://10fe2a82dd3a4f2d8dd1a6814484c7ca@app.glitchtip.com/10221"
+                options.isEnableNdk = false
+                options.isAnrEnabled = true
+            }
+        }
+
         Log.v { "Initialised Android App" }
         setContent {
             AppTheme { navHost(entryScreen) }

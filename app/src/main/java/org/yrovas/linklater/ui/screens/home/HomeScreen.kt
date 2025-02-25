@@ -19,9 +19,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.filter
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.ThemePreview
 import org.yrovas.linklater.show
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
@@ -32,6 +34,7 @@ import org.yrovas.linklater.ui.screens.home.HomeModel.Effect
 import org.yrovas.linklater.ui.screens.home.HomeModel.Event
 import org.yrovas.linklater.ui.screens.home.components.BookmarkRow
 import org.yrovas.linklater.ui.screens.home.components.HomeAppBar
+import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
 
 typealias HomeScreen = @Composable () -> Unit
