@@ -32,17 +32,13 @@ object Prefs {
     val INIT_LOG_SEVERITY = intPreferencesKey("init_log_severity")
     val EVENT_LOG_SEVERITY = intPreferencesKey("event_log_severity")
     val LOG_SEVERITY = intPreferencesKey("log_severity")
+    val LOG_ERRORS_TO_SENTRY = booleanPreferencesKey("log_errors_to_sentry")
 }
 
 fun Int.asSeverity(): Severity {
     return when (this) {
-        1 -> Severity.Verbose
-        2 -> Severity.Debug
-        3 -> Severity.Info
-        4 -> Severity.Warn
-        5 -> Severity.Error
-        6 -> Severity.Assert
-        else -> Severity.Warn // should silently handle? or throw Throwable("value is not a severity value: $this")
+        in 0..5 -> Severity.entries[this]
+        else -> throw Throwable("value is not a severity value: $this")
     }
 }
 

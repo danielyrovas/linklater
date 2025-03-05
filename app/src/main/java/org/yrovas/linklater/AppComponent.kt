@@ -19,10 +19,13 @@ import io.ktor.client.request.header
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import me.tatarka.inject.annotations.Inject
 import me.tatarka.inject.annotations.Provides
 import org.yrovas.linklater.data.local.PrefDataStore
+import org.yrovas.linklater.data.local.Prefs
+import org.yrovas.linklater.data.local.asSeverity
 import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.ui.screens.NavigationHost
 import software.amazon.lastmile.kotlin.inject.anvil.AppScope
@@ -47,46 +50,49 @@ abstract class AppComponent(
 @Inject
 @ContributesTo(AppScope::class)
 interface AppModule {
+
     @SingleIn(AppScope::class)
     @Provides
-    fun provideHttpClient(severityPreferences: LogPreferences): HttpClient =
-        HttpClient(Android) {
-            InitLog.d { "Creating Ktor HTTP Client with logging severity: ${severityPreferences.net.name}" }
-            install(Logging) {
-                logger = when (severityPreferences.net) {
-                    Severity.Verbose -> object : Logger {
-                        override fun log(message: String) {
-                            NetLog.v { message }
-                        }
-                    }
-
-                    Severity.Debug -> object : Logger {
-                        override fun log(message: String) {
-                            NetLog.d { message }
-                        }
-                    }
-
-                    else -> object : Logger {
-                        override fun log(message: String) {}
+    fun provideHttpClient(prefStore: PrefDataStore): HttpClient = HttpClient(Android) {
+        val logSeverity = runBlocking {
+            prefStore.getPref(Prefs.NET_LOG_SEVERITY, Severity.Verbose.ordinal).asSeverity()
+        }
+        InitLog.d { "Creating Ktor HTTP Client with logging severity: $logSeverity" }
+        install(Logging) {
+            logger = when (logSeverity) {
+                Severity.Verbose -> object : Logger {
+                    override fun log(message: String) {
+                        NetLog.v { message }
                     }
                 }
-                level = when (severityPreferences.net) {
-                    Severity.Verbose -> LogLevel.ALL
-                    Severity.Debug -> LogLevel.INFO
-                    else -> LogLevel.NONE
+
+                Severity.Debug -> object : Logger {
+                    override fun log(message: String) {
+                        NetLog.d { message }
+                    }
+                }
+
+                else -> object : Logger {
+                    override fun log(message: String) {}
                 }
             }
-            install(ContentNegotiation) {
-                json(Json {
-                    prettyPrint = true
-                    isLenient = true
-                    ignoreUnknownKeys = true
-                })
-            }
-            install(DefaultRequest) {
-                header(HttpHeaders.ContentType, ContentType.Application.Json)
+            level = when (logSeverity) {
+                Severity.Verbose -> LogLevel.ALL
+                Severity.Debug -> LogLevel.INFO
+                else -> LogLevel.NONE
             }
         }
+        install(ContentNegotiation) {
+            json(Json {
+                prettyPrint = true
+                isLenient = true
+                ignoreUnknownKeys = true
+            })
+        }
+        install(DefaultRequest) {
+            header(HttpHeaders.ContentType, ContentType.Application.Json)
+        }
+    }
 
     @SingleIn(AppScope::class)
     @Provides

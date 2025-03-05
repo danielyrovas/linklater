@@ -15,6 +15,8 @@ import org.yrovas.linklater.AppComponent
 import org.yrovas.linklater.Log
 import org.yrovas.linklater.create
 import org.yrovas.linklater.data.local.Prefs
+import org.yrovas.linklater.logErrorsToSentry
+import org.yrovas.linklater.setLoggerSeverities
 import org.yrovas.linklater.ui.screens.Destination
 import org.yrovas.linklater.ui.theme.AppTheme
 
@@ -52,10 +54,14 @@ abstract class AppActivity : ComponentActivity() {
         }
 
         launch {
-            SentryAndroid.init(this) { options ->
-                options.dsn = "https://10fe2a82dd3a4f2d8dd1a6814484c7ca@app.glitchtip.com/10221"
-                options.isEnableNdk = false
-                options.isAnrEnabled = true
+//            setLoggerSeverities(appComponent.prefStore)
+            if (appComponent.prefStore.getPref(Prefs.LOG_ERRORS_TO_SENTRY, false)) {
+//                logErrorsToSentry()
+//                SentryAndroid.init(this) { options ->
+//                    options.dsn = "https://10fe2a82dd3a4f2d8dd1a6814484c7ca@app.glitchtip.com/10221"
+//                    options.isEnableNdk = false
+//                    options.isAnrEnabled = true
+//                }
             }
         }
 

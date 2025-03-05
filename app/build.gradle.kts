@@ -36,7 +36,6 @@ android {
 
     buildTypes {
         release {
-            resValue("string", "release", "true")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -44,7 +43,6 @@ android {
             )
         }
         debug {
-            resValue("string", "release", "false")
             applicationIdSuffix = ".debug"
         }
     }
@@ -60,7 +58,10 @@ android {
         freeCompilerArgs += "-Xcontext-receivers"
     }
 
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
 
     packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
 
