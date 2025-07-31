@@ -9,22 +9,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.Database
-import org.yrovas.linklater.InitLog
 import org.yrovas.linklater.Log
-import org.yrovas.linklater.data.Bookmark
-import org.yrovas.linklater.data.showTitleOrElse
-import org.yrovas.linklater.data.toBookmark
-import software.amazon.lastmile.kotlin.inject.anvil.AppScope
-import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+import org.yrovas.linklater.data.models.Bookmark
+import org.yrovas.linklater.data.models.showTitleOrElse
+import org.yrovas.linklater.data.models.toBookmark
 
+@AppScope
 @Inject
-@SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
 class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     init {
-        InitLog.v { "Creating Bookmark DataSource" }
+        Log.v { "Creating Bookmark DataSource" }
     }
 
     private val q = db.bookmarkTagsQueries

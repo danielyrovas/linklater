@@ -5,10 +5,10 @@ import androidx.compose.ui.unit.dp
 typealias padding = Size
 class Size {
     companion object {
-        val tiny = 3.dp
-        val half = 6.dp
-        val standard = 12.dp
-        val double = 24.dp
-        val large = 48.dp
+        val xs = 3.dp
+        val sm = 6.dp
+        val md = 12.dp
+        val lg = 24.dp
+        val xl = 48.dp
     }
 }

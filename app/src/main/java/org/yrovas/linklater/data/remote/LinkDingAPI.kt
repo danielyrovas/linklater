@@ -22,24 +22,20 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.Serializable
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.InitLog
+import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.Log
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
-import org.yrovas.linklater.data.Bookmark
-import org.yrovas.linklater.data.BookmarkMetadata
-import org.yrovas.linklater.data.LocalBookmark
+import org.yrovas.linklater.data.models.Bookmark
+import org.yrovas.linklater.data.models.BookmarkMetadata
+import org.yrovas.linklater.data.models.LocalBookmark
 import org.yrovas.linklater.data.models.APIError
-import org.yrovas.linklater.data.showTitleOrElse
-import software.amazon.lastmile.kotlin.inject.anvil.AppScope
-import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+import org.yrovas.linklater.data.models.showTitleOrElse
 
 const val MAX_PAGE_COUNT = 10000
 
+@AppScope
 @Inject
-@SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
 class LinkDingAPI(
     private val client: HttpClient,
     private var endpoint: String? = null,
@@ -50,14 +46,14 @@ class LinkDingAPI(
     override val authProvided: StateFlow<Boolean> = _authProvided.asStateFlow()
 
     init {
-        InitLog.v { "Creating LinkDing API Client" }
+        Log.v { "Creating LinkDing API Client" }
     }
 
     override fun authenticate(
         endpoint: String?,
         token: String?,
     ): Result<Unit, APIError> {
-        InitLog.v { "Retrieved authentication for $endpoint" }
+       Log.v { "Retrieved authentication for $endpoint" }
 
         if (!endpoint.isNullOrBlank()) {
             if (!checkURL(endpoint)) return Err(APIError.INCORRECT_ENDPOINT)
@@ -191,7 +187,7 @@ class LinkDingAPI(
         if (url.isBlank()) return null to null
 
         return try {
-            Log.v { "Checking if bookmark already exists in LinkDing for url: $url" }
+            Log.d { "Checking if bookmark already exists in LinkDing for url: $url" }
             val response = client.get("${endpoint!!}/bookmarks/check/") {
                 header("Authorization", "Token ${token!!}")
                 parameter("url", url)

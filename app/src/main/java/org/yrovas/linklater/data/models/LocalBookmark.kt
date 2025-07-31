@@ -1,4 +1,4 @@
-package org.yrovas.linklater.data
+package org.yrovas.linklater.data.models
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 // A datatype representing bookmarks which will be sent to the remote API.
 @Serializable
 data class LocalBookmark(
-    var url: String,
+    var url: String? = null,
     var title: String? = null,
     var description: String? = null,
     var notes: String? = null,
@@ -27,10 +27,10 @@ data class LocalBookmark(
         tags: List<String>? = null,
     ): LocalBookmark {
         return LocalBookmark(
-            url = url?.ifBlank { null } ?: url ?: this.url,
-            title = title?.ifBlank { null } ?: title ?: this.title,
-            description = description?.ifBlank { null } ?: description ?: this.description,
-            notes = notes?.ifBlank { null } ?: notes ?: this.notes,
+            url = url ?: this.url,
+            title = title ?: this.title,
+            description = description ?: this.description,
+            notes = notes ?: this.notes,
             is_archived = is_archived ?: this.is_archived,
             unread = unread ?: this.unread,
             shared = shared ?: this.shared,

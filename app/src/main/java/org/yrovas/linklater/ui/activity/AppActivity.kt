@@ -7,67 +7,31 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
-import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.yrovas.linklater.AppComponent
 import org.yrovas.linklater.Log
 import org.yrovas.linklater.create
-import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.logErrorsToSentry
-import org.yrovas.linklater.setLoggerSeverities
 import org.yrovas.linklater.ui.screens.Destination
 import org.yrovas.linklater.ui.theme.AppTheme
 
-
-fun Context.launch(
-    dispatcher: CoroutineDispatcher = Dispatchers.Main,
-    job: suspend () -> Unit,
-) {
-    (this as AppActivity).launch(dispatcher, job)
-}
-
 abstract class AppActivity : ComponentActivity() {
 
-    abstract val entryScreen: Destination
+    protected abstract val entryDestination: Destination
 
-    private val appComponent by lazy(LazyThreadSafetyMode.NONE) {
+    protected val appComponent by lazy(LazyThreadSafetyMode.NONE) {
         AppComponent::class.create(this)
-    }
-
-    fun launch(dispatcher: CoroutineDispatcher = Dispatchers.Main, job: suspend () -> Unit) {
-        lifecycleScope.launch(dispatcher) { job() }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        intent.flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
         enableEdgeToEdge()
+        Log.v { "Initialised Android app" }
 
-        val navHost = appComponent.navigationHost
-        launch {
-            appComponent.bookmarkAPI.authenticate(
-                endpoint = appComponent.prefStore.getPref(Prefs.LINKDING_URL, ""),
-                token = appComponent.prefStore.getPref(Prefs.LINKDING_TOKEN, ""),
-            )
-        }
-
-        launch {
-//            setLoggerSeverities(appComponent.prefStore)
-            if (appComponent.prefStore.getPref(Prefs.LOG_ERRORS_TO_SENTRY, false)) {
-//                logErrorsToSentry()
-//                SentryAndroid.init(this) { options ->
-//                    options.dsn = "https://10fe2a82dd3a4f2d8dd1a6814484c7ca@app.glitchtip.com/10221"
-//                    options.isEnableNdk = false
-//                    options.isAnrEnabled = true
-//                }
-            }
-        }
-
-        Log.v { "Initialised Android App" }
         setContent {
-            AppTheme { navHost(entryScreen) }
+            AppTheme { appComponent.navigationHost(entryDestination) }
         }
     }
 }

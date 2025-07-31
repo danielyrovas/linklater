@@ -3,7 +3,7 @@ import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 plugins {
     alias(libs.plugins.android)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
@@ -39,7 +39,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
             )
         }
         debug {
@@ -74,13 +75,6 @@ android {
     }
 }
 
-// TODO: remove when stable
-//kotlin {
-//    sourceSets.all {
-//        languageSettings.enableLanguageFeature("ExplicitBackingFields")
-//    }
-//}
-
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.lifecycle.runtime.ktx)
@@ -94,15 +88,17 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.material)
 
-    implementation(libs.navigation.compose)
+    implementation(libs.compose.navigation3.ui)
+    implementation(libs.compose.navigation3.runtime)
+    implementation(libs.lifecycle.viewmodel.nav3)
 
     implementation(libs.androidx.datastore.preferences)
 
     ksp(libs.kotlin.inject.compiler.ksp)
     implementation(libs.kotlin.inject.runtime)
-    ksp(libs.kotlin.inject.anvil.compiler.ksp)
-    implementation(libs.kotlin.inject.anvil.runtime)
-    implementation(libs.kotlin.inject.anvil.runtime.optional)
+//    ksp(libs.kotlin.inject.anvil.compiler.ksp)
+//    implementation(libs.kotlin.inject.anvil.runtime)
+//    implementation(libs.kotlin.inject.anvil.runtime.optional)
 
     implementation(libs.kotlinx.datetime)
     implementation(libs.ktor.client.android)
@@ -114,7 +110,6 @@ dependencies {
     implementation(libs.kotlin.result)
     implementation(libs.kotlin.result.coroutines)
     implementation(libs.kermit)
-    implementation(libs.sentry)
 
     implementation(libs.sqldelight.coroutines.extensions)
     implementation(libs.sqldelight.android.driver)

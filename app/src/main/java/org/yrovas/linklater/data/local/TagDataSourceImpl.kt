@@ -7,20 +7,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.Database
-import org.yrovas.linklater.InitLog
-import software.amazon.lastmile.kotlin.inject.anvil.AppScope
-import software.amazon.lastmile.kotlin.inject.anvil.ContributesBinding
-import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+import org.yrovas.linklater.Log
 
+@AppScope
 @Inject
-@SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
 class TagDataSourceImpl(db: Database) : TagDataSource {
     private val q = db.bookmarkTagsQueries
 
     init {
-        InitLog.v { "Creating TagDataSource" }
+       Log.v { "Creating TagDataSource" }
     }
 
     override suspend fun getTag(id: Long): String? {
@@ -32,6 +29,12 @@ class TagDataSourceImpl(db: Database) : TagDataSource {
 
     override fun getTags(): Flow<List<String>> {
         return q.getTagNames().asFlow().mapToList(Dispatchers.IO).map { list ->
+            list.mapNotNull { it.name }.sorted()
+        }
+    }
+
+    override fun getRecentTags(): Flow<List<String>> {
+        return q.getRecentTagNames().asFlow().mapToList(Dispatchers.IO).map { list ->
             list.mapNotNull { it.name }
         }
     }

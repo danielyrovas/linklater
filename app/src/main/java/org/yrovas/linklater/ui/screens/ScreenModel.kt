@@ -17,7 +17,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.yrovas.linklater.EventLog
-import org.yrovas.linklater.InitLog
+import org.yrovas.linklater.Log
+import kotlin.jvm.javaClass
 
 interface ScreenEvent
 
@@ -30,7 +31,7 @@ abstract class ScreenModel<Event : ScreenEvent, Effect : ScreenEffect> : ViewMod
     private val effect = _effect.receiveAsFlow() // consumeAsFlow?
 
     init {
-        InitLog.d { "Creating ViewModel: ${this.javaClass.simpleName}" }
+        Log.v { "Creating ViewModel: ${this.javaClass.simpleName}" }
         subscribeEvents()
     }
 

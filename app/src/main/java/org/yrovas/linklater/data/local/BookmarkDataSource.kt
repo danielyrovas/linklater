@@ -1,7 +1,8 @@
 package org.yrovas.linklater.data.local
 
 import kotlinx.coroutines.flow.Flow
-import org.yrovas.linklater.data.Bookmark
+import org.yrovas.linklater.AppScope
+import org.yrovas.linklater.data.models.Bookmark
 
 interface BookmarkDataSource {
     suspend fun getBookmark(id: Long): Bookmark?

@@ -21,43 +21,85 @@ import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import me.tatarka.inject.annotations.Inject
+import me.tatarka.inject.annotations.Component
 import me.tatarka.inject.annotations.Provides
-import org.yrovas.linklater.data.local.PrefDataStore
-import org.yrovas.linklater.data.local.Prefs
-import org.yrovas.linklater.data.local.asSeverity
+import me.tatarka.inject.annotations.Scope
+import org.yrovas.linklater.data.local.BookmarkDataSource
+import org.yrovas.linklater.data.local.BookmarkDataSourceImpl
+import org.yrovas.linklater.data.local.PrefStore
+import org.yrovas.linklater.data.local.PrefStoreImpl
+import org.yrovas.linklater.data.local.TagDataSource
+import org.yrovas.linklater.data.local.TagDataSourceImpl
+import org.yrovas.linklater.data.models.PREF_STORE_NAME
+import org.yrovas.linklater.data.models.Prefs
 import org.yrovas.linklater.data.remote.BookmarkAPI
+import org.yrovas.linklater.data.remote.LinkDingAPI
 import org.yrovas.linklater.ui.screens.NavigationHost
-import software.amazon.lastmile.kotlin.inject.anvil.AppScope
-import software.amazon.lastmile.kotlin.inject.anvil.ContributesTo
-import software.amazon.lastmile.kotlin.inject.anvil.MergeComponent
-import software.amazon.lastmile.kotlin.inject.anvil.SingleIn
+import kotlin.annotation.AnnotationTarget.ANNOTATION_CLASS
+import kotlin.annotation.AnnotationTarget.CLASS
+import kotlin.annotation.AnnotationTarget.CONSTRUCTOR
+import kotlin.annotation.AnnotationTarget.FIELD
+import kotlin.annotation.AnnotationTarget.FILE
+import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.annotation.AnnotationTarget.LOCAL_VARIABLE
+import kotlin.annotation.AnnotationTarget.PROPERTY
+import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
+import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
+import kotlin.annotation.AnnotationTarget.TYPE
+import kotlin.annotation.AnnotationTarget.TYPEALIAS
+import kotlin.annotation.AnnotationTarget.TYPE_PARAMETER
+import kotlin.annotation.AnnotationTarget.VALUE_PARAMETER
 
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "preferences")
+@Scope
+@Target(
+    CLASS,
+    ANNOTATION_CLASS,
+    TYPE_PARAMETER,
+    PROPERTY,
+    FIELD,
+    LOCAL_VARIABLE,
+    VALUE_PARAMETER,
+    CONSTRUCTOR,
+    FUNCTION,
+    PROPERTY_GETTER,
+    PROPERTY_SETTER,
+    TYPE,
+    FILE,
+    TYPEALIAS
+)
+annotation class AppScope
 
-@MergeComponent(AppScope::class)
-@SingleIn(AppScope::class)
+
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(PREF_STORE_NAME)
+
+@AppScope
+@Component
 abstract class AppComponent(
     @get:Provides val context: Context,
 ) {
+    protected val PrefStoreImpl.bind: PrefStore
+        @Provides get() = this
+
+    protected val BookmarkDataSourceImpl.bind: BookmarkDataSource
+        @Provides get() = this
+
+    protected val TagDataSourceImpl.bind: TagDataSource
+        @Provides get() = this
+    abstract val navigationHost: NavigationHost
+    protected val LinkDingAPI.bind: BookmarkAPI
+        @Provides get() = this
+
     val store: DataStore<Preferences>
         @Provides get() = context.dataStore
-    abstract val navigationHost: NavigationHost
-    abstract val prefStore: PrefDataStore
-    abstract val bookmarkAPI: BookmarkAPI
-}
 
-@Inject
-@ContributesTo(AppScope::class)
-interface AppModule {
-
-    @SingleIn(AppScope::class)
     @Provides
-    fun provideHttpClient(prefStore: PrefDataStore): HttpClient = HttpClient(Android) {
+    @AppScope
+    fun provideHttpClient(prefStore: PrefStore): HttpClient = HttpClient(Android) {
         val logSeverity = runBlocking {
             prefStore.getPref(Prefs.NET_LOG_SEVERITY, Severity.Verbose.ordinal).asSeverity()
         }
-        InitLog.d { "Creating Ktor HTTP Client with logging severity: $logSeverity" }
+
+        Log.v { "Creating Ktor HTTP Client with logging severity: $logSeverity" }
         install(Logging) {
             logger = when (logSeverity) {
                 Severity.Verbose -> object : Logger {
@@ -94,10 +136,10 @@ interface AppModule {
         }
     }
 
-    @SingleIn(AppScope::class)
+    @AppScope
     @Provides
     fun provideSQLDriver(context: Context): SqlDriver {
-        InitLog.v { "Creating SQL Driver" }
+        Log.v { "Creating SQL Driver" }
         return AndroidSqliteDriver(schema = Database.Schema,
             context = context,
             name = "linklater.db",
@@ -108,10 +150,10 @@ interface AppModule {
             })
     }
 
-    @SingleIn(AppScope::class)
+    @AppScope
     @Provides
     fun provideDB(driver: SqlDriver): Database {
-        InitLog.v { "Creating SQL Database" }
+        Log.v { "Creating SQL Database" }
         return Database(driver)
     }
 }

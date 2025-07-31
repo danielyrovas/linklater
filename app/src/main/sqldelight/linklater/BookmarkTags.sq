@@ -108,7 +108,17 @@ getTagByName:
 SELECT (id) FROM tagEntity WHERE name = :name;
 
 getTagNames:
-SELECT (name) FROM tagEntity;
+SELECT (name) FROM tagEntity ORDER BY name;
+
+getRecentTagNames:
+SELECT t.name, MAX(b.date_modified) AS last_used
+FROM tagEntity AS t
+JOIN bookmarkTags AS bt ON bt.tagID = t.id
+JOIN bookmarkEntity AS b ON b.id = bt.bookmarkID
+GROUP BY t.id
+ORDER BY last_used DESC
+LIMIT 10
+;
 
 insertTag:
 INSERT OR IGNORE INTO tagEntity (name)

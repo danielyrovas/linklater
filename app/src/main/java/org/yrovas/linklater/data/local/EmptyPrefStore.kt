@@ -4,7 +4,7 @@ import androidx.datastore.preferences.core.Preferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
-class EmptyPrefStore : PrefDataStore {
+class EmptyPrefStore : PrefStore {
     override suspend fun <T> getPrefs(
         key: Preferences.Key<T>,
         default: T,

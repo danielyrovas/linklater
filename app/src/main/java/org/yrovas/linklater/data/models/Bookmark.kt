@@ -1,4 +1,4 @@
-package org.yrovas.linklater.data
+package org.yrovas.linklater.data.models
 
 import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
@@ -7,6 +7,7 @@ import linklater.BookmarkEntity
 import linklater.GetBookmarkByIDwithTags
 import linklater.GetBookmarkByURLwithTags
 import linklater.GetBookmarksWithTags
+import kotlin.time.ExperimentalTime
 
 // A 1:1 representation of a LinkDing bookmark.
 @Serializable
@@ -27,10 +28,13 @@ data class Bookmark(
     @SerialName("tag_names") val tags: List<String> = emptyList(),
 )
 
+@OptIn(ExperimentalTime::class)
 fun Bookmark.instantAdded() = Instant.parse(this.date_added!!)
 
+@OptIn(ExperimentalTime::class)
 fun Bookmark.instantModified() = this.date_modified?.let { Instant.parse(it) }
 
+@OptIn(ExperimentalTime::class)
 fun List<Bookmark>.sortByInstantAdded() : List<Bookmark> {
     return this.sortedBy { it.instantAdded() }
 }

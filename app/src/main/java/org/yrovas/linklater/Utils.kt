@@ -12,13 +12,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.datetime.Instant
 import org.yrovas.linklater.data.models.APIError
+import kotlin.collections.distinct
+import kotlin.collections.filter
 import kotlin.math.abs
+import kotlin.text.contains
+import kotlin.text.isNotBlank
+import kotlin.text.split
+import kotlin.time.ExperimentalTime
 
 fun checkURL(url: String) = url.contains(Regex("^https?://.+[.].+"))
 fun checkBookmarkAPIToken(token: String) = token.length in 10..120
 
+@OptIn(ExperimentalTime::class)
 @Composable
-fun timeAgo(timestamp: Instant, now: Instant): String {
+fun timeAgo(timestamp: kotlin.time.Instant, now: kotlin.time.Instant): String {
     val differenceInSeconds = abs((now - timestamp).inWholeSeconds)
     return when {
         differenceInSeconds < 60 -> stringResource(R.string.just_now)
@@ -62,10 +69,6 @@ fun Context.readClipboard(): String {
         }
     }
     return ""
-}
-
-fun Context.onBackPressed() {
-    @Suppress("DEPRECATION") (this as Activity).onBackPressed()
 }
 
 fun Context.getAppVersion(): String {

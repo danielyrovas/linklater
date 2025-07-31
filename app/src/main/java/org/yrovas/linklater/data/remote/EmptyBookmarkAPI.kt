@@ -5,9 +5,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
-import org.yrovas.linklater.data.Bookmark
-import org.yrovas.linklater.data.BookmarkMetadata
-import org.yrovas.linklater.data.LocalBookmark
+import org.yrovas.linklater.data.models.Bookmark
+import org.yrovas.linklater.data.models.BookmarkMetadata
+import org.yrovas.linklater.data.models.LocalBookmark
 import com.github.michaelbull.result.Result
 import com.github.michaelbull.result.Ok
 import com.github.michaelbull.result.Err

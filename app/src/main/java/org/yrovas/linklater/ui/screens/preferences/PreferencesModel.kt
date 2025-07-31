@@ -7,9 +7,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.data.LocalBookmark
-import org.yrovas.linklater.data.local.PrefDataStore
-import org.yrovas.linklater.data.local.Prefs
+import org.yrovas.linklater.data.models.LocalBookmark
+import org.yrovas.linklater.data.local.PrefStore
+import org.yrovas.linklater.data.models.Prefs
 import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.intoTags
 import org.yrovas.linklater.ui.screens.ScreenEffect
@@ -21,7 +21,7 @@ import org.yrovas.linklater.ui.screens.preferences.PreferencesModel.Event
 @Inject
 class PreferencesModel(
     private val bookmarkAPI: BookmarkAPI,
-    private val prefStore: PrefDataStore,
+    private val prefStore: PrefStore,
 ) : ScreenModel<Event, Effect>() {
 
     sealed interface Event : ScreenEvent {
