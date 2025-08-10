@@ -10,8 +10,7 @@ class EmptyPrefStore : PrefStore {
         default: T,
     ): Flow<T> = flow {}
 
-    override suspend fun <T> getPref(key: Preferences.Key<T>, default: T): T =
-        default
+    override suspend fun <T> getPref(key: Preferences.Key<T>, default: T): T = default
 
     override suspend fun <T> setPref(key: Preferences.Key<T>, value: T) {}
     override suspend fun <T> removePref(key: Preferences.Key<T>) {}

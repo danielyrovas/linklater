@@ -92,8 +92,8 @@ abstract class AppComponent(
     val store: DataStore<Preferences>
         @Provides get() = context.dataStore
 
-    @Provides
     @AppScope
+    @Provides
     fun provideHttpClient(prefStore: PrefStore): HttpClient = HttpClient(Android) {
         val logSeverity = runBlocking {
             prefStore.getPref(Prefs.NET_LOG_SEVERITY, Severity.Verbose.ordinal).asSeverity()
@@ -140,7 +140,8 @@ abstract class AppComponent(
     @Provides
     fun provideSQLDriver(context: Context): SqlDriver {
         Log.v { "Creating SQL Driver" }
-        return AndroidSqliteDriver(schema = Database.Schema,
+        return AndroidSqliteDriver(
+            schema = Database.Schema,
             context = context,
             name = "linklater.db",
             callback = object : AndroidSqliteDriver.Callback(Database.Schema) {
@@ -156,4 +157,13 @@ abstract class AppComponent(
         Log.v { "Creating SQL Database" }
         return Database(driver)
     }
+
+//    @AppScope
+//    @Provides
+//    fun provideCoroutineScope(): CoroutineScope =
+//        CoroutineScope(SupervisorJob() + Dispatchers.Default)
+//
+//    @Provides
+//    fun provideLifecycleScope(): LifecycleCoroutineScope =
+//        (context as AppActivity).lifecycleScope
 }

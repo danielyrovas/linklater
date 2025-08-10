@@ -1,57 +1,63 @@
 package org.yrovas.linklater.ui.common
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme.colorScheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import org.yrovas.linklater.ThemePreview
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
+import org.yrovas.linklater.Preview
 import org.yrovas.linklater.ui.theme.AppTheme
+import org.yrovas.linklater.ui.theme.padding
 
 @Composable
 fun TagChip(
-    modifier: Modifier = Modifier,
-    tag: String,
-    selected: Boolean = false,
-    onClick: (() -> Unit)) {
-    FilterChip(
-        modifier = modifier,
-        selected = selected,
-        onClick = onClick,
-        colors = FilterChipDefaults.filterChipColors(
-            containerColor = Color.Transparent,
-            labelColor = colorScheme.tertiary,
-            selectedLabelColor = colorScheme.onTertiary,
-            selectedContainerColor = colorScheme.tertiary
-        ),
-        border = FilterChipDefaults.filterChipBorder(enabled = true, selected = true),
-        label = { Text(text = "#$tag") })
+    modifier: Modifier = Modifier, tag: String, onClick: (() -> Unit)
+) {
+    Text(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(padding.sm),
+        text = "#$tag",
+        style = typography.titleMedium,
+        color = colorScheme.tertiary,
+    )
 }
 
-@ThemePreview
+@Composable
+fun SelectedTagChip(
+    modifier: Modifier = Modifier, tag: String, onClick: (() -> Unit)
+) {
+    Text(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .background(colorScheme.tertiary)
+            .padding(padding.sm),
+        text = "#$tag",
+        style = typography.titleMedium,
+        color = colorScheme.onTertiary,
+    )
+}
+
+@Preview
 @Composable
 fun TagChipPreview() {
-    var selected by remember { mutableStateOf(true) }
     AppTheme {
         Surface(Modifier.fillMaxWidth()) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                TagChip(tag = "tag", selected = selected) {
-                    selected = !selected
-                }
-
-                TagChip(tag = "tag", selected = !selected) {
-                    selected = !selected
-                }
+                TagChip(tag = "tag") {}
+                SelectedTagChip(tag = "tag") { }
             }
         }
     }

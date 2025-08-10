@@ -26,9 +26,7 @@ class EmptyBookmarkSource : BookmarkDataSource {
     }
 
     override suspend fun deleteWithinRange(
-        startDate: String,
-        endDate: String,
-        exclude: List<Bookmark>?
+        startDate: String, endDate: String, exclude: List<Bookmark>?
     ) {
     }
 

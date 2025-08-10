@@ -17,7 +17,7 @@ class TagDataSourceImpl(db: Database) : TagDataSource {
     private val q = db.bookmarkTagsQueries
 
     init {
-       Log.v { "Creating TagDataSource" }
+        Log.v { "Creating TagDataSource" }
     }
 
     override suspend fun getTag(id: Long): String? {
@@ -33,8 +33,8 @@ class TagDataSourceImpl(db: Database) : TagDataSource {
         }
     }
 
-    override fun getRecentTags(): Flow<List<String>> {
-        return q.getRecentTagNames().asFlow().mapToList(Dispatchers.IO).map { list ->
+    override fun getRecentTags(count: Long): Flow<List<String>> {
+        return q.getRecentTagNames(count).asFlow().mapToList(Dispatchers.IO).map { list ->
             list.mapNotNull { it.name }
         }
     }

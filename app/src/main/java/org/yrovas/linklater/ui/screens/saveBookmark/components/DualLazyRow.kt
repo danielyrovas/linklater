@@ -4,15 +4,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.OverscrollEffect
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberOverscrollEffect
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,10 +22,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import org.yrovas.linklater.ThemePreview
+import org.yrovas.linklater.Preview
 import org.yrovas.linklater.ui.common.Frame
-import org.yrovas.linklater.ui.common.TagChip
+import org.yrovas.linklater.ui.common.SelectedTagChip
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
 
@@ -33,11 +34,11 @@ import org.yrovas.linklater.ui.theme.padding
 fun <T> DualLazyRow(
     modifier: Modifier = Modifier,
     items: List<T>,
+    spaceBetween: Dp = 0.dp,
     rowModifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     reverseLayout: Boolean = false,
-    horizontalArrangement: Arrangement.Horizontal =
-        if (!reverseLayout) Arrangement.Start else Arrangement.End,
+    horizontalArrangement: Arrangement.Horizontal = if (!reverseLayout) Arrangement.Start else Arrangement.End,
     verticalAlignment: Alignment.Vertical = Alignment.Top,
     key: ((T) -> Any)? = null,
     breakPointMin: Int = 4,
@@ -81,12 +82,13 @@ fun <T> DualLazyRow(
                 }
             }
         }
-        AnimatedVisibility(visible = items2.isNotEmpty(),
+        AnimatedVisibility(
+            visible = items2.isNotEmpty(),
             enter = fadeIn(animationSpec = tween(durationMillis = 150)),
             exit = fadeOut(animationSpec = tween(durationMillis = 150)),
         ) {
             LazyRow(
-                modifier = rowModifier,
+                modifier = rowModifier.padding(top = spaceBetween),
                 contentPadding = contentPadding,
                 reverseLayout = reverseLayout,
                 horizontalArrangement = horizontalArrangement,
@@ -106,7 +108,7 @@ fun <T> DualLazyRow(
     }
 }
 
-@ThemePreview
+@Preview
 @Composable
 fun PreviewDualLazyRow() {
     val items = remember { mutableStateListOf("tags", "400", "43093", "and", "nine") }
@@ -114,14 +116,10 @@ fun PreviewDualLazyRow() {
         Frame(title = "Preview") {
             Column {
                 DualLazyRow(
-                    modifier = Modifier.padding(padding.md),
-                    items = items
+                    modifier = Modifier.padding(padding.md), items = items
                 ) { tag ->
-                    TagChip(
-                        modifier = Modifier.animateItem(),
-                        tag = tag,
-                        selected = true,
-                        onClick = {
+                    SelectedTagChip(
+                        modifier = Modifier.animateItem(), tag = tag, onClick = {
                             items.remove(tag)
                         })
                 }

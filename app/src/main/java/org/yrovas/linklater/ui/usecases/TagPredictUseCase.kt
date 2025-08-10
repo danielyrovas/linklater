@@ -11,13 +11,16 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.AppScope
+import org.yrovas.linklater.Log
 import org.yrovas.linklater.data.local.TagDataSource
-import org.yrovas.linklater.data.models.Bookmark
 
+@AppScope
 @Inject
-class TagPredictUseCase(
-    private val tagSource: TagDataSource,
-) {
+class TagPredictUseCase(private val tagSource: TagDataSource) {
+    init {
+        Log.d { "Initialised TagPredictUseCase" }
+    }
 
     private val _tags: MutableStateFlow<List<String>> = MutableStateFlow(listOf())
     val tags = _tags.asStateFlow()
@@ -46,17 +49,5 @@ class TagPredictUseCase(
             }
         }.stateIn(
             scope = scope, started = SharingStarted.WhileSubscribed(), initialValue = tags.value
-        )
-
-    fun recentTags(
-        bookmarkFlow: StateFlow<List<Bookmark>>,
-        scope: CoroutineScope): StateFlow<List<String>> =
-        combine(
-            bookmarkFlow,
-            tags,
-        ) { bookmarkFlow, tags ->
-            bookmarkFlow.flatMap { it.tags }.distinct().take(10)
-        }.stateIn(
-            scope = scope, started = SharingStarted.WhileSubscribed(), initialValue = emptyList()
         )
 }

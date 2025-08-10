@@ -2,7 +2,6 @@ package org.yrovas.linklater
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import co.touchlab.kermit.LogWriter
 import co.touchlab.kermit.Severity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

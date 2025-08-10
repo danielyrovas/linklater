@@ -10,7 +10,7 @@ class EmptyTagSource() : TagDataSource {
         return listOf(listOf("Not-A-Tag", "Not-A-Two")).asFlow()
     }
 
-    override fun getRecentTags(): Flow<List<String>> {
+    override fun getRecentTags(count: Long): Flow<List<String>> {
         return listOf(listOf("Not-A-Tag")).asFlow()
     }
 }

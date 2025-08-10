@@ -45,7 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import org.yrovas.linklater.ThemePreview
+import org.yrovas.linklater.Preview
 import org.yrovas.linklater.readClipboard
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
@@ -90,10 +90,11 @@ private fun TextPreference(
     var showDialog by remember { mutableStateOf(false) }
 
     if (showDialog) {
-        Dialog(properties = DialogProperties(
-            dismissOnBackPress = true,
-            dismissOnClickOutside = true,
-        ), onDismissRequest = { showDialog = false }) {
+        Dialog(
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true,
+            ), onDismissRequest = { showDialog = false }) {
             TextEditDialog(
                 name, placeholder, infoPreview, infoTitle, info, state, onSave, onCheck
             ) {
@@ -169,7 +170,8 @@ private fun TextEditDialog(
                 name, color = colorScheme.onSurface, style = typography.titleLarge
             )
             Spacer(modifier = Modifier.height(padding.md))
-            OutlinedTextField(currentInput,
+            OutlinedTextField(
+                currentInput,
                 placeholder = { Text(placeholder) },
                 modifier = Modifier
                     .background(colorScheme.surfaceVariant)
@@ -187,7 +189,8 @@ private fun TextEditDialog(
                         .clip(RoundedCornerShape(5.dp))
                         .background(colorScheme.secondaryContainer)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Start,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -248,7 +251,7 @@ private fun TextEditDialog(
     }
 }
 
-@ThemePreview
+@Preview
 @Composable
 private fun TextPreferenceURLPreview() {
     val state = remember { mutableStateOf("") }
@@ -259,7 +262,8 @@ private fun TextPreferenceURLPreview() {
                     .background(colorScheme.background)
                     .padding(padding.md)
             ) {
-                TextPreference(icon = Icons.Default.Build,
+                TextPreference(
+                    icon = Icons.Default.Build,
                     name = "LinkDing API URL",
                     state = state,
                     onSave = {},
@@ -269,7 +273,7 @@ private fun TextPreferenceURLPreview() {
     }
 }
 
-@ThemePreview
+@Preview
 @Composable
 private fun TextPreferencePreview() {
     val state = remember { mutableStateOf("APITokenstringVeryLongAndRandom") }
@@ -280,7 +284,8 @@ private fun TextPreferencePreview() {
                     .background(colorScheme.background)
                     .padding(padding.md)
             ) {
-                TextPreference(icon = Icons.Default.Build,
+                TextPreference(
+                    icon = Icons.Default.Build,
                     name = "LinkDing API Token",
                     state = state,
                     onSave = {},
@@ -290,7 +295,7 @@ private fun TextPreferencePreview() {
     }
 }
 
-@ThemePreview
+@Preview
 @Composable
 private fun TextEditDialogPreview() {
     val state = remember { mutableStateOf("") }
@@ -301,7 +306,8 @@ private fun TextEditDialogPreview() {
                     .background(colorScheme.background)
                     .padding(padding.lg)
             ) {
-                TextEditDialog(name = "LinkDing API URL",
+                TextEditDialog(
+                    name = "LinkDing API URL",
                     placeholder = "Enter your LinkDing instance URL...",
                     infoPreview = "include /api",
                     infoTitle = "Enter the LinkDing API URL",

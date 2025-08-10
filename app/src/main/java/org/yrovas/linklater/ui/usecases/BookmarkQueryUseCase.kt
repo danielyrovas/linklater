@@ -7,16 +7,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.data.models.Bookmark
 
+@AppScope
 @Inject
 class BookmarkQueryUseCase() {
     fun filteredBookmarks(
-        allBookmarks: StateFlow<List<Bookmark>>,
-        queryFlow: Flow<String>,
-        scope: CoroutineScope
+        bookmarks: StateFlow<List<Bookmark>>, queryFlow: Flow<String>, scope: CoroutineScope
     ): StateFlow<List<Bookmark>> = combine(
-        allBookmarks,
+        bookmarks,
         queryFlow,
     ) { bookmarks, query ->
         if (query.isBlank()) {
@@ -25,23 +25,18 @@ class BookmarkQueryUseCase() {
             bookmarks.filter { bookmarkMatchesQuery(it, query) }
         }
     }.stateIn(
-        scope = scope,
-        started = SharingStarted.WhileSubscribed(),
-        initialValue = allBookmarks.value
+        scope = scope, started = SharingStarted.WhileSubscribed(), initialValue = bookmarks.value
     )
 
     fun filteredBookmarkCount(
-        filteredBookmarks: StateFlow<List<Bookmark>>,
-        queryFlow: Flow<String>,
-        scope: CoroutineScope
-    ): StateFlow<Int> =
-        combine(filteredBookmarks, queryFlow) { bookmarks, query ->
-            bookmarks.size
-        }.stateIn(
-            scope = scope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = filteredBookmarks.value.size
-        )
+        filteredBookmarks: StateFlow<List<Bookmark>>, queryFlow: Flow<String>, scope: CoroutineScope
+    ): StateFlow<Int> = combine(filteredBookmarks, queryFlow) { bookmarks, query ->
+        bookmarks.size
+    }.stateIn(
+        scope = scope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = filteredBookmarks.value.size
+    )
 
     private fun bookmarkMatchesQuery(bookmark: Bookmark, query: String): Boolean {
         val stringWithoutTags = stringWithoutTags(query)

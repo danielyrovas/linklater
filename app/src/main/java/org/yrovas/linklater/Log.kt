@@ -5,9 +5,7 @@ import co.touchlab.kermit.Logger
 import co.touchlab.kermit.Severity
 import co.touchlab.kermit.mutableLoggerConfigInit
 import co.touchlab.kermit.platformLogWriter
-import org.yrovas.linklater.data.local.PrefStore
 import org.yrovas.linklater.data.models.LogMessage
-import org.yrovas.linklater.data.models.Prefs
 
 
 val logWriter = platformLogWriter()
@@ -19,8 +17,7 @@ val defaultSeverity = if (BuildConfig.DEBUG) {
 }
 
 object Log : Logger(
-    config = mutableLoggerConfigInit(logWriter, minSeverity = defaultSeverity),
-    tag = "DebugTracing"
+    config = mutableLoggerConfigInit(logWriter, minSeverity = defaultSeverity), tag = "DebugTracing"
 )
 
 object NetLog : Logger(
@@ -29,8 +26,7 @@ object NetLog : Logger(
 )
 
 object EventLog : Logger(
-    config = mutableLoggerConfigInit(logWriter, minSeverity = defaultSeverity),
-    tag = "EventTracing"
+    config = mutableLoggerConfigInit(logWriter, minSeverity = defaultSeverity), tag = "EventTracing"
 )
 
 fun Logger.setSeverity(severity: Severity) {

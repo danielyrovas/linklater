@@ -42,16 +42,13 @@ fun FloatingTopSearchBar(
     SearchBar(
         state = state,
         inputField = inputField,
-        modifier =
-            modifier
-                .then(
-                    (scrollBehavior?.let { with(it) { Modifier.searchBarScrollBehavior() } }
-                        ?: Modifier)
-                )
-                .windowInsetsPadding(windowInsets)
-                .padding(SearchBarAsTopBarPadding)
-                .fillMaxWidth()
-                .wrapContentWidth(),
+        modifier = modifier
+            .then((scrollBehavior?.let { with(it) { Modifier.searchBarScrollBehavior() } }
+                ?: Modifier))
+            .windowInsetsPadding(windowInsets)
+            .padding(SearchBarAsTopBarPadding)
+            .fillMaxWidth()
+            .wrapContentWidth(),
         shape = shape,
         colors = colors,
         tonalElevation = tonalElevation,

@@ -6,10 +6,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
+import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.Log
 import org.yrovas.linklater.data.local.BookmarkDataSource
 import org.yrovas.linklater.data.models.APIError
@@ -20,10 +20,10 @@ import org.yrovas.linklater.ui.screens.home.FIRST_POSSIBLE_DATE
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
+@AppScope
 @Inject
 class BookmarkSyncUseCase(
-    private val api: BookmarkAPI,
-    private val bookmarkSource: BookmarkDataSource
+    private val api: BookmarkAPI, private val bookmarkSource: BookmarkDataSource
 ) {
 
     // TODO: prompt to delete all when API returns empty result set, handle offline case
@@ -133,12 +133,9 @@ class BookmarkSyncUseCase(
         onError: (APIError) -> Unit,
         scope: CoroutineScope
     ) = scope.launch(Dispatchers.IO) {
-        api.authProvided.transformWhile { emit(it); !it }.collect {
-            if (it) {
-                onRefreshStart()
-                refreshAllBookmarksFromAPI(onError = onError)
-                onRefreshComplete()
-            }
-        }
+        api.waitForAuth()
+        onRefreshStart()
+        refreshAllBookmarksFromAPI(onError = onError)
+        onRefreshComplete()
     }
 }

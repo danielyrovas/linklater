@@ -45,8 +45,7 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     // call from IO context AND within transaction
     // NOTE: this context receiver, currently prevents the use of
     //       transactionWithResult as the transaction block context
-    context(TransactionWithoutReturn, CoroutineScope)
-    private fun upsertBookmark(bookmark: Bookmark) {
+    context(TransactionWithoutReturn, CoroutineScope) private fun upsertBookmark(bookmark: Bookmark) {
         Log.v { "Inserting or updating bookmark: ${bookmark.showTitleOrElse(bookmark.url)}" }
         val id = q.insertBookmark(
             id = bookmark.id,
@@ -96,14 +95,13 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
         startDate: String, endDate: String, exclude: List<Bookmark>?
     ) {
         withContext(Dispatchers.IO) {
-            Log.v { "Deleting bookmarks within range: $startDate to $endDate " +
-                "excluding: ${exclude?.joinToString { it.id.toString() }}"
+            Log.v {
+                "Deleting bookmarks within range: $startDate to $endDate " + "excluding: ${exclude?.joinToString { it.id.toString() }}"
             }
             q.transaction {
                 if (exclude == null) q.deleteBookmarksCreatedWithinRange(startDate, endDate)
-                else q.deleteBookmarksCreatedWithinRangeExcluding(startDate,
-                    endDate,
-                    exclude.map { it.id })
+                else q.deleteBookmarksCreatedWithinRangeExcluding(
+                    startDate, endDate, exclude.map { it.id })
             }
         }
     }
@@ -120,8 +118,8 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
             val keepIds = bookmarks.map { it.id }
             q.transaction {
                 if (bookmarks.size > 1) {
-                    Log.v { "Deleting bookmarks within range: $startDate to $endDate " +
-                        "excluding: ${keepIds.joinToString { it.toString() }}"
+                    Log.v {
+                        "Deleting bookmarks within range: $startDate to $endDate " + "excluding: ${keepIds.joinToString { it.toString() }}"
                     }
                     q.deleteBookmarksCreatedWithinRangeExcluding(
                         start_date = startDate, end_date = endDate, exclude = keepIds

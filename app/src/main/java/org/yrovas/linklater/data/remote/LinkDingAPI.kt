@@ -26,10 +26,10 @@ import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.Log
 import org.yrovas.linklater.checkBookmarkAPIToken
 import org.yrovas.linklater.checkURL
+import org.yrovas.linklater.data.models.APIError
 import org.yrovas.linklater.data.models.Bookmark
 import org.yrovas.linklater.data.models.BookmarkMetadata
 import org.yrovas.linklater.data.models.LocalBookmark
-import org.yrovas.linklater.data.models.APIError
 import org.yrovas.linklater.data.models.showTitleOrElse
 
 const val MAX_PAGE_COUNT = 10000
@@ -53,7 +53,7 @@ class LinkDingAPI(
         endpoint: String?,
         token: String?,
     ): Result<Unit, APIError> {
-       Log.v { "Retrieved authentication for $endpoint" }
+        Log.v { "Retrieved authentication for $endpoint" }
 
         if (!endpoint.isNullOrBlank()) {
             if (!checkURL(endpoint)) return Err(APIError.INCORRECT_ENDPOINT)

@@ -1,7 +1,6 @@
 package org.yrovas.linklater.data.local
 
 import kotlinx.coroutines.flow.Flow
-import org.yrovas.linklater.AppScope
 import org.yrovas.linklater.data.models.Bookmark
 
 interface BookmarkDataSource {
@@ -16,9 +15,8 @@ interface BookmarkDataSource {
         startDate: String,
         endDate: String,
     )
+
     suspend fun deleteWithinRange(
-        startDate: String,
-        endDate: String,
-        exclude: List<Bookmark>? = null
+        startDate: String, endDate: String, exclude: List<Bookmark>? = null
     )
 }

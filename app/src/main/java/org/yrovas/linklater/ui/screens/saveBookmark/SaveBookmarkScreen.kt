@@ -50,6 +50,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavBackStack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.readClipboard
 import org.yrovas.linklater.show
@@ -57,6 +58,7 @@ import org.yrovas.linklater.ui.activity.AppActivity
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
 import org.yrovas.linklater.ui.common.KeyboardRow
+import org.yrovas.linklater.ui.common.SelectedTagChip
 import org.yrovas.linklater.ui.common.TagChip
 import org.yrovas.linklater.ui.common.TagPredictRow
 import org.yrovas.linklater.ui.screens.LocalBackStack
@@ -65,22 +67,24 @@ import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Effect
 import org.yrovas.linklater.ui.screens.saveBookmark.SaveBookmarkModel.Event
 import org.yrovas.linklater.ui.screens.saveBookmark.components.AnimatePasteTextField
 import org.yrovas.linklater.ui.screens.saveBookmark.components.DualLazyRow
+import org.yrovas.linklater.ui.screens.saveBookmark.components.ExpandableTagRow
 import org.yrovas.linklater.ui.screens.saveBookmark.components.TitledTextField
 import org.yrovas.linklater.ui.theme.padding
 
-typealias SaveBookmarkScreen = @Composable () -> Unit
+typealias SaveBookmarkScreen = @Composable (bookmarkParam: BookmarkParam) -> Unit
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Inject
 @Composable
 fun SaveBookmarkScreen(
-    saveBookmarkModel: () -> SaveBookmarkModel,
+    @Assisted bookmarkParam: BookmarkParam,
+    saveBookmarkModel: (bookmarkParam: BookmarkParam) -> SaveBookmarkModel,
     backStack: NavBackStack = LocalBackStack.current,
     back: () -> Unit = { backStack.removeLastOrNull() },
     snackState: SnackbarHostState = LocalSnackState.current,
     exitOnSuccess: Boolean = false,
 ) {
-    val state = viewModel { saveBookmarkModel() }
+    val state = viewModel { saveBookmarkModel(bookmarkParam) }
     val isSubmitting by state.isSubmitting.collectAsState()
     val scope = rememberCoroutineScope()
     val bookmarkExists by state.bookmarkExists.collectAsState()
@@ -92,7 +96,7 @@ fun SaveBookmarkScreen(
     val unread by state.bookmarkUnread.collectAsState()
     val shared by state.bookmarkShared.collectAsState()
     val selectedTags by state.selectedTags.collectAsState()
-//    val unselectedTags by state.unselectedTags.collectAsState()
+    val moreTags by state.moreTags.collectAsState()
     var showPredictedTags by remember { mutableStateOf(false) }
     val recentTags by state.recentTags.collectAsState()
     val context: Context = LocalContext.current
@@ -102,20 +106,20 @@ fun SaveBookmarkScreen(
                 Toast.makeText(context, "Saved Bookmark", Toast.LENGTH_SHORT).show()
                 context.finish()
             } else {
+                backStack.removeLastOrNull()
                 snackState.showSnackbar("Saved Bookmark")
-                back()
             }
         }
     }
 
-    state.subscribeEffects(scope) { effect ->
+    state.subscribeEffects { effect ->
         when (effect) {
-            Effect.SubmitSuccess -> onSubmitSuccess()
-            is Effect.SubmitError -> {
+            Effect.SubmitSuccess -> scope.launch { onSubmitSuccess() }
+            is Effect.SubmitError -> scope.launch {
                 snackState.show(effect.error)
             }
 
-            is Effect.InvalidBookmark -> {
+            is Effect.InvalidBookmark -> scope.launch {
                 snackState.showSnackbar(effect.message)
             }
         }
@@ -172,7 +176,7 @@ fun SaveBookmarkScreen(
             TitledTextField(
                 state = state.bookmarkTagNames,
                 onFocusChanged = { showPredictedTags = it },
-                modifier = Modifier.padding(bottom = padding.sm),
+                modifier = Modifier.padding(bottom = padding.md),
                 label = "Tags",
                 placeholder = "Enter tags...",
                 leadingIcon = Icons.Default.Tag,
@@ -180,16 +184,16 @@ fun SaveBookmarkScreen(
             DualLazyRow(
                 items = selectedTags,
                 horizontalArrangement = Arrangement.spacedBy(padding.sm),
+                spaceBetween = padding.sm,
                 modifier = Modifier
                     .fillMaxWidth()
                     .animateContentSize(
                         animationSpec = tween(durationMillis = 180)
                     )
             ) { tag ->
-                TagChip(
+                SelectedTagChip(
                     modifier = Modifier.animateItem(),
                     tag = tag,
-                    selected = true,
                     onClick = { state.sendEvent(Event.ToggleSelectTag(tag)) })
             }
             Spacer(modifier = Modifier.height(padding.md))
@@ -200,21 +204,10 @@ fun SaveBookmarkScreen(
                 TagChip(
                     modifier = Modifier.animateItem(),
                     tag = tag,
-                    selected = false,
                     onClick = { state.sendEvent(Event.ToggleSelectTag(tag)) })
             }
             Spacer(modifier = Modifier.height(padding.md))
 
-//            Column(modifier = Modifier.height(recentRows * 30.dp)) {
-//                LazyHorizontalStaggeredGrid(
-//                    rows = StaggeredGridCells.Fixed(recentRows),
-//                ) {
-//                    items(recentTags, key = { it }) { tag ->
-//                        TagChip(
-//                            modifier = Modifier.animateItem(),
-//                            tag = tag,
-//                            selected = false,
-//                            onClick = { state.sendEvent(Event.ToggleSelectTag(tag)) })
             TitledTextField(
                 state = state.bookmarkTitle,
                 modifier = Modifier.padding(bottom = padding.lg),
@@ -225,8 +218,8 @@ fun SaveBookmarkScreen(
             TitledTextField(
                 state = state.bookmarkDescription,
                 modifier = Modifier.padding(bottom = padding.lg),
-                label = previewDescription ?: "Description",
-                placeholder = "Leave blank to use website description",
+                label = "Description",
+                placeholder = previewDescription ?: "Leave blank to use website description",
                 leadingIcon = Icons.AutoMirrored.Filled.ShortText,
             )
 
@@ -271,6 +264,14 @@ fun SaveBookmarkScreen(
                 placeholder = "Enter notes...",
                 leadingIcon = Icons.AutoMirrored.Filled.Notes
             )
+
+            ExpandableTagRow(
+                tags = moreTags, title = "More Tags", onTagSelect = { tag ->
+                    state.sendEvent(Event.ToggleSelectTag(tag))
+                })
+
+            Spacer(modifier = Modifier.height(padding.xl))
+            Spacer(modifier = Modifier.height(padding.lg))
         }
     }
 }
