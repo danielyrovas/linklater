@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -23,6 +22,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -30,12 +30,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import io.ktor.http.Url
-import org.yrovas.linklater.ThemePreview
+import org.yrovas.linklater.Preview
 import org.yrovas.linklater.data.models.Bookmark
 import org.yrovas.linklater.data.models.showDescriptionOrElse
-import org.yrovas.linklater.data.models.showTitleOrElse
+import org.yrovas.linklater.data.models.showTitle
 import org.yrovas.linklater.openUri
 import org.yrovas.linklater.timeAgo
+import org.yrovas.linklater.ui.common.TagChip
 import org.yrovas.linklater.ui.theme.AppTheme
 import org.yrovas.linklater.ui.theme.padding
 import kotlin.time.Clock
@@ -44,22 +45,30 @@ import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 @Composable
-fun BookmarkRow(bookmark: Bookmark, onTagSelect: (tag: String) -> Unit) {
+fun BookmarkRow(
+    bookmark: Bookmark,
+    onBookmarkSelect: (bookmark: Bookmark) -> Unit = {},
+    onBookmarkDeselect: (bookmark: Bookmark) -> Unit = {},
+    onTagSelect: (tag: String) -> Unit,
+) {
     val context: Context = LocalContext.current
     var selected by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .clickable { selected = !selected },
+            .clickable {
+                selected = !selected
+                if (selected) onBookmarkSelect(bookmark) else onBookmarkDeselect(bookmark)
+            },
         verticalArrangement = Arrangement.Center,
     ) {
         Spacer(modifier = Modifier.height(padding.xs))
-        Column(
-            modifier = Modifier
-                .padding(horizontal = padding.md),
-        ) {
+        Column {
             Row(
-                modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = padding.md),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
                     text = Url(bookmark.url).host,
@@ -73,45 +82,47 @@ fun BookmarkRow(bookmark: Bookmark, onTagSelect: (tag: String) -> Unit) {
                     ), style = typography.labelLarge, color = colorScheme.outline
                 )
             }
-            Spacer(modifier = Modifier.height(padding.xs))
-            Row {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = padding.xs),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = bookmark.showTitleOrElse(bookmark.url.substringAfter("://")),
+                    text = bookmark.showTitle(),
                     overflow = TextOverflow.Ellipsis,
-                    maxLines = if (selected) 5 else 2,
+                    maxLines = if (selected) 8 else 2,
                     style = typography.titleLarge,
                     color = colorScheme.primary,
                     modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = padding.xs)
+                        .clip(RoundedCornerShape(8.dp))
                         .clickable { context.openUri(bookmark.url.toUri()) }
-                        .animateContentSize())
+                        .animateContentSize()
+                        .padding(horizontal = padding.sm, vertical = padding.xs))
             }
             if (!bookmark.description.isNullOrBlank() || !bookmark.website_description.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(padding.sm))
                 Row {
                     Text(
                         text = bookmark.showDescriptionOrElse(""),
                         overflow = TextOverflow.Ellipsis,
-                        maxLines = if (selected) 10 else 2,
+                        maxLines = if (selected) 15 else 2,
                         style = typography.bodyMedium,
                         color = colorScheme.outline,
-                        modifier = Modifier.animateContentSize()
+                        modifier = Modifier
+                            .animateContentSize()
+                            .padding(horizontal = padding.md)
+                            .padding(top = padding.xs)
                     )
                 }
             }
         }
         val tags by remember { mutableStateOf(bookmark.tags.sorted()) } // prevent re-sorting every render
         if (bookmark.tags.isNotEmpty()) {
-//            Spacer(modifier = Modifier.height(padding.sm))
             LazyRow(modifier = Modifier.padding(horizontal = padding.sm)) {
                 items(tags, key = { it }) {
-                    Text(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(16.dp))
-                            .clickable { onTagSelect(it) }
-                            .padding(padding.sm)
-                        ,
-                        text = "#$it", color = colorScheme.tertiary,
-                    )
+                    TagChip(tag = it, onClick = { onTagSelect(it) })
                 }
             }
             Spacer(modifier = Modifier.height(padding.xs))
@@ -119,7 +130,7 @@ fun BookmarkRow(bookmark: Bookmark, onTagSelect: (tag: String) -> Unit) {
     }
 }
 
-@ThemePreview
+@Preview
 @Composable
 fun PreviewBookmarkRow() {
     AppTheme {
@@ -143,8 +154,7 @@ fun PreviewBookmarkRow() {
                         tags = listOf(
                             "tag", "myself", "with", "the", "best", "tags"
                         )
-                    ), onTagSelect = {}
-                )
+                    ), onTagSelect = {})
             }
         }
     }

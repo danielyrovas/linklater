@@ -8,11 +8,10 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ProvidableCompositionLocal
@@ -44,8 +43,7 @@ sealed interface Direction {
     data object Up : Direction
 }
 
-val LocalBackStack: ProvidableCompositionLocal<NavBackStack> =
-    compositionLocalOf { NavBackStack() }
+val LocalBackStack: ProvidableCompositionLocal<NavBackStack> = compositionLocalOf { NavBackStack() }
 
 val LocalSnackState: ProvidableCompositionLocal<SnackbarHostState> =
     compositionLocalOf { SnackbarHostState() }
@@ -75,19 +73,19 @@ fun NavigationHost(
                 initialOffsetY = { if (dir is Direction.Down) -it else it },
             ) togetherWith ExitTransition.KeepUntilTransitionsFinished
         } + NavDisplay.popTransitionSpec {
-            EnterTransition.None togetherWith
-                slideOutVertically(
-                    targetOffsetY = { if (dir is Direction.Down) -it else it },
-                )
+            EnterTransition.None togetherWith slideOutVertically(
+                targetOffsetY = { if (dir is Direction.Down) -it else it },
+            )
         } + NavDisplay.predictivePopTransitionSpec {
-            EnterTransition.None togetherWith
-                slideOutVertically(
-                    targetOffsetY = { if (dir is Direction.Down) -it else it },
-                )
+            EnterTransition.None togetherWith slideOutVertically(
+                targetOffsetY = { if (dir is Direction.Down) -it else it },
+            )
         }
     }
 
-    CompositionLocalProvider(LocalBackStack provides backStack, LocalSnackState provides snackState) {
+    CompositionLocalProvider(
+        LocalBackStack provides backStack, LocalSnackState provides snackState
+    ) {
         NavDisplay(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
@@ -115,29 +113,26 @@ fun NavigationHost(
                 }
                 entry<Destination.SaveBookmark>(
                     metadata = animateEntry(Direction.Up)
-                ) {
-                    saveBookmarkScreen()()
+                ) { destination ->
+                    saveBookmarkScreen()(destination.param)
                 }
             },
 
             transitionSpec = {
-                slideInHorizontally(initialOffsetX = { it }) togetherWith
-                    slideOutHorizontally(targetOffsetX = { -it })
+                slideInHorizontally(initialOffsetX = { it }) togetherWith slideOutHorizontally(
+                    targetOffsetX = { -it })
             },
             popTransitionSpec = {
-                slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                    slideOutHorizontally(targetOffsetX = { it })
+                slideInHorizontally(initialOffsetX = { -it }) togetherWith slideOutHorizontally(
+                    targetOffsetX = { it })
             },
             predictivePopTransitionSpec = {
-                slideInHorizontally(initialOffsetX = { -it }) togetherWith
-                    slideOutHorizontally(targetOffsetX = { it })
-            }
-        )
+                slideInHorizontally(initialOffsetX = { -it }) togetherWith slideOutHorizontally(
+                    targetOffsetX = { it })
+            })
     }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-//        Column(modifier = Modifier.align(Alignment.BottomStart)) {
-            SnackbarHost(hostState = snackState)
-//        }
+        SnackbarHost(hostState = snackState)
     }
 }

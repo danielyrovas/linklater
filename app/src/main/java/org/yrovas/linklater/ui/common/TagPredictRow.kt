@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.HorizontalDivider
@@ -20,8 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import org.yrovas.linklater.ThemePreview
+import org.yrovas.linklater.Preview
 import org.yrovas.linklater.ui.theme.AppTheme
+import org.yrovas.linklater.ui.theme.padding
 
 @Composable
 fun TagPredictRow(predictedTags: StateFlow<List<String>>, onClick: (String) -> Unit) {
@@ -39,12 +41,14 @@ fun TagPredictRow(predictedTags: StateFlow<List<String>>, onClick: (String) -> U
         ) {
             itemsIndexed(tagPredictions) { index, tag ->
                 TagChip(
-                    modifier = Modifier.animateItem(),
-                    tag = tag
+                    modifier = Modifier.animateItem(), tag = tag
                 ) { onClick(tag) }
                 if (index < tagPredictions.lastIndex) {
                     VerticalDivider(
-                        modifier = Modifier.height(20.dp), color = colorScheme.outline
+                        modifier = Modifier
+                            .height(18.dp)
+                            .padding(horizontal = padding.md),
+                        color = colorScheme.outline
                     )
                 }
             }
@@ -53,7 +57,7 @@ fun TagPredictRow(predictedTags: StateFlow<List<String>>, onClick: (String) -> U
     }
 }
 
-@ThemePreview
+@Preview
 @Composable
 fun TagPredictRowPreview() {
     val predictedTags: StateFlow<List<String>> = MutableStateFlow(listOf("tag1", "tag2", "tag3"))

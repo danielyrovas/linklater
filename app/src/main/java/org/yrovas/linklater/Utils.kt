@@ -1,6 +1,5 @@
 package org.yrovas.linklater
 
-import android.app.Activity
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -10,14 +9,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import kotlinx.datetime.Instant
 import org.yrovas.linklater.data.models.APIError
-import kotlin.collections.distinct
-import kotlin.collections.filter
 import kotlin.math.abs
-import kotlin.text.contains
-import kotlin.text.isNotBlank
-import kotlin.text.split
 import kotlin.time.ExperimentalTime
 
 fun checkURL(url: String) = url.contains(Regex("^https?://.+[.].+"))
@@ -36,16 +29,19 @@ fun timeAgo(timestamp: kotlin.time.Instant, now: kotlin.time.Instant): String {
         differenceInSeconds < 86400 -> stringResource(
             R.string.hours_ago, (differenceInSeconds / 3600).toInt()
         )
+
         differenceInSeconds < 2628000 -> {
             val days = (differenceInSeconds / 86400).toInt()
             if (days == 1) stringResource(R.string.day_ago, days)
             else stringResource(R.string.days_ago, days)
         }
+
         differenceInSeconds < 31536000 -> {
             val months = (differenceInSeconds / 2628000).toInt()
             if (months == 1) stringResource(R.string.month_ago, months)
             else stringResource(R.string.months_ago, months)
         }
+
         else -> {
             val years = (differenceInSeconds / 31536000).toInt()
             if (years == 1) stringResource(R.string.year_ago, years)
@@ -82,6 +78,10 @@ fun Context.getAppVersion(): String {
 @Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
 annotation class ThemePreview
+
+@Preview(name = "Dark Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "Light Mode", showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+annotation class Preview
 
 fun String.intoTags(): List<String> =
     split(" ").filter { it.isNotBlank() }.distinct()

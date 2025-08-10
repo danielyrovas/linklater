@@ -1,5 +1,6 @@
 package org.yrovas.linklater.ui.screens.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,18 +8,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.input.clearText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddLink
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.ProgressIndicatorDefaults
@@ -34,19 +34,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Inject
-import org.yrovas.linklater.ui.common.FloatingTopSearchBar
+import org.yrovas.linklater.Log
 import org.yrovas.linklater.show
+import org.yrovas.linklater.ui.common.FloatingTopSearchBar
 import org.yrovas.linklater.ui.common.Frame
 import org.yrovas.linklater.ui.common.Icon
+import org.yrovas.linklater.ui.common.IconButton
 import org.yrovas.linklater.ui.common.KeyboardRow
+import org.yrovas.linklater.ui.common.SlideSwipeRowItem
 import org.yrovas.linklater.ui.common.TagPredictRow
 import org.yrovas.linklater.ui.screens.Destination
 import org.yrovas.linklater.ui.screens.LocalBackStack
@@ -54,6 +59,7 @@ import org.yrovas.linklater.ui.screens.LocalSnackState
 import org.yrovas.linklater.ui.screens.home.HomeModel.Effect
 import org.yrovas.linklater.ui.screens.home.HomeModel.Event
 import org.yrovas.linklater.ui.screens.home.components.BookmarkRow
+import org.yrovas.linklater.ui.screens.saveBookmark.BookmarkParam
 import org.yrovas.linklater.ui.theme.padding
 
 typealias HomeScreen = @Composable () -> Unit
@@ -76,6 +82,7 @@ fun HomeScreen(homeModel: () -> HomeModel) {
     val scrollBehavior = SearchBarDefaults.enterAlwaysSearchBarScrollBehavior()
     val refreshState = rememberPullToRefreshState()
     val isRefreshing by state.isRefreshing.collectAsState()
+    var expandedBookmarkId: Long? by remember { mutableStateOf(null) }
     val resultText = if (bookmarks.isEmpty() && queryState.text.isNotBlank()) {
         "No bookmarks... try entering your credentials into the settings."
     } else if (queryState.text.isNotBlank()) {
@@ -95,9 +102,8 @@ fun HomeScreen(homeModel: () -> HomeModel) {
             leadingIcon = {
                 if (searchBarState.isExpanded) {
                     IconButton(
-                        onClick = { scope.launch { searchBarState.animateToCollapsed() } }) {
-                        Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = "Back")
-                    }
+                        icon = Icons.AutoMirrored.Default.ArrowBack,
+                        onClick = { scope.launch { searchBarState.animateToCollapsed() } })
                 } else {
                     Icon(Icons.Default.Search)
                 }
@@ -105,30 +111,31 @@ fun HomeScreen(homeModel: () -> HomeModel) {
             trailingIcon = {
                 if (searchBarState.isExpanded) {
                     IconButton(
-                        onClick = {
-                            queryState.clearText()
+                        icon = Icons.Default.Close, onClick = {
+                            state.sendEvent(Event.ClearSearch)
                             scope.launch { searchBarState.animateToCollapsed() }
-                        }) {
-                        Icon(Icons.Default.Close)
-                    }
+                        })
                 } else {
                     IconButton(
-                        onClick = {
+                        icon = Icons.Default.MoreVert, onClick = {
                             backStack.add(Destination.Preferences)
-                        }) {
-                        Icon(Icons.Default.MoreVert)
-                    }
+                        })
                 }
             },
         )
     }
 
-    state.subscribeEffects(scope) { effect ->
+    state.subscribeEffects { effect ->
         when (effect) {
-            is Effect.RefreshError -> snackState.show(effect.error)
+            is Effect.RefreshError -> scope.launch {
+                snackState.show(effect.error)
+            }
         }
     }
 
+    BackHandler(queryState.text.isNotEmpty()) {
+        state.sendEvent(Event.ClearSearch)
+    }
 
     Frame(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -141,7 +148,7 @@ fun HomeScreen(homeModel: () -> HomeModel) {
         },
         fab = {
             ExtendedFloatingActionButton(
-                onClick = { backStack.add(Destination.SaveBookmark) },
+                onClick = { backStack.add(Destination.SaveBookmark()) },
                 expanded = expandedFab,
                 icon = { Icon(Icons.Filled.AddLink) },
                 text = { Text("Add bookmark") },
@@ -179,8 +186,7 @@ fun HomeScreen(homeModel: () -> HomeModel) {
                 }
             }) {
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 state = listState,
                 contentPadding = PaddingValues(padding.xs),
                 verticalArrangement = Arrangement.spacedBy(padding.sm),
@@ -196,12 +202,61 @@ fun HomeScreen(homeModel: () -> HomeModel) {
                     )
                 }
                 items(bookmarks, key = { it.id }) { bookmark ->
-                    BookmarkRow(bookmark) { tag ->
-                        state.sendEvent(Event.SearchForTag(tag))
-                        scope.launch {
-                            listState.animateScrollToItem(0)
-                            scrollBehavior.scrollOffset = 0f
+                    SlideSwipeRowItem(
+                        isRevealed = expandedBookmarkId == bookmark.id, onRevealed = {
+                        Log.d { "onRevealed: ${bookmark.id}" }
+                        if (expandedBookmarkId != bookmark.id) {
+                            expandedBookmarkId = bookmark.id
                         }
+                    }, onCollapsed = {
+                        Log.d { "onCollapsed: ${bookmark.id}" }
+                        if (expandedBookmarkId == bookmark.id) {
+                            expandedBookmarkId = null
+                        }
+                    }, startActions = listOf(
+                        {
+                            IconButton(icon = Icons.Default.Edit, onClick = {
+                                backStack.add(
+                                    Destination.SaveBookmark(
+                                        BookmarkParam.Edit(
+                                            bookmark.id
+                                        )
+                                    )
+                                )
+                            })
+                        },
+                    ), endActions = listOf(
+                        {
+                            IconButton(icon = Icons.Default.Edit, onClick = {
+                                backStack.add(
+                                    Destination.SaveBookmark(
+                                        BookmarkParam.Edit(
+                                            bookmark.id
+                                        )
+                                    )
+                                )
+                            })
+                        },
+                    )
+                    ) {
+                        BookmarkRow(bookmark, onBookmarkSelect = {
+                            if (expandedBookmarkId == bookmark.id) {
+                                Log.d { "onBookmarkSelect" }
+                                expandedBookmarkId = null
+                            }
+                        }, onBookmarkDeselect = {
+                            if (expandedBookmarkId == bookmark.id) {
+                                Log.d { "onBookmarkDeselect" }
+                                expandedBookmarkId = null
+                            }
+                        }, onTagSelect = { tag ->
+                            expandedBookmarkId = null
+                            state.sendEvent(Event.SearchForTag(tag))
+                            scope.launch {
+                                listState.animateScrollToItem(0)
+                                scrollBehavior.scrollOffset = 0f
+                            }
+                        })
                     }
                 }
             }

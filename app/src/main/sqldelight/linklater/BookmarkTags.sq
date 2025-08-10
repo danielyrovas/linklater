@@ -117,7 +117,7 @@ JOIN bookmarkTags AS bt ON bt.tagID = t.id
 JOIN bookmarkEntity AS b ON b.id = bt.bookmarkID
 GROUP BY t.id
 ORDER BY last_used DESC
-LIMIT 10
+LIMIT :count
 ;
 
 insertTag:

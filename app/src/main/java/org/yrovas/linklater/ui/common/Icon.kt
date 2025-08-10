@@ -14,9 +14,7 @@ fun Icon(
     contentDescription: String? = null,
 ) {
     androidx.compose.material3.Icon(
-        modifier = modifier,
-        painter = painter,
-        tint = tint, contentDescription = contentDescription
+        modifier = modifier, painter = painter, tint = tint, contentDescription = contentDescription
     )
 }
 
@@ -27,9 +25,7 @@ fun Icon(
     contentDescription: String? = null,
 ) {
     androidx.compose.material3.Icon(
-        modifier = modifier,
-        painter = painter,
-        contentDescription = contentDescription
+        modifier = modifier, painter = painter, contentDescription = contentDescription
     )
 }
 
@@ -40,9 +36,7 @@ fun Icon(
     contentDescription: String? = null,
 ) {
     androidx.compose.material3.Icon(
-        modifier = modifier,
-        imageVector = imageVector,
-        contentDescription = contentDescription
+        modifier = modifier, imageVector = imageVector, contentDescription = contentDescription
     )
 }
 
@@ -56,6 +50,7 @@ fun Icon(
     androidx.compose.material3.Icon(
         modifier = modifier,
         imageVector = imageVector,
-        tint = tint, contentDescription = contentDescription
+        tint = tint,
+        contentDescription = contentDescription
     )
 }

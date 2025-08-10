@@ -1,15 +1,10 @@
 package org.yrovas.linklater.ui.activity
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.yrovas.linklater.AppComponent
 import org.yrovas.linklater.Log
 import org.yrovas.linklater.create

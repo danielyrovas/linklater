@@ -7,6 +7,7 @@ import linklater.BookmarkEntity
 import linklater.GetBookmarkByIDwithTags
 import linklater.GetBookmarkByURLwithTags
 import linklater.GetBookmarksWithTags
+import kotlin.text.substringAfter
 import kotlin.time.ExperimentalTime
 
 // A 1:1 representation of a LinkDing bookmark.
@@ -46,6 +47,16 @@ fun Bookmark.showTitleOrElse(value: String): String {
         website_title
     } else {
         value
+    }
+}
+
+fun Bookmark.showTitle(): String {
+    return if (!title.isNullOrBlank()) {
+        title
+    } else if (!website_title.isNullOrBlank()) {
+        website_title
+    } else {
+        url.substringAfter("://")
     }
 }
 

@@ -19,6 +19,7 @@ class PrefStoreImpl(private val store: DataStore<Preferences>) : PrefStore {
     init {
         Log.v { "Creating Preferences DataStore" }
     }
+
     override suspend fun <T> getPrefs(
         key: Preferences.Key<T>,
         default: T,

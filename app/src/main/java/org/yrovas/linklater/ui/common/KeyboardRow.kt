@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -27,12 +26,7 @@ import androidx.compose.ui.zIndex
 fun KeyboardRow(content: @Composable () -> Unit) {
     val isImeVisible = WindowInsets.isImeVisible
     val density = LocalDensity.current
-
     val offsetY = WindowInsets.ime.getBottom(density)
-            // take into account padding from system bars (navigation pill/buttons)
-            // No longer need to as global box is inside padding
-            // - WindowInsets.systemBars.getBottom(density)
-
     var previousOffset by remember { mutableIntStateOf(0) }
 
     val isKeyboardGoingDown by remember(offsetY) {
@@ -52,8 +46,7 @@ fun KeyboardRow(content: @Composable () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .zIndex(3f),
-            contentAlignment = Alignment.BottomStart
+                .zIndex(3f), contentAlignment = Alignment.BottomStart
         ) {
             Box(modifier = Modifier
                 .offset { IntOffset(0, -offsetY) }

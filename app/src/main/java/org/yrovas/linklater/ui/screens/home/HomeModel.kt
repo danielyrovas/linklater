@@ -1,6 +1,7 @@
 package org.yrovas.linklater.ui.screens.home
 
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.clearText
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.FlowPreview
@@ -10,7 +11,6 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.data.models.APIError
-import org.yrovas.linklater.data.remote.BookmarkAPI
 import org.yrovas.linklater.ui.screens.ScreenEffect
 import org.yrovas.linklater.ui.screens.ScreenEvent
 import org.yrovas.linklater.ui.screens.ScreenModel
@@ -22,14 +22,14 @@ const val FIRST_POSSIBLE_DATE = "0000-01-01T00:00:00Z"
 
 @Inject
 class HomeModel(
-    private val api: BookmarkAPI,
-    private val tagPredictUseCase: TagPredictUseCase,
+    tagPredictUseCase: TagPredictUseCase,
     private val bookmarkSyncUseCase: BookmarkSyncUseCase,
-    private val bookmarkQueryUseCase: BookmarkQueryUseCase,
+    bookmarkQueryUseCase: BookmarkQueryUseCase,
 ) : ScreenModel<HomeModel.Event, HomeModel.Effect>() {
 
     sealed interface Event : ScreenEvent {
         data object RefreshBookmarks : Event
+        data object ClearSearch : Event
         data class SelectTagPrediction(val tag: String) : Event
         data class SearchForTag(val tag: String) : Event
     }
@@ -44,17 +44,19 @@ class HomeModel(
         refreshRemoteBookmarks()
     }
 
-    private fun refreshRemoteBookmarks() = bookmarkSyncUseCase.fetchRemoteBookmarks(
-        scope = viewModelScope,
-        onRefreshStart = { _isRefreshing.update { true } },
-        onRefreshComplete = { _isRefreshing.update { false } },
-        onError = {
-            sendEffect(Effect.RefreshError(it))
-        })
+    private fun refreshRemoteBookmarks() =
+        bookmarkSyncUseCase.fetchRemoteBookmarks(
+            scope = viewModelScope,
+            onRefreshStart = { _isRefreshing.update { true } },
+            onRefreshComplete = { _isRefreshing.update { false } },
+            onError = {
+                sendEffect(Effect.RefreshError(it))
+            })
 
     override fun handleEvent(event: Event) {
         when (event) {
             Event.RefreshBookmarks -> refreshRemoteBookmarks()
+            Event.ClearSearch -> bookmarkQueryState.clearText()
             is Event.SelectTagPrediction -> selectTagPrediction(event.tag)
             is Event.SearchForTag -> searchForTag(event.tag)
         }
