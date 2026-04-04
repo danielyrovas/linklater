@@ -4,7 +4,9 @@
 ## Features
 - Save bookmarks through the Android share menu.
 - Easily add tags to bookmarks.
-- View recent bookmarks.
+- Edit bookmarks.
+- View bookmarks.
+- Search by tag or title / description.
 
 ## Examples
 <div align="center">
@@ -15,15 +17,15 @@
 
 ## Installation
 
-1. Use an [F-Droid](https://f-droid.org/) [client](https://android.izzysoft.de/applists/category/named/apps_markets#group_1181) such as [Droid-ify](https://f-droid.org/en/packages/com.looker.droidify/) to install it from the [IzzySoft repository](https://apt.izzysoft.de/packages/org.yrovas.linklater/),
-2. Use [Obtainium](https://github.com/ImranR98/Obtainium) to install and update from GitHub, or
-3. Download the latest apk from the [releases page](https://github.com/danielyrovas/linklater/releases/latest).
+- Use an [F-Droid](https://f-droid.org/) [client](https://android.izzysoft.de/applists/category/named/apps_markets#group_1181) such as [Droid-ify](https://f-droid.org/en/packages/com.looker.droidify/) to install it from the [IzzySoft repository](https://apt.izzysoft.de/packages/org.yrovas.linklater/),
+- use [Obtainium](https://github.com/ImranR98/Obtainium) to install and update from GitHub,
+- download the latest apk from the [releases page](https://github.com/danielyrovas/linklatr/releases/latest), or
+- download it from the [Play Store](https://play.google.com/store/apps/details?id=org.yrovas.linklater).
 
 ## TODO:
-- Provide management operations on bookmarks: edit/delete.
-- Make tag predictions smarter.
+- Delete bookmarks.
 - Tests.
-- Use Fastlane to release on the Play store.
+- Use Fastlane to automatically release on the Play store.
 
 ## Free Software
 
