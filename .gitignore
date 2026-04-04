@@ -1,5 +1,6 @@
 # android signing key
 android-keystore.jks
+app/release/app-release.aab
 
 *.iml
 .gradle
