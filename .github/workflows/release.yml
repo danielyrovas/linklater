@@ -4,17 +4,39 @@ on:
   push:
     branches:
       - trunk
-      # tags:
-      #   - 'v*.*.*'
+concurrency:
+  group: release
+  cancel-in-progress: false
 jobs:
-  build:
+  check:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.head_commit.message, 'skip-ci') }}
+    permissions:
+      contents: read
+    outputs:
+      released: ${{ steps.tag.outputs.released }}
+      version: ${{ steps.tag.outputs.version }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - id: tag
+        run: |
           APP_VERSION=$(grep 'app-version-name' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
-          echo "RELEASE_VERSION=$APP_VERSION" >> $GITHUB_ENV
+          echo "version=$APP_VERSION" >> $GITHUB_OUTPUT
+          if git ls-remote --exit-code --tags origin "refs/tags/$APP_VERSION" > /dev/null; then
+            echo "$APP_VERSION is already released, skipping"
+            echo "released=true" >> $GITHUB_OUTPUT
+          else
+            echo "released=false" >> $GITHUB_OUTPUT
+          fi
+
+  build:
+    runs-on: ubuntu-latest
+    needs: check
+    if: ${{ needs.check.outputs.released == 'false' }}
+    env:
+      RELEASE_VERSION: ${{ needs.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
       - name: Set up JDK env
         uses: actions/setup-java@v4
         with:
