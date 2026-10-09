@@ -6,6 +6,25 @@ on:
       - trunk
 
 jobs:
+  build-renovate:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.user.login == 'renovate[bot]' }}
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up JDK env
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+          cache: 'gradle'
+
+      - name: Execute Gradle build
+        run: ./gradlew --no-daemon --build-cache assembleRelease
+
   build:
     runs-on: ubuntu-latest
     if: ${{ !contains(github.event.head_commit.message, 'skip-ci') && contains(fromJson('["danielyrovas" ]'), github.event.pull_request.user.login) }}
