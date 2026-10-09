@@ -10,7 +10,7 @@ android-minSdk = "26"
 
 agp = "8.11.1"
 androidx-core-ktx = "1.16.0"
-androidx-material3 = "1.5.0-alpha01"
+androidx-material3 = "1.5.0-beta01"
 androidx-material = "1.8.3"
 androidx-material-icons = "1.7.8"
 kotlin = "2.2.0"
