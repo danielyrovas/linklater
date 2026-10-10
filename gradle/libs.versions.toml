@@ -16,7 +16,7 @@ androidx-material-icons = "1.7.8"
 kotlin = "2.4.21"
 kotlin-inject = "0.9.0"
 kotlin-inject-anvil = "0.1.7"
-ksp = "2.3.6"
+ksp = "2.3.12"
 activity-compose = "1.13.0"
 navigation3 = "1.2.0"
 navigation3-lifecycle = "2.11.0"
@@ -83,7 +83,6 @@ sqldelight-coroutines-extensions = { module = "app.cash.sqldelight:coroutines-ex
 
 [plugins]
 android = { id = "com.android.application", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
