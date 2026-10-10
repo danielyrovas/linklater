@@ -22,12 +22,11 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavBackStack
-import androidx.navigation3.runtime.entry
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
-import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
 import me.tatarka.inject.annotations.Assisted
 import me.tatarka.inject.annotations.Inject
 import org.yrovas.linklater.AppViewModel
@@ -43,7 +42,8 @@ sealed interface Direction {
     data object Up : Direction
 }
 
-val LocalBackStack: ProvidableCompositionLocal<NavBackStack> = compositionLocalOf { NavBackStack() }
+val LocalBackStack: ProvidableCompositionLocal<NavBackStack<NavKey>> =
+    compositionLocalOf { NavBackStack() }
 
 val LocalSnackState: ProvidableCompositionLocal<SnackbarHostState> =
     compositionLocalOf { SnackbarHostState() }
@@ -90,9 +90,8 @@ fun NavigationHost(
             backStack = backStack,
             onBack = { backStack.removeLastOrNull() },
             entryDecorators = listOf(
-                rememberSavedStateNavEntryDecorator(),
+                rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator(),
-                rememberSceneSetupNavEntryDecorator()
             ),
             entryProvider = entryProvider {
                 entry<Destination.Home> {

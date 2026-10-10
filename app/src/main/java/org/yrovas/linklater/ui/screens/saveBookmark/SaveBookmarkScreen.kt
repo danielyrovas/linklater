@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavBackStack
+import androidx.navigation3.runtime.NavKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.tatarka.inject.annotations.Assisted
@@ -79,7 +80,7 @@ typealias SaveBookmarkScreen = @Composable (bookmarkParam: BookmarkParam) -> Uni
 fun SaveBookmarkScreen(
     @Assisted bookmarkParam: BookmarkParam,
     saveBookmarkModel: (bookmarkParam: BookmarkParam) -> SaveBookmarkModel,
-    backStack: NavBackStack = LocalBackStack.current,
+    backStack: NavBackStack<NavKey> = LocalBackStack.current,
     back: () -> Unit = { backStack.removeLastOrNull() },
     snackState: SnackbarHostState = LocalSnackState.current,
     exitOnSuccess: Boolean = false,
