@@ -1,6 +1,6 @@
 package org.yrovas.linklater.data.local
 
-import app.cash.sqldelight.TransactionWithoutReturn
+import app.cash.sqldelight.TransactionCallbacks
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import kotlinx.coroutines.CoroutineScope
@@ -43,9 +43,8 @@ class BookmarkDataSourceImpl(db: Database) : BookmarkDataSource {
     }
 
     // call from IO context AND within transaction
-    // NOTE: this context receiver, currently prevents the use of
-    //       transactionWithResult as the transaction block context
-    context(TransactionWithoutReturn, CoroutineScope) private fun upsertBookmark(bookmark: Bookmark) {
+    context(_: TransactionCallbacks, _: CoroutineScope)
+    private fun upsertBookmark(bookmark: Bookmark) {
         Log.v { "Inserting or updating bookmark: ${bookmark.showTitleOrElse(bookmark.url)}" }
         val id = q.insertBookmark(
             id = bookmark.id,
