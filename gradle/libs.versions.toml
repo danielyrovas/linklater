@@ -4,35 +4,35 @@ app-version-code = "19"
 app-version-name = "2.3"
 app-javaVersion = "VERSION_21"
 android-kotlinJVMTarget = "21"
-android-compileSdk = "36"
+android-compileSdk = "37"
 android-targetSdk = "36"
 android-minSdk = "26"
 
-agp = "8.11.1"
-androidx-core-ktx = "1.16.0"
-androidx-material3 = "1.5.0-alpha01"
-androidx-material = "1.8.3"
+agp = "9.4.1"
+androidx-core-ktx = "1.19.1"
+androidx-material3 = "1.5.0-beta01"
+androidx-material = "1.12.1"
 androidx-material-icons = "1.7.8"
-kotlin = "2.2.0"
-kotlin-inject = "0.8.0"
+kotlin = "2.4.21"
+kotlin-inject = "0.9.0"
 kotlin-inject-anvil = "0.1.7"
-ksp = "2.2.0-2.0.2"
+ksp = "2.3.6"
 activity-compose = "1.13.0"
-navigation3 = "1.0.0-alpha06"
-navigation3-lifecycle = "1.0.0-alpha04"
-compose-bom = "2025.07.00"
-ktor = "3.2.3"
-kotlinx-serialization-json = "1.9.0"
-kotlinx-datetime = "0.7.1"
+navigation3 = "1.2.0"
+navigation3-lifecycle = "2.11.0"
+compose-bom = "2026.09.00"
+ktor = "3.6.0"
+kotlinx-serialization-json = "1.11.0"
+kotlinx-datetime = "0.8.0"
 junit = "4.13.2"
 androidx-test-ext-junit = "1.3.0"
 espresso-core = "3.7.0"
-lifecycle-runtime-ktx = "2.9.2"
-datastore = "1.1.7"
-sqldelight = "2.1.0"
-kotlin-result = "2.1.0"
+lifecycle-runtime-ktx = "2.11.0"
+datastore = "1.2.1"
+sqldelight = "2.4.1"
+kotlin-result = "2.3.1"
 kermit = "2.2.0"
-sentry = "8.18.0"
+#sentry = "8.18.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
@@ -73,7 +73,7 @@ compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
-sentry = { module = "io.sentry:sentry-android-core", version.ref = "sentry" }
+#sentry = { module = "io.sentry:sentry-android-core", version.ref = "sentry" }
 
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
