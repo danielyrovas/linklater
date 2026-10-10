@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android)
@@ -54,9 +55,11 @@ android {
         targetCompatibility = javaVersion
     }
 
-    kotlinOptions {
-        jvmTarget = libs.versions.android.kotlinJVMTarget.get()
-        freeCompilerArgs += "-Xcontext-receivers"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.kotlinJVMTarget.get()))
+            freeCompilerArgs.add("-Xcontext-receivers")
+        }
     }
 
     buildFeatures {
