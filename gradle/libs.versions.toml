@@ -32,7 +32,7 @@ datastore = "1.1.7"
 sqldelight = "2.1.0"
 kotlin-result = "2.1.0"
 kermit = "2.2.0"
-sentry = "8.18.0"
+sentry = "8.60.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core-ktx" }
