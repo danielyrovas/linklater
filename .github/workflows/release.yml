@@ -17,7 +17,7 @@ jobs:
       released: ${{ steps.tag.outputs.released }}
       version: ${{ steps.tag.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: tag
         run: |
           APP_VERSION=$(grep 'app-version-name' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
@@ -36,7 +36,7 @@ jobs:
     env:
       RELEASE_VERSION: ${{ needs.check.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up JDK env
         uses: actions/setup-java@v4
         with:
