@@ -117,7 +117,9 @@ fun HomeScreen(homeModel: () -> HomeModel) {
                         })
                 } else {
                     IconButton(
-                        icon = Icons.Default.MoreVert, onClick = {
+                        icon = Icons.Default.MoreVert,
+                        contentDescription = "Preferences",
+                        onClick = {
                             backStack.add(Destination.Preferences)
                         })
                 }

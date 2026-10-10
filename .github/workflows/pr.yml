@@ -9,8 +9,12 @@ permissions:
 
 jobs:
   build:
+    name: ${{ matrix.task }}
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.user.login != 'github-actions[bot]' }}
+    strategy:
+      matrix:
+        task: [testDebugUnitTest, assembleRelease]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -23,5 +27,5 @@ jobs:
           java-version: 21
           cache: 'gradle'
 
-      - name: Execute Gradle build
-        run: ./gradlew --no-daemon --build-cache assembleRelease
+      - name: Run ${{ matrix.task }}
+        run: ./gradlew --no-daemon --build-cache ${{ matrix.task }}
