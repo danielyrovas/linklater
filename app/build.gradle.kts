@@ -1,9 +1,7 @@
-import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.kotlin.serialization)
@@ -55,12 +53,6 @@ android {
         targetCompatibility = javaVersion
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.kotlinJVMTarget.get()))
-        }
-    }
-
     buildFeatures {
         compose = true
         buildConfig = true
@@ -87,13 +79,11 @@ android {
             }
         }
     }
+}
 
-    applicationVariants.all { variant ->
-        variant.outputs.all {
-            (this as BaseVariantOutputImpl).outputFileName =
-                "app-${variant.productFlavors[0].name}-${variant.buildType.name}-${variant.versionName}.apk"
-        }
-        true
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.fromTarget(libs.versions.android.kotlinJVMTarget.get()))
     }
 }
 

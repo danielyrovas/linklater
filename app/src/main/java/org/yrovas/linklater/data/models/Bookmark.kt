@@ -1,6 +1,5 @@
 package org.yrovas.linklater.data.models
 
-import kotlinx.datetime.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import linklater.BookmarkEntity
@@ -9,6 +8,7 @@ import linklater.GetBookmarkByURLwithTags
 import linklater.GetBookmarksWithTags
 import kotlin.text.substringAfter
 import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 // A 1:1 representation of a LinkDing bookmark.
 @Serializable
