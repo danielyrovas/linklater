@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.InterceptPlatformTextInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -43,8 +42,7 @@ fun FloatingTopSearchBar(
         state = state,
         inputField = inputField,
         modifier = modifier
-            .then((scrollBehavior?.let { with(it) { Modifier.searchBarScrollBehavior() } }
-                ?: Modifier))
+            .then(scrollBehavior?.searchBarScrollBehaviorModifier ?: Modifier)
             .windowInsetsPadding(windowInsets)
             .padding(SearchBarAsTopBarPadding)
             .fillMaxWidth()
@@ -74,7 +72,7 @@ fun SearchBar(
     shadowElevation: Dp = SearchBarDefaults.ShadowElevation,
 ) {
     Surface(
-        modifier = modifier.onGloballyPositioned { state.collapsedCoords = it },
+        modifier = modifier,
         shape = shape,
         color = colors.containerColor,
         contentColor = contentColorFor(colors.containerColor),

@@ -254,7 +254,7 @@ fun HomeScreen(homeModel: () -> HomeModel) {
                             state.sendEvent(Event.SearchForTag(tag))
                             scope.launch {
                                 listState.animateScrollToItem(0)
-                                scrollBehavior.scrollOffset = 0f
+                                scrollBehavior.scrollState.scrollOffset = 0f
                             }
                         })
                     }
