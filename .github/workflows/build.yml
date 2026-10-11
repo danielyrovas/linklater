@@ -59,7 +59,7 @@ jobs:
       - name: Verify the APK signature
         run: $BUILD_TOOLS/apksigner verify linklater-release.apk
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         with:
           name: apk
           path: linklater-release.apk
