@@ -1,0 +1,62 @@
+name: Bump Version
+on:
+  push:
+    branches:
+      - trunk
+concurrency:
+  group: bump-version
+  cancel-in-progress: true
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      BRANCH: release
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Bump version
+        run: |
+          NAME=$(grep 'app-version-name' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
+          CODE=$(grep 'app-version-code' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$NAME" > /dev/null; then
+            echo "$NAME is not released yet, skipping"
+            gh pr close "$BRANCH" --delete-branch --comment "Version changed to $NAME on trunk" 2>/dev/null || true
+            echo "SKIP=true" >> "$GITHUB_ENV"
+            exit 0
+          fi
+          NEXT_NAME="${NAME%.*}.$(( ${NAME##*.} + 1 ))"
+          NEXT_CODE=$(( CODE + 1 ))
+          sed -i -e "s/^app-version-name = .*/app-version-name = \"$NEXT_NAME\"/" \
+                 -e "s/^app-version-code = .*/app-version-code = \"$NEXT_CODE\"/" gradle/libs.versions.toml
+          echo "LAST_NAME=$NAME" >> "$GITHUB_ENV"
+          echo "NEXT_NAME=$NEXT_NAME" >> "$GITHUB_ENV"
+          echo "NEXT_CODE=$NEXT_CODE" >> "$GITHUB_ENV"
+
+      - name: Write changelog
+        if: env.SKIP != 'true'
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" \
+            -f tag_name="$NEXT_NAME" -f target_commitish="$GITHUB_SHA" -f previous_tag_name="$LAST_NAME" \
+            --jq .body > notes.md
+          mkdir -p fastlane/metadata/android/en-US/changelogs
+          # "* Title by @user in https://..." -> "- Title"
+          sed -nE '/@renovate/d; s/^\* (.*) by @.*$/- \1/p' notes.md > "fastlane/metadata/android/en-US/changelogs/$NEXT_CODE.txt"
+
+      - name: Open or update release PR
+        if: env.SKIP != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$BRANCH"
+          git add gradle/libs.versions.toml fastlane/metadata/android/en-US/changelogs
+          git commit -m "Release $NEXT_NAME"
+          git push --force origin "$BRANCH"
+          if [ "$(gh pr list --head "$BRANCH" --json number --jq length)" = 0 ]; then
+            gh pr create --base trunk --head "$BRANCH" --title "Release $NEXT_NAME" --body-file "fastlane/metadata/android/en-US/changelogs/$NEXT_CODE.txt"
+          else
+            gh pr edit "$BRANCH" --title "Release $NEXT_NAME" --body-file "fastlane/metadata/android/en-US/changelogs/$NEXT_CODE.txt"
+          fi

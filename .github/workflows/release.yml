@@ -1,88 +1,35 @@
-name: Build, Sign, Release
-permissions: write-all
+name: Release
 on:
   push:
-    branches:
-      - trunk
-concurrency:
-  group: release
-  cancel-in-progress: false
+    tags:
+      - '*'
+      - '!*-*'
 jobs:
-  check:
-    runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.head_commit.message, 'skip-ci') }}
-    permissions:
-      contents: read
-    outputs:
-      released: ${{ steps.tag.outputs.released }}
-      version: ${{ steps.tag.outputs.version }}
-    steps:
-      - uses: actions/checkout@v7
-      - id: tag
-        run: |
-          APP_VERSION=$(grep 'app-version-name' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
-          echo "version=$APP_VERSION" >> $GITHUB_OUTPUT
-          if git ls-remote --exit-code --tags origin "refs/tags/$APP_VERSION" > /dev/null; then
-            echo "$APP_VERSION is already released, skipping"
-            echo "released=true" >> $GITHUB_OUTPUT
-          else
-            echo "released=false" >> $GITHUB_OUTPUT
-          fi
-
   build:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+
+  release:
+    needs: build
     runs-on: ubuntu-latest
-    needs: check
-    if: ${{ needs.check.outputs.released == 'false' }}
+    permissions:
+      contents: write
     env:
-      RELEASE_VERSION: ${{ needs.check.outputs.version }}
+      RELEASE_VERSION: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v7
-      - name: Set up JDK env
-        uses: actions/setup-java@v4
+
+      - uses: actions/download-artifact@v5
         with:
-          distribution: 'temurin'
-          java-version: 21
-          cache: 'gradle'
+          name: apk
 
-      - name: Execute Gradle build
-        run: ./gradlew --no-daemon --build-cache assembleRelease
-
-      - name: Get build tools
-        run: |
-          BUILD_TOOLS_PATH=/usr/local/lib/android/sdk/build-tools/$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
-          echo "BUILD_TOOLS=$BUILD_TOOLS_PATH" >> $GITHUB_ENV
-
-      - name: Zipalign the APK
-        run: |
-          $BUILD_TOOLS/zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app-release-unsigned.apk
-
-      - name: Sign the APK
-        run: |
-          echo "${{ secrets.KEYSTORE }}" > keystore.asc
-          gpg -d --passphrase "${{ secrets.KEY_PASSWD }}" --batch keystore.asc > keystore.jks
-          $BUILD_TOOLS/apksigner sign --ks keystore.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --ks-pass pass:${{ secrets.KEY_PASSWD }} --key-pass pass:${{ secrets.KEY_PASSWD }} --out app-release.apk app-release-unsigned.apk
-
-      - name: Verify the APK signature
-        run: $BUILD_TOOLS/apksigner verify app-release.apk
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Create release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.RELEASE_VERSION }}
-          release_name: Release ${{ env.RELEASE_VERSION }}
-          draft: false
-          prerelease: false
-
-      - name: Upload release APK
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: app-release.apk
-          asset_name: linklater-release.apk
-          asset_content_type: application/vnd.android.package-archive
-
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          CODE=$(grep 'app-version-code' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
+          gh release create "$RELEASE_VERSION" linklater-release.apk \
+            --verify-tag \
+            --title "Release $RELEASE_VERSION" \
+            --latest \
+            --notes-file "fastlane/metadata/android/en-US/changelogs/$CODE.txt"
