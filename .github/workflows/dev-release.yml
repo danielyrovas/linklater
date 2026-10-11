@@ -1,0 +1,39 @@
+name: Build, Sign, (dev)Release
+on:
+  push:
+    branches:
+      - trunk
+concurrency:
+  group: dev-release
+  cancel-in-progress: true
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    secrets: inherit
+
+  dev-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RELEASE_VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: apk
+
+      - name: Create dev release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          LAST_RELEASE=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-pre-releases --exclude-drafts \
+            --limit 1 --json tagName --jq '.[0].tagName // ""')
+          gh release create "${RELEASE_VERSION}-${SHORT_SHA}" linklater-release.apk \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Dev Release ${RELEASE_VERSION}-${SHORT_SHA}" \
+            --prerelease \
+            --generate-notes \
+            ${LAST_RELEASE:+--notes-start-tag "$LAST_RELEASE"}

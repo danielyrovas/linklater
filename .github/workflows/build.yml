@@ -1,0 +1,66 @@
+name: Build and Sign
+on:
+  workflow_call:
+    outputs:
+      version:
+        description: app-version-name from gradle/libs.versions.toml
+        value: ${{ jobs.build.outputs.version }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Get app version
+        id: version
+        run: |
+          APP_VERSION=$(grep 'app-version-name' gradle/libs.versions.toml | sed 's/.*= "\(.*\)"/\1/')
+          echo "version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK env
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: 21
+          cache: 'gradle'
+
+      - name: Execute Gradle build
+        run: ./gradlew --no-daemon --build-cache assembleRelease
+
+      - name: Get build tools
+        run: |
+          BUILD_TOOLS_PATH=/usr/local/lib/android/sdk/build-tools/$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
+          echo "BUILD_TOOLS=$BUILD_TOOLS_PATH" >> "$GITHUB_ENV"
+
+      - name: Zipalign the APK
+        run: |
+          $BUILD_TOOLS/zipalign -v 4 app/build/outputs/apk/release/app-release-unsigned.apk app-release-unsigned.apk
+
+      - name: Sign the APK
+        env:
+          KEYSTORE: ${{ secrets.KEYSTORE }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWD: ${{ secrets.KEY_PASSWD }}
+        run: |
+          printf '%s\n' "$KEYSTORE" > keystore.asc
+          gpg -d --passphrase "$KEY_PASSWD" --batch keystore.asc > keystore.jks
+          "$BUILD_TOOLS/apksigner" sign \
+            --ks keystore.jks \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass "pass:$KEY_PASSWD" \
+            --key-pass "pass:$KEY_PASSWD" \
+            --out linklater-release.apk \
+            app-release-unsigned.apk
+
+      - name: Verify the APK signature
+        run: $BUILD_TOOLS/apksigner verify linklater-release.apk
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: apk
+          path: linklater-release.apk
+          if-no-files-found: error
